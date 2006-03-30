@@ -5,8 +5,8 @@ import java.net.*;
 /**
  * A simple, tiny, nicely embeddable HTTP 1.0 server in Java
  *
- * <p> NanoHTTPD version 1.02,
- * Copyright &copy; 2001,2005 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/)
+ * <p> NanoHTTPD version 1.05,
+ * Copyright &copy; 2001,2005,2006 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/)
  *
  * <p><b>Features & limitations: </b><ul>
  *
@@ -198,7 +198,7 @@ public class NanoHTTPD
 	 */
 	public static void main( String[] args )
 	{
-		System.out.println( "NanoHTTPD 1.02 (C) 2001,2005 Jarno Elonen\n" +
+		System.out.println( "NanoHTTPD 1.04 (C) 2001,2005 Jarno Elonen\n" +
 							"(Command line options: [port] [--licence])\n" );
 
 		// Show licence if requested
@@ -296,9 +296,29 @@ public class NanoHTTPD
 				}
 
 				// If the method is POST, there may be parameters
-				// in data section, too, read another line:
+				// in data section, too, read it:
 				if ( method.equalsIgnoreCase( "POST" ))
-					decodeParms( in.readLine(), parms );
+				{
+					long size = 0x7FFFFFFFFFFFFFFFl;
+					String contentLength = header.getProperty("Content-Length");
+					if (contentLength != null)
+					{
+						try { size = Integer.parseInt(contentLength); }
+						catch (NumberFormatException ex) {}
+					}
+					String postLine = "";
+					char buf[] = new char[512];
+					int read = in.read(buf);
+					while ( read >= 0 && size > 0 && !postLine.endsWith("\r\n") )
+					{
+						size -= read;
+						postLine += String.valueOf(buf);
+						if ( size > 0 )
+							read = in.read(buf);
+					}
+					postLine = postLine.trim();
+					decodeParms( postLine, parms );
+				}
 
 				// Ok, now do the serve()
 				Response r = serve( uri, method, header, parms );
@@ -448,7 +468,6 @@ public class NanoHTTPD
 		}
 
 		private Socket mySocket;
-		private BufferedReader myIn;
 	};
 
 	/**
@@ -473,7 +492,7 @@ public class NanoHTTPD
 	}
 
 	private int myTcpPort;
-	private File myFileDir;
+	File myFileDir;
 
 	// ==================================================
 	// File server code
@@ -580,16 +599,16 @@ public class NanoHTTPD
 			}
 		}
 
-		// Get MIME type from file name extension, if possible
-		String mime = null;
-		int dot = uri.lastIndexOf( '.' );
-		if ( dot >= 0 )
-			mime = (String)theMimeTypes.get( uri.substring( dot + 1 ).toLowerCase());
-		if ( mime == null )
-			mime = MIME_DEFAULT_BINARY;
-
 		try
 		{
+			// Get MIME type from file name extension, if possible
+			String mime = null;
+			int dot = f.getCanonicalPath().lastIndexOf( '.' );
+			if ( dot >= 0 )
+				mime = (String)theMimeTypes.get( f.getCanonicalPath().substring( dot + 1 ).toLowerCase());
+			if ( mime == null )
+				mime = MIME_DEFAULT_BINARY;
+
 			// Support (simple) skipping:
 			long startFrom = 0;
 			String range = header.getProperty( "Range" );
