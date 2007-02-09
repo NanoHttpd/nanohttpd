@@ -5,10 +5,10 @@ import java.net.*;
 /**
  * A simple, tiny, nicely embeddable HTTP 1.0 server in Java
  *
- * <p> NanoHTTPD version 1.05,
- * Copyright &copy; 2001,2005,2006 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/)
+ * <p> NanoHTTPD version 1.1,
+ * Copyright &copy; 2001,2005-2007 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/)
  *
- * <p><b>Features & limitations: </b><ul>
+ * <p><b>Features + limitations: </b><ul>
  *
  *    <li> Only one Java file </li>
  *    <li> Java 1.1 compatible </li>
@@ -25,6 +25,7 @@ import java.net.*;
  *    <li> File server uses current directory as a web root </li>
  *    <li> File server serves also very long files without memory overhead </li>
  *    <li> Contains a built-in list of most common mime types </li>
+ *    <li> All header names are converted lowercase so they don't vary between browsers/clients </li>
  *
  * </ul>
  *
@@ -198,7 +199,7 @@ public class NanoHTTPD
 	 */
 	public static void main( String[] args )
 	{
-		System.out.println( "NanoHTTPD 1.04 (C) 2001,2005 Jarno Elonen\n" +
+		System.out.println( "NanoHTTPD 1.1 (C) 2001,2005-2007 Jarno Elonen\n" +
 							"(Command line options: [port] [--licence])\n" );
 
 		// Show licence if requested
@@ -283,6 +284,8 @@ public class NanoHTTPD
 
 				// If there's another token, it's protocol version,
 				// followed by HTTP headers. Ignore version but parse headers.
+				// NOTE: this now forces header names uppercase since they are
+				// case insensitive and vary by client.
 				Properties header = new Properties();
 				if ( st.hasMoreTokens())
 				{
@@ -290,7 +293,7 @@ public class NanoHTTPD
 					while ( line.trim().length() > 0 )
 					{
 						int p = line.indexOf( ':' );
-						header.put( line.substring(0,p).trim(), line.substring(p+1).trim());
+						header.put( line.substring(0,p).trim().toLowerCase(), line.substring(p+1).trim());
 						line = in.readLine();
 					}
 				}
@@ -300,7 +303,7 @@ public class NanoHTTPD
 				if ( method.equalsIgnoreCase( "POST" ))
 				{
 					long size = 0x7FFFFFFFFFFFFFFFl;
-					String contentLength = header.getProperty("Content-Length");
+					String contentLength = header.getProperty("content-length");
 					if (contentLength != null)
 					{
 						try { size = Integer.parseInt(contentLength); }
@@ -312,7 +315,7 @@ public class NanoHTTPD
 					while ( read >= 0 && size > 0 && !postLine.endsWith("\r\n") )
 					{
 						size -= read;
-						postLine += String.valueOf(buf);
+						postLine += String.valueOf(buf, 0, read);
 						if ( size > 0 )
 							read = in.read(buf);
 					}
@@ -486,7 +489,11 @@ public class NanoHTTPD
 			else if ( tok.equals( " " ))
 				newUri += "%20";
 			else
+			{
 				newUri += URLEncoder.encode( tok );
+				// For Java 1.4 you'll want to use this instead:
+				// try { newUri += URLEncoder.encode( tok, "UTF-8" ); } catch ( UnsupportedEncodingException uee )
+			}
 		}
 		return newUri;
 	}
