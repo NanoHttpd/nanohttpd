@@ -1,12 +1,28 @@
-import java.io.*;
-import java.util.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.URLEncoder;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.StringTokenizer;
+import java.util.TimeZone;
 
 /**
  * A simple, tiny, nicely embeddable HTTP 1.0 server in Java
  *
- * <p> NanoHTTPD version 1.11,
- * Copyright &copy; 2001,2005-2008 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/)
+ * <p> NanoHTTPD version 1.14,
+ * Copyright &copy; 2001,2005-2010 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/)
  *
  * <p><b>Features + limitations: </b><ul>
  *
@@ -167,7 +183,7 @@ public class NanoHTTPD
 	// ==================================================
 	// Socket & server code
 	// ==================================================
-
+	
 	/**
 	 * Starts a HTTP server to given port.<p>
 	 * Throws an IOException if the socket is already in use
@@ -175,31 +191,45 @@ public class NanoHTTPD
 	public NanoHTTPD( int port ) throws IOException
 	{
 		myTcpPort = port;
-
-		final ServerSocket ss = new ServerSocket( myTcpPort );
-		Thread t = new Thread( new Runnable()
+		myServerSocket = new ServerSocket( myTcpPort );
+		myThread = new Thread( new Runnable()
 			{
 				public void run()
 				{
 					try
 					{
 						while( true )
-							new HTTPSession( ss.accept());
+							new HTTPSession( myServerSocket.accept());
 					}
 					catch ( IOException ioe )
 					{}
 				}
 			});
-		t.setDaemon( true );
-		t.start();
+		myThread.setDaemon( true );
+		myThread.start();
 	}
+
+	/**
+	 * Stops the server.
+	 */
+	public void stop()
+	{
+		try
+		{ 
+			myServerSocket.close();
+			myThread.join();
+		}
+		catch ( IOException ioe ) {}
+		catch ( InterruptedException e ) {}
+	}
+
 
 	/**
 	 * Starts as a standalone file server and waits for Enter.
 	 */
 	public static void main( String[] args )
 	{
-		System.out.println( "NanoHTTPD 1.11 (C) 2001,2005-2008 Jarno Elonen\n" +
+		System.out.println( "NanoHTTPD 1.14 (C) 2001,2005-2010 Jarno Elonen\n" +
 							"(Command line options: [port] [--licence])\n" );
 
 		// Show licence if requested
@@ -262,7 +292,9 @@ public class NanoHTTPD
 				BufferedReader in = new BufferedReader( new InputStreamReader( is ));
 
 				// Read the request line
-				StringTokenizer st = new StringTokenizer( in.readLine());
+				String inLine = in.readLine();
+				if (inLine == null) return;
+				StringTokenizer st = new StringTokenizer( inLine );
 				if ( !st.hasMoreTokens())
 					sendError( HTTP_BADREQUEST, "BAD REQUEST: Syntax error. Usage: GET /example/file.html" );
 
@@ -386,7 +418,9 @@ public class NanoHTTPD
 		/**
 		 * Decodes parameters in percent-encoded URI-format
 		 * ( e.g. "name=Jack%20Daniels&pass=Single%20Malt" ) and
-		 * adds them to given Properties.
+		 * adds them to given Properties. NOTE: this doesn't support multiple
+		 * identical keys due to the simplicity of Properties -- if you need multiples,
+		 * you might want to replace the Properties with a Hastable of Vectors or such.
 		 */
 		private void decodeParms( String parms, Properties p )
 			throws InterruptedException
@@ -501,6 +535,9 @@ public class NanoHTTPD
 	}
 
 	private int myTcpPort;
+	private final ServerSocket myServerSocket;
+	private Thread myThread; 
+	
 	File myFileDir;
 
 	// ==================================================
@@ -620,7 +657,7 @@ public class NanoHTTPD
 
 			// Support (simple) skipping:
 			long startFrom = 0;
-			String range = header.getProperty( "Range" );
+			String range = header.getProperty( "range" );
 			if ( range != null )
 			{
 				if ( range.startsWith( "bytes=" ))
@@ -691,7 +728,7 @@ public class NanoHTTPD
 	 * The distribution licence
 	 */
 	private static final String LICENCE =
-		"Copyright (C) 2001,2005-2008 by Jarno Elonen <elonen@iki.fi>\n"+
+		"Copyright (C) 2001,2005-2010 by Jarno Elonen <elonen@iki.fi>\n"+
 		"\n"+
 		"Redistribution and use in source and binary forms, with or without\n"+
 		"modification, are permitted provided that the following conditions\n"+
