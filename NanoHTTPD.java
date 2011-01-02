@@ -25,8 +25,8 @@ import java.io.FileOutputStream;
 /**
  * A simple, tiny, nicely embeddable HTTP 1.0 server in Java
  *
- * <p> NanoHTTPD version 1.2,
- * Copyright &copy; 2001,2005-2010 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/)
+ * <p> NanoHTTPD version 1.21,
+ * Copyright &copy; 2001,2005-2011 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/)
  * and Copyright &copy; 2010 Konstantinos Togias (info@ktogias.gr, http://ktogias.gr)
  *
  * <p><b>Features + limitations: </b><ul>
@@ -73,10 +73,10 @@ public class NanoHTTPD
 	 *
 	 * (By default, this delegates to serveFile() and allows directory listing.)
 	 *
-	 * @parm uri	Percent-decoded URI without parameters, for example "/index.cgi"
-	 * @parm method	"GET", "POST" etc.
-	 * @parm parms	Parsed, percent decoded parameters from URI and, in case of POST, data.
-	 * @parm header	Header entries, percent decoded
+	 * @param uri	Percent-decoded URI without parameters, for example "/index.cgi"
+	 * @param method	"GET", "POST" etc.
+	 * @param parms	Parsed, percent decoded parameters from URI and, in case of POST, data.
+	 * @param header	Header entries, percent decoded
 	 * @return HTTP response, see class Response for details
 	 */
 	public Response serve( String uri, String method, Properties header, Properties parms, Properties files )
@@ -250,7 +250,7 @@ public class NanoHTTPD
 	 */
 	public static void main( String[] args )
 	{
-		System.out.println( "NanoHTTPD 1.2 (C) 2001,2005-2010 Jarno Elonen and (C) 2010 Konstantinos Togias\n" +
+		System.out.println( "NanoHTTPD 1.21 (C) 2001,2005-2011 Jarno Elonen and (C) 2010 Konstantinos Togias\n" +
 							"(Command line options: [port] [--licence])\n" );
 
 		// Show licence if requested
@@ -260,6 +260,7 @@ public class NanoHTTPD
 		{
 			lopt = i;
 			System.out.println( LICENCE + "\n" );
+			break;
 		}
 
 		// Change port if requested
@@ -267,27 +268,21 @@ public class NanoHTTPD
 		if ( args.length > 0 && lopt != 0 )
 			port = Integer.parseInt( args[0] );
 
-		if ( args.length > 1 &&
-			 args[1].toLowerCase().endsWith( "licence" ))
-				System.out.println( LICENCE + "\n" );
-
-		NanoHTTPD nh = null;
 		try
 		{
-			nh = new NanoHTTPD( port );
+			new NanoHTTPD( port );
 		}
 		catch( IOException ioe )
 		{
 			System.err.println( "Couldn't start server:\n" + ioe );
 			System.exit( -1 );
 		}
-		nh.myFileDir = new File("");
 
 		System.out.println( "Now serving files in port " + port + " from \"" +
 							new File("").getAbsolutePath() + "\"" );
 		System.out.println( "Hit Enter to stop.\n" );
 
-		try { System.in.read(); } catch( Throwable t ) {};
+		try { System.in.read(); } catch( Throwable t ) {}
 	}
 
 	/**
@@ -317,8 +312,7 @@ public class NanoHTTPD
 				int bufsize = 8192;
 				byte[] buf = new byte[bufsize];
 				int rlen = is.read(buf, 0, bufsize);
-				if (rlen <= 0)
-				return;
+				if (rlen <= 0) return;
 
 				// Create a BufferedReader for parsing the header.
 				ByteArrayInputStream hbis = new ByteArrayInputStream(buf, 0, rlen);
@@ -357,9 +351,14 @@ public class NanoHTTPD
 
 				// Write the part of body already read to ByteArrayOutputStream f
 				ByteArrayOutputStream f = new ByteArrayOutputStream();
-				f.write(buf, splitbyte, rlen-splitbyte);
+				if (splitbyte < rlen) f.write(buf, splitbyte, rlen-splitbyte);
 
-				// While Firefox sends on the first read all the data fitting our buffer, chrome and opera sends only the headers even if there is data for the body. So we do some magic here to find out whether we have already consumed part of body, if we have reached the end of the data to be sent or  we should expect the first byte of the body at the next read.
+				// While Firefox sends on the first read all the data fitting
+				// our buffer, Chrome and Opera sends only the headers even if
+				// there is data for the body. So we do some magic here to find
+				// out whether we have already consumed part of body, if we
+				// have reached the end of the data to be sent or we should
+				// expect the first byte of the body at the next read.
 				if (splitbyte < rlen)
 					size -= rlen - splitbyte +1;
 				else if (!sbfound || size == 0x7FFFFFFFFFFFFFFFl)
@@ -371,7 +370,8 @@ public class NanoHTTPD
 				{
 					rlen = is.read(buf, 0, 512);
 					size -= rlen;
-					f.write(buf, 0, rlen);
+					if (rlen > 0)
+						f.write(buf, 0, rlen);
 				}
 
 				// Get the raw body as a byte []
@@ -415,14 +415,10 @@ public class NanoHTTPD
 						while ( read >= 0 && !postLine.endsWith("\r\n") )
 						{
 							postLine += String.valueOf(pbuf, 0, read);
-							if ( read > 0 )
-								read = in.read(pbuf);
+							read = in.read(pbuf);
 						}
 						postLine = postLine.trim();
 						decodeParms( postLine, parms );
-
-						System.out.println(postLine);
-						parms.list(System.err);
 					}
 				}
 
@@ -434,6 +430,7 @@ public class NanoHTTPD
 					sendResponse( r.status, r.mimeType, r.header, r.data );
 
 				in.close();
+				is.close();
 			}
 			catch ( IOException ioe )
 			{
@@ -454,6 +451,7 @@ public class NanoHTTPD
 		 * java Properties' key - value pairs
 		**/
 		private  void decodeHeader(BufferedReader in, Properties pre, Properties parms, Properties header)
+			throws InterruptedException
 		{
 			try {
 				// Read the request line
@@ -482,7 +480,7 @@ public class NanoHTTPD
 
 				// If there's another token, it's protocol version,
 				// followed by HTTP headers. Ignore version but parse headers.
-				// NOTE: this now forces header names uppercase since they are
+				// NOTE: this now forces header names lowercase since they are
 				// case insensitive and vary by client.
 				if ( st.hasMoreTokens())
 				{
@@ -500,15 +498,7 @@ public class NanoHTTPD
 			}
 			catch ( IOException ioe )
 			{
-				try
-				{
-					sendError( HTTP_INTERNALERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
-				}
-				catch ( Throwable t ) {}
-			}
-			catch ( InterruptedException ie )
-			{
-				// Thrown by sendError, ignore and exit the thread.
+				sendError( HTTP_INTERNALERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
 			}
 		}
 
@@ -517,6 +507,7 @@ public class NanoHTTPD
 		 * into java Properties' key - value pairs.
 		**/
 		private void decodeMultipartData(String boundary, byte[] fbuf, BufferedReader in, Properties parms, Properties files)
+			throws InterruptedException
 		{
 			try
 			{
@@ -536,8 +527,8 @@ public class NanoHTTPD
 						if (p != -1)
 							item.put( mpline.substring(0,p).trim().toLowerCase(), mpline.substring(p+1).trim());
 						mpline = in.readLine();
-	                }
-	                if (mpline != null)
+					}
+					if (mpline != null)
 					{
 						String contentDisposition = item.getProperty("content-disposition");
 						if (contentDisposition == null)
@@ -552,7 +543,7 @@ public class NanoHTTPD
 							int p = token.indexOf( '=' );
 							if (p!=-1)
 								disposition.put( token.substring(0,p).trim().toLowerCase(), token.substring(p+1).trim());
-                        }
+						}
 						String pname = disposition.getProperty("name");
 						pname = pname.substring(1,pname.length()-1);
 
@@ -565,13 +556,13 @@ public class NanoHTTPD
 								{
 									int d = mpline.indexOf(boundary);
 									if (d == -1)
-									    value+=mpline;
+										value+=mpline;
 									else
 										value+=mpline.substring(0,d-2);
 								}
 							}
 						}
-                        else
+						else
 						{
 							if (boundarycount> bpositions.length)
 								sendError( HTTP_INTERNALERROR, "Error processing request" );
@@ -580,7 +571,7 @@ public class NanoHTTPD
 							files.put(pname, path);
 							value = disposition.getProperty("filename");
 							value = value.substring(1,value.length()-1);
-                            do {
+							do {
 								mpline = in.readLine();
 							} while (mpline != null && mpline.indexOf(boundary) == -1);
 						}
@@ -590,15 +581,7 @@ public class NanoHTTPD
 			}
 			catch ( IOException ioe )
 			{
-				try
-				{
-					sendError( HTTP_INTERNALERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
-				}
-				catch ( Throwable t ) {}
-			}
-			catch ( InterruptedException ie )
-			{
-				// Thrown by sendError, ignore and exit the thread.
+				sendError( HTTP_INTERNALERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
 			}
 		}
 
@@ -608,7 +591,6 @@ public class NanoHTTPD
 		public int[] getBoundaryPositions(byte[] b, byte[] boundary)
 		{
 			int matchcount = 0;
-			int bytecounter = 0;
 			int matchbyte = -1;
 			Vector matchbytes = new Vector();
 			for (int i=0; i<b.length; i++)
@@ -642,26 +624,19 @@ public class NanoHTTPD
 
 		/**
 		 * Retrieves the content of a sent file and saves it
-		 * to a temporery file.
+		 * to a temporary file.
 		 * The full path to the saved file is returned.
 		**/
-		String saveTmpFile(byte[] b, int offset, int len)
+		private String saveTmpFile(byte[] b, int offset, int len)
 		{
 			String path = "";
 			if (len > 0)
 			{
-				byte[] fc = new byte[len];
-				int j = 0;
-				for (int i=offset; j<len && i<b.length; i++)
-				{
-					fc[j] = b[i];
-					j++;
-				}
 				String tmpdir = System.getProperty("java.io.tmpdir");
 				try {
 					File temp = File.createTempFile("NanoHTTPD", "", new File(tmpdir));
 					OutputStream fstream = new FileOutputStream(temp);
-					fstream.write(fc);
+					fstream.write(b, offset, len);
 					fstream.close();
 					path = temp.getAbsolutePath();
 				} catch (Exception e) { // Catch exception if any
@@ -676,7 +651,7 @@ public class NanoHTTPD
 		 * It returns the offset separating multipart file headers
 		 * from the file's data.
 		**/
-		int stripMultipartHeaders(byte[] b, int offset)
+		private int stripMultipartHeaders(byte[] b, int offset)
 		{
 			int i = 0;
 			for (i=offset; i<b.length; i++)
@@ -713,7 +688,7 @@ public class NanoHTTPD
 							break;
 					}
 				}
-				return new String( sb.toString().getBytes());
+				return sb.toString();
 			}
 			catch( Exception e )
 			{
@@ -727,7 +702,7 @@ public class NanoHTTPD
 		 * ( e.g. "name=Jack%20Daniels&pass=Single%20Malt" ) and
 		 * adds them to given Properties. NOTE: this doesn't support multiple
 		 * identical keys due to the simplicity of Properties -- if you need multiples,
-		 * you might want to replace the Properties with a Hastable of Vectors or such.
+		 * you might want to replace the Properties with a Hashtable of Vectors or such.
 		 */
 		private void decodeParms( String parms, Properties p )
 			throws InterruptedException
@@ -748,7 +723,7 @@ public class NanoHTTPD
 
 		/**
 		 * Returns an error message as a HTTP response and
-		 * throws InterruptedException to stop furhter request processing.
+		 * throws InterruptedException to stop further request processing.
 		 */
 		private void sendError( String status, String msg ) throws InterruptedException
 		{
@@ -814,7 +789,7 @@ public class NanoHTTPD
 		}
 
 		private Socket mySocket;
-	};
+	}
 
 	/**
 	 * URL-encodes everything between "/"-characters.
@@ -835,7 +810,7 @@ public class NanoHTTPD
 			{
 				newUri += URLEncoder.encode( tok );
 				// For Java 1.4 you'll want to use this instead:
-				// try { newUri += URLEncoder.encode( tok, "UTF-8" ); } catch ( UnsupportedEncodingException uee ) {}
+				// try { newUri += URLEncoder.encode( tok, "UTF-8" ); } catch ( java.io.UnsupportedEncodingException uee ) {}
 			}
 		}
 		return newUri;
@@ -844,8 +819,6 @@ public class NanoHTTPD
 	private int myTcpPort;
 	private final ServerSocket myServerSocket;
 	private Thread myThread;
-
-	File myFileDir;
 
 	// ==================================================
 	// File server code
@@ -932,11 +905,11 @@ public class NanoHTTPD
 						long len = curFile.length();
 						msg += " &nbsp;<font size=2>(";
 						if ( len < 1024 )
-							msg += curFile.length() + " bytes";
+							msg += len + " bytes";
 						else if ( len < 1024 * 1024 )
-							msg += curFile.length()/1024 + "." + (curFile.length()%1024/10%100) + " KB";
+							msg += len/1024 + "." + (len%1024/10%100) + " KB";
 						else
-							msg += curFile.length()/(1024*1024) + "." + curFile.length()%(1024*1024)/10%100 + " MB";
+							msg += len/(1024*1024) + "." + len%(1024*1024)/10%100 + " MB";
 
 						msg += ")</font>";
 					}
@@ -1027,7 +1000,7 @@ public class NanoHTTPD
 	/**
 	 * GMT date formatter
 	 */
-    private static java.text.SimpleDateFormat gmtFrmt;
+	private static java.text.SimpleDateFormat gmtFrmt;
 	static
 	{
 		gmtFrmt = new java.text.SimpleDateFormat( "E, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
@@ -1038,7 +1011,7 @@ public class NanoHTTPD
 	 * The distribution licence
 	 */
 	private static final String LICENCE =
-		"Copyright (C) 2001,2005-2010 by Jarno Elonen <elonen@iki.fi>\n"+
+		"Copyright (C) 2001,2005-2011 by Jarno Elonen <elonen@iki.fi>\n"+
 		"and Copyright (C) 2010 by Konstantinos Togias <info@ktogias.gr>\n"+
 		"\n"+
 		"Redistribution and use in source and binary forms, with or without\n"+
@@ -1064,3 +1037,4 @@ public class NanoHTTPD
 		"(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n"+
 		"OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.";
 }
+
