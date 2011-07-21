@@ -25,7 +25,7 @@ import java.io.FileOutputStream;
 /**
  * A simple, tiny, nicely embeddable HTTP 1.0 server in Java
  *
- * <p> NanoHTTPD version 1.21,
+ * <p> NanoHTTPD version 1.22,
  * Copyright &copy; 2001,2005-2011 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/)
  * and Copyright &copy; 2010 Konstantinos Togias (info@ktogias.gr, http://ktogias.gr)
  *
@@ -53,7 +53,7 @@ import java.io.FileOutputStream;
  *
  * <p><b>Ways to use: </b><ul>
  *
- *    <li> Run as a standalone app, serves files from current directory and shows requests</li>
+ *    <li> Run as a standalone app, serves files and shows requests</li>
  *    <li> Subclass serve() and embed to your own program </li>
  *    <li> Call serveFile() from serve() with your own base directory </li>
  *
@@ -105,7 +105,7 @@ public class NanoHTTPD
 								files.getProperty( value ) + "'" );
 		}
 
-		return serveFile( uri, header, new File("."), true );
+		return serveFile( uri, header, myRootDir, true );
 	}
 
 	/**
@@ -209,9 +209,10 @@ public class NanoHTTPD
 	 * Starts a HTTP server to given port.<p>
 	 * Throws an IOException if the socket is already in use
 	 */
-	public NanoHTTPD( int port ) throws IOException
+	public NanoHTTPD( int port, File wwwroot ) throws IOException
 	{
 		myTcpPort = port;
+		this.myRootDir = wwwroot;
 		myServerSocket = new ServerSocket( myTcpPort );
 		myThread = new Thread( new Runnable()
 			{
@@ -250,27 +251,28 @@ public class NanoHTTPD
 	 */
 	public static void main( String[] args )
 	{
-		System.out.println( "NanoHTTPD 1.21 (C) 2001,2005-2011 Jarno Elonen and (C) 2010 Konstantinos Togias\n" +
-							"(Command line options: [port] [--licence])\n" );
+		System.out.println( "NanoHTTPD 1.22 (C) 2001,2005-2011 Jarno Elonen and (C) 2010 Konstantinos Togias\n" +
+							"(Command line options: [-p port] [-d root-dir] [--licence])\n" );
 
+		// Defaults
+		int port = 80;
+		File wwwroot = new File(".").getAbsoluteFile();
+		
 		// Show licence if requested
-		int lopt = -1;
 		for ( int i=0; i<args.length; ++i )
-		if ( args[i].toLowerCase().endsWith( "licence" ))
+		if(args[i].equalsIgnoreCase("-p"))
+			port = Integer.parseInt( args[i+1] );
+		else if(args[i].equalsIgnoreCase("-d"))
+			wwwroot = new File( args[i+1] ).getAbsoluteFile();
+		else if ( args[i].toLowerCase().endsWith( "licence" ))
 		{
-			lopt = i;
 			System.out.println( LICENCE + "\n" );
 			break;
 		}
 
-		// Change port if requested
-		int port = 80;
-		if ( args.length > 0 && lopt != 0 )
-			port = Integer.parseInt( args[0] );
-
 		try
 		{
-			new NanoHTTPD( port );
+			new NanoHTTPD( port, wwwroot );
 		}
 		catch( IOException ioe )
 		{
@@ -278,8 +280,7 @@ public class NanoHTTPD
 			System.exit( -1 );
 		}
 
-		System.out.println( "Now serving files in port " + port + " from \"" +
-							new File("").getAbsolutePath() + "\"" );
+		System.out.println( "Now serving files in port " + port + " from \"" + wwwroot + "\"" );
 		System.out.println( "Hit Enter to stop.\n" );
 
 		try { System.in.read(); } catch( Throwable t ) {}
@@ -819,6 +820,7 @@ public class NanoHTTPD
 	private int myTcpPort;
 	private final ServerSocket myServerSocket;
 	private Thread myThread;
+	private File myRootDir;
 
 	// ==================================================
 	// File server code
@@ -885,7 +887,8 @@ public class NanoHTTPD
 					if ( slash >= 0 && slash  < u.length())
 						msg += "<b><a href=\"" + uri.substring(0, slash+1) + "\">..</a></b><br/>";
 				}
-
+				//fix for permission denied on directory != null
+				if(files!=null)
 				for ( int i=0; i<files.length; ++i )
 				{
 					File curFile = new File( f, files[i] );
