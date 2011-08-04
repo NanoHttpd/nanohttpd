@@ -23,9 +23,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 
 /**
- * A simple, tiny, nicely embeddable HTTP 1.0 server in Java
+ * A simple, tiny, nicely embeddable HTTP 1.0 (partially 1.1) server in Java
  *
- * <p> NanoHTTPD version 1.23,
+ * <p> NanoHTTPD version 1.24,
  * Copyright &copy; 2001,2005-2011 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/)
  * and Copyright &copy; 2010 Konstantinos Togias (info@ktogias.gr, http://ktogias.gr)
  *
@@ -38,13 +38,16 @@ import java.io.FileOutputStream;
  *    <li> Supports parameter parsing of GET and POST methods </li>
  *    <li> Supports both dynamic content and file serving </li>
  *    <li> Supports file upload (since version 1.2, 2010) </li>
+ *    <li> Supports partial content (streaming)</li>
+ *    <li> Supports ETags</li>
  *    <li> Never caches anything </li>
  *    <li> Doesn't limit bandwidth, request time or simultaneous connections </li>
  *    <li> Default code serves files and shows all HTTP parameters and headers</li>
- *    <li> File server supports directory listing, index.html and index.htm </li>
+ *    <li> File server supports directory listing, index.html and index.htm</li>
+ *    <li> File server supports partial content (streaming)</li>
+ *    <li> File server supports ETags</li>
  *    <li> File server does the 301 redirection trick for directories without '/'</li>
  *    <li> File server supports simple skipping for files (continue download) </li>
- *    <li> File server uses current directory as a web root </li>
  *    <li> File server serves also very long files without memory overhead </li>
  *    <li> Contains a built-in list of most common mime types </li>
  *    <li> All header names are converted lowercase so they don't vary between browsers/clients </li>
@@ -253,13 +256,13 @@ public class NanoHTTPD
 	 */
 	public static void main( String[] args )
 	{
-		System.out.println( "NanoHTTPD 1.23 (C) 2001,2005-2011 Jarno Elonen and (C) 2010 Konstantinos Togias\n" +
+		System.out.println( "NanoHTTPD 1.24 (C) 2001,2005-2011 Jarno Elonen and (C) 2010 Konstantinos Togias\n" +
 							"(Command line options: [-p port] [-d root-dir] [--licence])\n" );
 
 		// Defaults
 		int port = 80;
 		File wwwroot = new File(".").getAbsoluteFile();
-		
+
 		// Show licence if requested
 		for ( int i=0; i<args.length; ++i )
 		if(args[i].equalsIgnoreCase("-p"))
@@ -952,6 +955,9 @@ public class NanoHTTPD
 				if ( mime == null )
 					mime = MIME_DEFAULT_BINARY;
 
+				// Calculate etag
+				String etag = Integer.toHexString((f.getAbsolutePath() + f.lastModified() + "" + f.length()).hashCode());
+
 				// Support (simple) skipping:
 				long startFrom = 0;
 				long endAt = -1;
@@ -981,6 +987,7 @@ public class NanoHTTPD
 					{
 						res = new Response( HTTP_RANGE_NOT_SATISFIABLE, MIME_PLAINTEXT, "" );
 						res.addHeader( "Content-Range", "bytes 0-0/" + fileLen);
+						res.addHeader( "ETag", etag);
 					}
 					else
 					{
@@ -998,12 +1005,14 @@ public class NanoHTTPD
 						res = new Response( HTTP_PARTIALCONTENT, mime, fis );
 						res.addHeader( "Content-Length", "" + dataLen);
 						res.addHeader( "Content-Range", "bytes " + startFrom + "-" + endAt + "/" + fileLen);
+						res.addHeader( "ETag", etag);
 					}
 				}
 				else
 				{
 					res = new Response( HTTP_OK, mime, new FileInputStream( f ));
 					res.addHeader( "Content-Length", "" + fileLen);
+					res.addHeader( "ETag", etag);
 				}
 			}
 		}
@@ -1024,9 +1033,9 @@ public class NanoHTTPD
 	{
 		StringTokenizer st = new StringTokenizer(
 			"css		text/css "+
-			"js			text/javascript "+
 			"htm		text/html "+
 			"html		text/html "+
+			"xml		text/xml "+
 			"txt		text/plain "+
 			"asc		text/plain "+
 			"gif		image/gif "+
@@ -1035,6 +1044,12 @@ public class NanoHTTPD
 			"png		image/png "+
 			"mp3		audio/mpeg "+
 			"m3u		audio/mpeg-url " +
+			"mp4		video/mp4 " +
+			"ogv		video/ogg " +
+			"flv		video/x-flv " +
+			"mov		video/quicktime " +
+			"swf		application/x-shockwave-flash " +
+			"js			application/javascript "+
 			"pdf		application/pdf "+
 			"doc		application/msword "+
 			"ogg		application/x-ogg "+
