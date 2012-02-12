@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -25,8 +26,8 @@ import java.io.FileOutputStream;
 /**
  * A simple, tiny, nicely embeddable HTTP 1.0 (partially 1.1) server in Java
  *
- * <p> NanoHTTPD version 1.24,
- * Copyright &copy; 2001,2005-2011 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/)
+ * <p> NanoHTTPD version 1.25,
+ * Copyright &copy; 2001,2005-2012 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/)
  * and Copyright &copy; 2010 Konstantinos Togias (info@ktogias.gr, http://ktogias.gr)
  *
  * <p><b>Features + limitations: </b><ul>
@@ -35,7 +36,7 @@ import java.io.FileOutputStream;
  *    <li> Java 1.1 compatible </li>
  *    <li> Released as open source, Modified BSD licence </li>
  *    <li> No fixed config files, logging, authorization etc. (Implement yourself if you need them.) </li>
- *    <li> Supports parameter parsing of GET and POST methods </li>
+ *    <li> Supports parameter parsing of GET and POST methods (+ rudimentary PUT support in 1.25) </li>
  *    <li> Supports both dynamic content and file serving </li>
  *    <li> Supports file upload (since version 1.2, 2010) </li>
  *    <li> Supports partial content (streaming)</li>
@@ -84,27 +85,27 @@ public class NanoHTTPD
 	 */
 	public Response serve( String uri, String method, Properties header, Properties parms, Properties files )
 	{
-		System.out.println( method + " '" + uri + "' " );
+		myOut.println( method + " '" + uri + "' " );
 
 		Enumeration e = header.propertyNames();
 		while ( e.hasMoreElements())
 		{
 			String value = (String)e.nextElement();
-			System.out.println( "  HDR: '" + value + "' = '" +
+			myOut.println( "  HDR: '" + value + "' = '" +
 								header.getProperty( value ) + "'" );
 		}
 		e = parms.propertyNames();
 		while ( e.hasMoreElements())
 		{
 			String value = (String)e.nextElement();
-			System.out.println( "  PRM: '" + value + "' = '" +
+			myOut.println( "  PRM: '" + value + "' = '" +
 								parms.getProperty( value ) + "'" );
 		}
 		e = files.propertyNames();
 		while ( e.hasMoreElements())
 		{
 			String value = (String)e.nextElement();
-			System.out.println( "  UPLOADED: '" + value + "' = '" +
+			myOut.println( "  UPLOADED: '" + value + "' = '" +
 								files.getProperty( value ) + "'" );
 		}
 
@@ -191,6 +192,7 @@ public class NanoHTTPD
 		HTTP_PARTIALCONTENT = "206 Partial Content",
 		HTTP_RANGE_NOT_SATISFIABLE = "416 Requested Range Not Satisfiable",
 		HTTP_REDIRECT = "301 Moved Permanently",
+		HTTP_NOTMODIFIED = "304 Not Modified",
 		HTTP_FORBIDDEN = "403 Forbidden",
 		HTTP_NOTFOUND = "404 Not Found",
 		HTTP_BADREQUEST = "400 Bad Request",
@@ -256,8 +258,8 @@ public class NanoHTTPD
 	 */
 	public static void main( String[] args )
 	{
-		System.out.println( "NanoHTTPD 1.24 (C) 2001,2005-2011 Jarno Elonen and (C) 2010 Konstantinos Togias\n" +
-							"(Command line options: [-p port] [-d root-dir] [--licence])\n" );
+		myOut.println( "NanoHTTPD 1.25 (C) 2001,2005-2011 Jarno Elonen and (C) 2010 Konstantinos Togias\n" +
+				"(Command line options: [-p port] [-d root-dir] [--licence])\n" );
 
 		// Defaults
 		int port = 80;
@@ -271,7 +273,7 @@ public class NanoHTTPD
 			wwwroot = new File( args[i+1] ).getAbsoluteFile();
 		else if ( args[i].toLowerCase().endsWith( "licence" ))
 		{
-			System.out.println( LICENCE + "\n" );
+			myOut.println( LICENCE + "\n" );
 			break;
 		}
 
@@ -281,12 +283,12 @@ public class NanoHTTPD
 		}
 		catch( IOException ioe )
 		{
-			System.err.println( "Couldn't start server:\n" + ioe );
+			myErr.println( "Couldn't start server:\n" + ioe );
 			System.exit( -1 );
 		}
 
-		System.out.println( "Now serving files in port " + port + " from \"" + wwwroot + "\"" );
-		System.out.println( "Hit Enter to stop.\n" );
+		myOut.println( "Now serving files in port " + port + " from \"" + wwwroot + "\"" );
+		myOut.println( "Hit Enter to stop.\n" );
 
 		try { System.in.read(); } catch( Throwable t ) {}
 	}
@@ -427,6 +429,9 @@ public class NanoHTTPD
 						decodeParms( postLine, parms );
 					}
 				}
+
+				if ( method.equalsIgnoreCase( "PUT" ))
+					files.put("content", saveTmpFile( fbuf, 0, f.size()));
 
 				// Ok, now do the serve()
 				Response r = serve( uri, method, header, parms, files );
@@ -646,7 +651,7 @@ public class NanoHTTPD
 					fstream.close();
 					path = temp.getAbsolutePath();
 				} catch (Exception e) { // Catch exception if any
-					System.err.println("Error: " + e.getMessage());
+					myErr.println("Error: " + e.getMessage());
 				}
 			}
 			return path;
@@ -774,10 +779,10 @@ public class NanoHTTPD
 				if ( data != null )
 				{
 					int pending = data.available();	// This is to support partial sends, see serveFile()
-					byte[] buff = new byte[2048];
+					byte[] buff = new byte[theBufferSize];
 					while (pending>0)
 					{
-						int read = data.read( buff, 0, ( (pending>2048) ?  2048 : pending ));
+						int read = data.read( buff, 0, ( (pending>theBufferSize) ?  theBufferSize : pending ));
 						if (read <= 0)	break;
 						out.write( buff, 0, read );
 						pending -= read;
@@ -1010,9 +1015,14 @@ public class NanoHTTPD
 				}
 				else
 				{
-					res = new Response( HTTP_OK, mime, new FileInputStream( f ));
-					res.addHeader( "Content-Length", "" + fileLen);
-					res.addHeader( "ETag", etag);
+					if (etag.equals(header.getProperty("if-none-match")))
+						res = new Response( HTTP_NOTMODIFIED, mime, "");
+					else
+					{
+						res = new Response( HTTP_OK, mime, new FileInputStream( f ));
+						res.addHeader( "Content-Length", "" + fileLen);
+						res.addHeader( "ETag", etag);
+					}
 				}
 			}
 		}
@@ -1059,6 +1069,12 @@ public class NanoHTTPD
 		while ( st.hasMoreTokens())
 			theMimeTypes.put( st.nextToken(), st.nextToken());
 	}
+
+	private static int theBufferSize = 16 * 1024;
+
+	// Change these if you want to log to somewhere else than stdout
+	protected static PrintStream myOut = System.out; 
+	protected static PrintStream myErr = System.err;
 
 	/**
 	 * GMT date formatter
