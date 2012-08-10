@@ -8,7 +8,7 @@ public class HelloServer extends NanoHTTPD
 {
 	public HelloServer() throws IOException
 	{
-		super(8080);
+		super(8080, new File("."));
 	}
 
 	public Response serve( String uri, String method, Properties header, Properties parms, Properties files )
