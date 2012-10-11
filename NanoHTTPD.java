@@ -27,6 +27,8 @@ import java.io.RandomAccessFile;
 import java.io.EOFException;
 import java.nio.channels.FileChannel;
 import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.LinkedList;
 
 /**
  * A simple, tiny, nicely embeddable HTTP 1.0 (partially 1.1) server in Java
@@ -461,6 +463,10 @@ public class NanoHTTPD
 			{
 				// Thrown by sendError, ignore and exit the thread.
 			}
+			finally
+			{
+				myTmpFiles.cleanup();
+			}
 		}
 
 		/**
@@ -651,6 +657,7 @@ public class NanoHTTPD
 				String tmpdir = System.getProperty("java.io.tmpdir");
 				try {
 					File temp = File.createTempFile("NanoHTTPD", "", new File(tmpdir));
+					myTmpFiles.record(temp);
 					OutputStream fstream = new FileOutputStream(temp);
 					fstream.write(b, offset, len);
 					fstream.close();
@@ -670,6 +677,7 @@ public class NanoHTTPD
 				String tmpdir = System.getProperty("java.io.tmpdir");
 				try {
 					File temp = File.createTempFile("NanoHTTPD", "", new File(tmpdir));
+					myTmpFiles.record(temp);
 					ByteBuffer src = b.duplicate();
 					FileChannel dest = new FileOutputStream(temp).getChannel();
 					src.position(offset).limit(offset + len);
@@ -686,6 +694,7 @@ public class NanoHTTPD
 		{
 			String tmpdir = System.getProperty("java.io.tmpdir");
 			File temp = File.createTempFile("NanoHTTPD", "", new File(tmpdir));
+			myTmpFiles.record(temp);
 			return new RandomAccessFile(temp, "rw");
 		}
 
@@ -832,7 +841,23 @@ public class NanoHTTPD
 			}
 		}
 
+		private class TempFiles {
+			private List<File> mmFiles = new LinkedList<File>();
+
+			public void record(File file) {
+				mmFiles.add(file);
+			}
+
+			public void cleanup() {
+				for (File f : mmFiles) {
+					f.delete();
+				}
+				mmFiles.clear();
+			}
+		}
+
 		private Socket mySocket;
+		private TempFiles myTmpFiles = new TempFiles();
 	}
 
 	/**
