@@ -317,10 +317,22 @@ public class NanoHTTPD
 				// Read the first 8192 bytes.
 				// The full header should fit in here.
 				// Apache's default header limit is 8KB.
-				int bufsize = 8192;
+				// Do NOT assume that a single read will get the entire header at once!
+				final int bufsize = 8192;
 				byte[] buf = new byte[bufsize];
-				int rlen = is.read(buf, 0, bufsize);
-				if (rlen <= 0) return;
+				int splitbyte = 0;
+				int rlen = 0;
+				{
+					int read = is.read(buf, 0, bufsize);
+					while (read > 0)
+					{
+						rlen += read;
+						splitbyte = findHeaderEnd(buf, rlen);
+						if (splitbyte > 0)
+							break;
+						read = is.read(buf, rlen, bufsize - rlen);
+					}
+				}
 
 				// Create a BufferedReader for parsing the header.
 				ByteArrayInputStream hbis = new ByteArrayInputStream(buf, 0, rlen);
@@ -343,33 +355,20 @@ public class NanoHTTPD
 					catch (NumberFormatException ex) {}
 				}
 
-				// We are looking for the byte separating header from body.
-				// It must be the last byte of the first two sequential new lines.
-				int splitbyte = 0;
-				boolean sbfound = false;
-				while (splitbyte < rlen)
-				{
-					if (buf[splitbyte] == '\r' && buf[++splitbyte] == '\n' && buf[++splitbyte] == '\r' && buf[++splitbyte] == '\n') {
-						sbfound = true;
-						break;
-					}
-					splitbyte++;
-				}
-				splitbyte++;
-
 				// Write the part of body already read to ByteArrayOutputStream f
 				ByteArrayOutputStream f = new ByteArrayOutputStream();
-				if (splitbyte < rlen) f.write(buf, splitbyte, rlen-splitbyte);
+				if (splitbyte < rlen)
+					f.write(buf, splitbyte, rlen-splitbyte);
 
 				// While Firefox sends on the first read all the data fitting
-				// our buffer, Chrome and Opera sends only the headers even if
-				// there is data for the body. So we do some magic here to find
+				// our buffer, Chrome and Opera send only the headers even if
+				// there is data for the body. We do some magic here to find
 				// out whether we have already consumed part of body, if we
 				// have reached the end of the data to be sent or we should
 				// expect the first byte of the body at the next read.
 				if (splitbyte < rlen)
-					size -= rlen - splitbyte +1;
-				else if (!sbfound || size == 0x7FFFFFFFFFFFFFFFl)
+					size -= rlen-splitbyte+1;
+				else if (splitbyte==0 || size == 0x7FFFFFFFFFFFFFFFl)
 					size = 0;
 
 				// Now read all the body and write it to f
@@ -594,6 +593,22 @@ public class NanoHTTPD
 			{
 				sendError( HTTP_INTERNALERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
 			}
+		}
+
+		/**
+		 * Find byte index separating header from body.
+		 * It must be the last byte of the first two sequential new lines.
+		**/
+		private int findHeaderEnd(final byte[] buf, int rlen)
+		{
+			int splitbyte = 0;
+			while (splitbyte + 3 < rlen)
+			{
+				if (buf[splitbyte] == '\r' && buf[splitbyte + 1] == '\n' && buf[splitbyte + 2] == '\r' && buf[splitbyte + 3] == '\n')
+					return splitbyte + 4;
+				splitbyte++;
+			}
+			return 0;
 		}
 
 		/**
