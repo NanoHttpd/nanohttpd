@@ -23,6 +23,9 @@ import java.util.TimeZone;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 
+import javax.net.ServerSocketFactory;
+import javax.net.ssl.SSLServerSocketFactory;
+
 /**
  * A simple, tiny, nicely embeddable HTTP 1.0 (partially 1.1) server in Java
  *
@@ -220,7 +223,14 @@ public class NanoHTTPD
 	{
 		myTcpPort = port;
 		this.myRootDir = wwwroot;
-		myServerSocket = new ServerSocket( myTcpPort );
+		if (System.getProperty("javax.net.ssl.keyStore") != null) {
+			ServerSocketFactory ssocketFactory = SSLServerSocketFactory.getDefault();
+			myServerSocket = ssocketFactory.createServerSocket(myTcpPort);
+			myServerSocketSSL = true;
+		} else {
+			myServerSocket = new ServerSocket( myTcpPort );
+			myServerSocketSSL = false;
+		}
 		myThread = new Thread( new Runnable()
 			{
 				public void run()
@@ -324,6 +334,13 @@ public class NanoHTTPD
 				int rlen = 0;
 				{
 					int read = is.read(buf, 0, bufsize);
+					if (read <= 0) return;
+					if (read == 1 && myServerSocketSSL) {
+						is = mySocket.getInputStream();
+						if (is == null) return;
+						read += is.read(buf, 1, bufsize - 1);
+						if (read <= 0) return;
+					}
 					while (read > 0)
 					{
 						rlen += read;
@@ -793,14 +810,12 @@ public class NanoHTTPD
 
 				if ( data != null )
 				{
-					int pending = data.available();	// This is to support partial sends, see serveFile()
 					byte[] buff = new byte[theBufferSize];
-					while (pending>0)
+					while (data.available() > 0)
 					{
-						int read = data.read( buff, 0, ( (pending>theBufferSize) ?  theBufferSize : pending ));
+						int read = data.read( buff, 0, theBufferSize);
 						if (read <= 0)	break;
 						out.write( buff, 0, read );
-						pending -= read;
 					}
 				}
 				out.flush();
@@ -835,9 +850,11 @@ public class NanoHTTPD
 				newUri += "%20";
 			else
 			{
-				newUri += URLEncoder.encode( tok );
-				// For Java 1.4 you'll want to use this instead:
-				// try { newUri += URLEncoder.encode( tok, "UTF-8" ); } catch ( java.io.UnsupportedEncodingException uee ) {}
+				try {
+					newUri += URLEncoder.encode( tok, "UTF-8" );
+				} catch ( java.io.UnsupportedEncodingException uee ) {
+					//TODO: report encoding error.
+				}
 			}
 		}
 		return newUri;
@@ -845,8 +862,13 @@ public class NanoHTTPD
 
 	private int myTcpPort;
 	private final ServerSocket myServerSocket;
+	private final boolean myServerSocketSSL;
 	private Thread myThread;
 	private File myRootDir;
+	
+	protected boolean isSecure() {
+		return myServerSocketSSL;
+	}
 
 	// ==================================================
 	// File server code
