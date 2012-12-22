@@ -744,6 +744,8 @@ public class NanoHTTPD
 				if ( sep >= 0 )
 					p.put( decodePercent( e.substring( 0, sep )).trim(),
 						   decodePercent( e.substring( sep+1 )));
+				else
+					p.put( decodePercent( e ).trim(), "" );
 			}
 		}
 
