@@ -1,3 +1,5 @@
+package fi.iki.elonen.NanoHTTPD;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -23,7 +25,7 @@ import java.util.TimeZone;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 
-import javax.net.ServerSocketFactory;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
 
 /**
@@ -90,7 +92,7 @@ public class NanoHTTPD
 	{
 		myOut.println( method + " '" + uri + "' " );
 
-		Enumeration e = header.propertyNames();
+		Enumeration<?> e = header.propertyNames();
 		while ( e.hasMoreElements())
 		{
 			String value = (String)e.nextElement();
@@ -224,9 +226,31 @@ public class NanoHTTPD
 		myTcpPort = port;
 		this.myRootDir = wwwroot;
 		if (System.getProperty("javax.net.ssl.keyStore") != null) {
-			ServerSocketFactory ssocketFactory = SSLServerSocketFactory.getDefault();
-			myServerSocket = ssocketFactory.createServerSocket(myTcpPort);
-			myServerSocketSSL = true;
+			ServerSocket sslSocket = null;
+			boolean sslSocketUsed = false;
+			try {
+				SSLContext sslContext = SSLContext.getDefault();
+				int sessionCacheSize = 1000;
+				if (System.getProperty("javax.net.ssl.sessionCacheSize") != null) {
+					try {
+						sessionCacheSize = Integer.parseInt(System.getProperty("javax.net.ssl.sessionCacheSize"));
+					} catch (NumberFormatException nfe) {
+						sessionCacheSize = 1000;
+					}
+				}
+				sslContext.getServerSessionContext().setSessionCacheSize(sessionCacheSize);
+				sslSocket = sslContext.getServerSocketFactory().createServerSocket(myTcpPort);
+				sslSocketUsed = true;
+			} catch (Exception e) {
+				try {
+					sslSocket.close();
+				} finally {
+					sslSocket = SSLServerSocketFactory.getDefault().createServerSocket(myTcpPort);
+					sslSocketUsed = true;
+				}
+			}
+			myServerSocket = sslSocket;
+			myServerSocketSSL = sslSocketUsed;
 		} else {
 			myServerSocket = new ServerSocket( myTcpPort );
 			myServerSocketSSL = false;
@@ -635,7 +659,7 @@ public class NanoHTTPD
 		{
 			int matchcount = 0;
 			int matchbyte = -1;
-			Vector matchbytes = new Vector();
+			Vector<Integer> matchbytes = new Vector<Integer>();
 			for (int i=0; i<b.length; i++)
 			{
 				if (b[i] == boundary[matchcount])
@@ -761,6 +785,8 @@ public class NanoHTTPD
 				if ( sep >= 0 )
 					p.put( decodePercent( e.substring( 0, sep )).trim(),
 						   decodePercent( e.substring( sep+1 )));
+				else
+					p.put( decodePercent( e ).trim(), "");
 			}
 		}
 
@@ -796,7 +822,7 @@ public class NanoHTTPD
 
 				if ( header != null )
 				{
-					Enumeration e = header.keys();
+					Enumeration<Object> e = header.keys();
 					while ( e.hasMoreElements())
 					{
 						String key = (String)e.nextElement();
@@ -1075,7 +1101,7 @@ public class NanoHTTPD
 	/**
 	 * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
 	 */
-	private static Hashtable theMimeTypes = new Hashtable();
+	private static Hashtable<String, String> theMimeTypes = new Hashtable<String, String>();
 	static
 	{
 		StringTokenizer st = new StringTokenizer(
