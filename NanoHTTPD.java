@@ -23,6 +23,9 @@ import java.util.TimeZone;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocketFactory;
+
 /**
  * A simple, tiny, nicely embeddable HTTP 1.0 (partially 1.1) server in Java
  *
@@ -87,7 +90,7 @@ public class NanoHTTPD
 	{
 		myOut.println( method + " '" + uri + "' " );
 
-		Enumeration e = header.propertyNames();
+		Enumeration<?> e = header.propertyNames();
 		while ( e.hasMoreElements())
 		{
 			String value = (String)e.nextElement();
@@ -220,7 +223,36 @@ public class NanoHTTPD
 	{
 		myTcpPort = port;
 		this.myRootDir = wwwroot;
-		myServerSocket = new ServerSocket( myTcpPort );
+		if (System.getProperty("javax.net.ssl.keyStore") != null) {
+			ServerSocket sslSocket = null;
+			boolean sslSocketUsed = false;
+			try {
+				SSLContext sslContext = SSLContext.getDefault();
+				int sessionCacheSize = 1000;
+				if (System.getProperty("javax.net.ssl.sessionCacheSize") != null) {
+					try {
+						sessionCacheSize = Integer.parseInt(System.getProperty("javax.net.ssl.sessionCacheSize"));
+					} catch (NumberFormatException nfe) {
+						sessionCacheSize = 1000;
+					}
+				}
+				sslContext.getServerSessionContext().setSessionCacheSize(sessionCacheSize);
+				sslSocket = sslContext.getServerSocketFactory().createServerSocket(myTcpPort);
+				sslSocketUsed = true;
+			} catch (Exception e) {
+				try {
+					sslSocket.close();
+				} finally {
+					sslSocket = SSLServerSocketFactory.getDefault().createServerSocket(myTcpPort);
+					sslSocketUsed = true;
+				}
+			}
+			myServerSocket = sslSocket;
+			myServerSocketSSL = sslSocketUsed;
+		} else {
+			myServerSocket = new ServerSocket( myTcpPort );
+			myServerSocketSSL = false;
+		}
 		myThread = new Thread( new Runnable()
 			{
 				public void run()
@@ -324,6 +356,13 @@ public class NanoHTTPD
 				int rlen = 0;
 				{
 					int read = is.read(buf, 0, bufsize);
+					if (read <= 0) return;
+					if (read == 1 && myServerSocketSSL) {
+						is = mySocket.getInputStream();
+						if (is == null) return;
+						read += is.read(buf, 1, bufsize - 1);
+						if (read <= 0) return;
+					}
 					while (read > 0)
 					{
 						rlen += read;
@@ -618,7 +657,7 @@ public class NanoHTTPD
 		{
 			int matchcount = 0;
 			int matchbyte = -1;
-			Vector matchbytes = new Vector();
+			Vector<Integer> matchbytes = new Vector<Integer>();
 			for (int i=0; i<b.length; i++)
 			{
 				if (b[i] == boundary[matchcount])
@@ -744,6 +783,8 @@ public class NanoHTTPD
 				if ( sep >= 0 )
 					p.put( decodePercent( e.substring( 0, sep )).trim(),
 						   decodePercent( e.substring( sep+1 )));
+				else
+					p.put( decodePercent( e ).trim(), "");
 			}
 		}
 
@@ -779,7 +820,7 @@ public class NanoHTTPD
 
 				if ( header != null )
 				{
-					Enumeration e = header.keys();
+					Enumeration<Object> e = header.keys();
 					while ( e.hasMoreElements())
 					{
 						String key = (String)e.nextElement();
@@ -793,14 +834,12 @@ public class NanoHTTPD
 
 				if ( data != null )
 				{
-					int pending = data.available();	// This is to support partial sends, see serveFile()
 					byte[] buff = new byte[theBufferSize];
-					while (pending>0)
+					while (data.available() > 0)
 					{
-						int read = data.read( buff, 0, ( (pending>theBufferSize) ?  theBufferSize : pending ));
+						int read = data.read( buff, 0, theBufferSize);
 						if (read <= 0)	break;
 						out.write( buff, 0, read );
-						pending -= read;
 					}
 				}
 				out.flush();
@@ -835,9 +874,11 @@ public class NanoHTTPD
 				newUri += "%20";
 			else
 			{
-				newUri += URLEncoder.encode( tok );
-				// For Java 1.4 you'll want to use this instead:
-				// try { newUri += URLEncoder.encode( tok, "UTF-8" ); } catch ( java.io.UnsupportedEncodingException uee ) {}
+				try {
+					newUri += URLEncoder.encode( tok, "UTF-8" );
+				} catch ( java.io.UnsupportedEncodingException uee ) {
+					//TODO: report encoding error.
+				}
 			}
 		}
 		return newUri;
@@ -845,8 +886,13 @@ public class NanoHTTPD
 
 	private int myTcpPort;
 	private final ServerSocket myServerSocket;
+	private final boolean myServerSocketSSL;
 	private Thread myThread;
 	private File myRootDir;
+	
+	protected boolean isSecure() {
+		return myServerSocketSSL;
+	}
 
 	// ==================================================
 	// File server code
@@ -1053,7 +1099,7 @@ public class NanoHTTPD
 	/**
 	 * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
 	 */
-	private static Hashtable theMimeTypes = new Hashtable();
+	private static Hashtable<String, String> theMimeTypes = new Hashtable<String, String>();
 	static
 	{
 		StringTokenizer st = new StringTokenizer(
