@@ -211,6 +211,12 @@ public class NanoHTTPD {
         myTcpPort = port;
         this.myRootDir = wwwroot;
         myServerSocket = new ServerSocket(myTcpPort);
+    }
+
+    /**
+     * Starts the server
+     */
+    public void start() {
         myThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -225,7 +231,7 @@ public class NanoHTTPD {
         myThread.setDaemon(true);
         myThread.start();
     }
-
+    
     /**
      * Stops the server.
      */
