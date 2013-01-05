@@ -2,13 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java" afterPath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" afterPath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" />
     </list>
     <ignored path="nanohttpd.iws" />
     <ignored path=".idea/workspace.xml" />
     <file path="/Dummy.txt" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357406763293" ignored="false" />
-    <file path="/NanoHTTPD.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357406641177" ignored="false" />
-    <file path="/HelloServer.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357405747552" ignored="false" />
+    <file path="/NanoHTTPD.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357424956452" ignored="false" />
+    <file path="/HelloServer.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357424980081" ignored="false" />
     <file path="/a.dummy" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357402180797" ignored="false" />
     <file path="/fragment.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357403766648" ignored="false" />
     <file path="/file-upload-test.htm" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357405100108" ignored="false" />
@@ -70,82 +71,32 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="NanoHTTPD.java" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="NanoHTTPD.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="170" column="7" selection-start="6057" selection-end="6057" vertical-scroll-proportion="1.40625">
+            <state line="989" column="52" selection-start="43580" selection-end="43580" vertical-scroll-proportion="0.0">
               <folding>
-                <element signature="docComment;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;field#MIME_TYPES#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="initializer##0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;field#HTTP_OK#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;field#MIME_PLAINTEXT#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;method#NanoHTTPD#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;method#start#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#start#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#stop#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#getRootDir#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#HTTPSession#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#run#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="e#7298#7327#0" expanded="false" />
-                <element signature="e#9509#9570#0" expanded="false" />
-                <element signature="e#10816#10865#0" expanded="false" />
-                <element signature="docComment;method#decodeHeader#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#decodeHeader#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="e#15065#15116#0" expanded="false" />
-                <element signature="docComment;method#decodeMultipartData#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#decodeMultipartData#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;method#findHeaderEnd#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#findHeaderEnd#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;method#getBoundaryPositions#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#getBoundaryPositions#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;method#saveTmpFile#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#saveTmpFile#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;method#stripMultipartHeaders#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#stripMultipartHeaders#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;method#decodePercent#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#decodePercent#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;method#decodeParms#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#decodeParms#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;method#sendError#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#sendError#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;method#sendResponse#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#sendResponse#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="class#Response#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;method#Response#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#Response#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;method#Response#1;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#Response#1;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;method#Response#2;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#Response#2;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;method#addHeader#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#addHeader#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;field#status#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;field#mimeType#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;field#data#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;field#header#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;field#LICENCE#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="docComment;method#main#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="method#main#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="class#32502:43471" expanded="false" />
-                <element signature="method#encodeUri#0;class#32502:43471" expanded="false" />
-                <element signature="method#serveFile#0;class#32502:43471" expanded="false" />
-                <element signature="e#34847#34893#0" expanded="false" />
-                <element signature="class#40849:41129" expanded="false" />
-                <element signature="method#available#0;class#40849:41129" expanded="false" />
-                <element signature="method#serve#0;class#32502:43471" expanded="false" />
+                <element signature="imports" expanded="true" />
+                <element signature="e#2690#2706#0" expanded="true" />
+                <element signature="e#5037#5346#0" expanded="true" />
+                <element signature="e#5335#5336#0" expanded="true" />
+                <element signature="e#8163#8179#0" expanded="true" />
+                <element signature="e#8239#8255#0" expanded="true" />
+                <element signature="e#8314#8330#0" expanded="true" />
+                <element signature="e#16817#16833#0" expanded="true" />
+                <element signature="e#17861#17877#0" expanded="true" />
+                <element signature="e#21068#21077#0" expanded="true" />
+                <element signature="class#HTTP_STATUS#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
+                <element signature="e#30599#30615#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="HelloServer.java" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="HelloServer.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="9" column="11" selection-start="196" selection-end="196" vertical-scroll-proportion="0.0">
+            <state line="18" column="42" selection-start="566" selection-end="566" vertical-scroll-proportion="0.7696793">
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -172,8 +123,8 @@
     <option name="changedFiles">
       <list>
         <option value="$PROJECT_DIR$/file-upload-test.htm" />
-        <option value="$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java" />
         <option value="$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" />
+        <option value="$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java" />
       </list>
     </option>
   </component>
@@ -284,7 +235,7 @@
       <recent name="$PROJECT_DIR$/fi/iki/elonen" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.NanoHTTPd">
+  <component name="RunManager" selected="Application.Hello Server">
     <configuration default="true" type="#org.jetbrains.idea.devkit.run.PluginConfigurationType" factoryName="Plugin">
       <module name="" />
       <option name="VM_PARAMETERS" value="-Xmx512m -Xms256m -XX:MaxPermSize=250m" />
@@ -465,15 +416,15 @@
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32911393" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25" sideWeight="0.6708861" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.14769231" sideWeight="0.6708861" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39963832" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32911393" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32911393" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
@@ -579,15 +530,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="11" selection-start="196" selection-end="196" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="jar:///System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar!/java/net/PlainSocketImpl.class">
       <provider selected="true" editor-type-id="text-editor">
         <state line="120" column="0" selection-start="5152" selection-end="5152" vertical-scroll-proportion="0.0">
@@ -595,72 +537,38 @@
         </state>
       </provider>
     </entry>
+    <entry file="jar:///System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar!/java/lang/Thread.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="224" column="0" selection-start="8395" selection-end="8395" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="170" column="7" selection-start="6057" selection-end="6057" vertical-scroll-proportion="1.40625">
+        <state line="989" column="52" selection-start="43580" selection-end="43580" vertical-scroll-proportion="0.0">
           <folding>
-            <element signature="docComment;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;field#MIME_TYPES#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="initializer##0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;field#HTTP_OK#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;field#MIME_PLAINTEXT#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;method#NanoHTTPD#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;method#start#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#start#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#stop#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#getRootDir#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#HTTPSession#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#run#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="e#7298#7327#0" expanded="false" />
-            <element signature="e#9509#9570#0" expanded="false" />
-            <element signature="e#10816#10865#0" expanded="false" />
-            <element signature="docComment;method#decodeHeader#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#decodeHeader#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="e#15065#15116#0" expanded="false" />
-            <element signature="docComment;method#decodeMultipartData#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#decodeMultipartData#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;method#findHeaderEnd#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#findHeaderEnd#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;method#getBoundaryPositions#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#getBoundaryPositions#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;method#saveTmpFile#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#saveTmpFile#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;method#stripMultipartHeaders#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#stripMultipartHeaders#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;method#decodePercent#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#decodePercent#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;method#decodeParms#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#decodeParms#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;method#sendError#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#sendError#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;method#sendResponse#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#sendResponse#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="class#Response#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;method#Response#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#Response#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;method#Response#1;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#Response#1;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;method#Response#2;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#Response#2;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;method#addHeader#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#addHeader#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;field#status#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;field#mimeType#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;field#data#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;field#header#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;field#LICENCE#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="docComment;method#main#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="method#main#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="class#32502:43471" expanded="false" />
-            <element signature="method#encodeUri#0;class#32502:43471" expanded="false" />
-            <element signature="method#serveFile#0;class#32502:43471" expanded="false" />
-            <element signature="e#34847#34893#0" expanded="false" />
-            <element signature="class#40849:41129" expanded="false" />
-            <element signature="method#available#0;class#40849:41129" expanded="false" />
-            <element signature="method#serve#0;class#32502:43471" expanded="false" />
+            <element signature="imports" expanded="true" />
+            <element signature="e#2690#2706#0" expanded="true" />
+            <element signature="e#5037#5346#0" expanded="true" />
+            <element signature="e#5335#5336#0" expanded="true" />
+            <element signature="e#8163#8179#0" expanded="true" />
+            <element signature="e#8239#8255#0" expanded="true" />
+            <element signature="e#8314#8330#0" expanded="true" />
+            <element signature="e#16817#16833#0" expanded="true" />
+            <element signature="e#17861#17877#0" expanded="true" />
+            <element signature="e#21068#21077#0" expanded="true" />
+            <element signature="class#HTTP_STATUS#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
+            <element signature="e#30599#30615#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="18" column="42" selection-start="566" selection-end="566" vertical-scroll-proportion="0.7696793">
+          <folding>
+            <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
