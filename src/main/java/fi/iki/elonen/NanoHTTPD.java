@@ -166,6 +166,9 @@ public abstract class NanoHTTPD {
         }
     }
 
+    /**
+     * Return the HTTP root directory for this server
+     */
     public File getRootDir() {
         return myRootDir;
     }
