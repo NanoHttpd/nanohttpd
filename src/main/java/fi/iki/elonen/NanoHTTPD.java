@@ -99,10 +99,6 @@ public abstract class NanoHTTPD {
     public enum METHOD {
         GET, PUT, POST, DELETE;
 
-        public boolean equalsIgnoreCase(String method) {
-            return toString().equalsIgnoreCase(method);
-        }
-
         static METHOD lookup(String method) {
             for (METHOD m : METHOD.values()) {
                 if (m.toString().equalsIgnoreCase(method)) {
@@ -139,7 +135,7 @@ public abstract class NanoHTTPD {
      * Throws an IOException if the socket is already in use
      */
     public void start() throws IOException {
-        this.myServerSocket = new ServerSocket(myPort);
+        myServerSocket = new ServerSocket(myPort);
         myThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -237,8 +233,10 @@ public abstract class NanoHTTPD {
 
                 // Decode the header into parms and header java properties
                 decodeHeader(hin, pre, parms, header);
-                String methodStr = pre.getProperty("method");
-                METHOD method = METHOD.lookup(methodStr);
+                METHOD method = METHOD.lookup(pre.getProperty("method"));
+                if (method == null) {
+                    sendError(Response.HTTP_STATUS.BAD_REQUEST, "BAD REQUEST: Syntax error.");
+                }
                 String uri = pre.getProperty("uri");
 
                 long size = 0x7FFFFFFFFFFFFFFFl;
@@ -253,8 +251,9 @@ public abstract class NanoHTTPD {
 
                 // Write the part of body already read to ByteArrayOutputStream f
                 ByteArrayOutputStream f = new ByteArrayOutputStream();
-                if (splitbyte < rlen)
+                if (splitbyte < rlen) {
                     f.write(buf, splitbyte, rlen - splitbyte);
+                }
 
                 // While Firefox sends on the first read all the data fitting
                 // our buffer, Chrome and Opera send only the headers even if
@@ -262,18 +261,20 @@ public abstract class NanoHTTPD {
                 // out whether we have already consumed part of body, if we
                 // have reached the end of the data to be sent or we should
                 // expect the first byte of the body at the next read.
-                if (splitbyte < rlen)
+                if (splitbyte < rlen) {
                     size -= rlen - splitbyte + 1;
-                else if (splitbyte == 0 || size == 0x7FFFFFFFFFFFFFFFl)
+                } else if (splitbyte == 0 || size == 0x7FFFFFFFFFFFFFFFl) {
                     size = 0;
+                }
 
                 // Now read all the body and write it to f
                 buf = new byte[512];
                 while (rlen >= 0 && size > 0) {
                     rlen = is.read(buf, 0, 512);
                     size -= rlen;
-                    if (rlen > 0)
+                    if (rlen > 0) {
                         f.write(buf, 0, rlen);
+                    }
                 }
 
                 // Get the raw body as a byte []
@@ -295,14 +296,16 @@ public abstract class NanoHTTPD {
 
                     if ("multipart/form-data".equalsIgnoreCase(contentType)) {
                         // Handle multipart/form-data
-                        if (!st.hasMoreTokens())
+                        if (!st.hasMoreTokens()) {
                             sendError(Response.HTTP_STATUS.BAD_REQUEST,
                                     "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
+                        }
                         String boundaryExp = st.nextToken();
                         st = new StringTokenizer(boundaryExp, "=");
-                        if (st.countTokens() != 2)
+                        if (st.countTokens() != 2) {
                             sendError(Response.HTTP_STATUS.BAD_REQUEST,
                                     "BAD REQUEST: Content type is multipart/form-data but boundary syntax error. Usage: GET /example/file.html");
+                        }
                         st.nextToken();
                         String boundary = st.nextToken();
 
@@ -351,16 +354,20 @@ public abstract class NanoHTTPD {
             try {
                 // Read the request line
                 String inLine = in.readLine();
-                if (inLine == null)
+                if (inLine == null) {
                     return;
+                }
+
                 StringTokenizer st = new StringTokenizer(inLine);
-                if (!st.hasMoreTokens())
+                if (!st.hasMoreTokens()) {
                     sendError(Response.HTTP_STATUS.BAD_REQUEST, "BAD REQUEST: Syntax error. Usage: GET /example/file.html");
+                }
 
                 pre.put("method", st.nextToken());
 
-                if (!st.hasMoreTokens())
+                if (!st.hasMoreTokens()) {
                     sendError(Response.HTTP_STATUS.BAD_REQUEST, "BAD REQUEST: Missing URI. Usage: GET /example/file.html");
+                }
 
                 String uri = st.nextToken();
 
@@ -987,6 +994,7 @@ public abstract class NanoHTTPD {
                 return res;
             }
 
+            @Override
             public Response serve(String uri, METHOD method, Map<String, String> header, Map<String, String> parms, Map<String, String> files) {
                 System.out.println(method + " '" + uri + "' ");
 
