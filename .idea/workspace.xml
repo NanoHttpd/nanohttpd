@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" afterPath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/SimpleWebServer.java" afterPath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/SimpleWebServer.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/pom.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="nanohttpd.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -20,6 +21,7 @@
     <file path="/HandlerDescriptor.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357489582772" ignored="false" />
     <file path="/TestHandlerDescriptor.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357489482343" ignored="false" />
     <file path="/SimpleWebServer.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357570151008" ignored="false" />
+    <file path="/pom.xml" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357572015978" ignored="false" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,10 +80,19 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="NanoHTTPD.java" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="NanoHTTPD.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="65" column="0" selection-start="2485" selection-end="2485" vertical-scroll-proportion="-15.761719">
+            <state line="632" column="17" selection-start="26755" selection-end="26755" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="pom.xml" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/pom.xml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="66" column="40" selection-start="2381" selection-end="2381" vertical-scroll-proportion="0.62857145">
               <folding />
             </state>
           </provider>
@@ -129,6 +140,7 @@
         <option value="$PROJECT_DIR$/src/main/java/com/caffeinatedbliss/restful/RestServer.java" />
         <option value="$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" />
         <option value="$PROJECT_DIR$/src/main/java/fi/iki/elonen/SimpleWebServer.java" />
+        <option value="$PROJECT_DIR$/pom.xml" />
       </list>
     </option>
   </component>
@@ -478,7 +490,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="10" y="22" width="1346" height="673" extended-state="0" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32849365" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="JetGradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -497,7 +509,7 @@
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.14769231" sideWeight="0.67992765" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.14769231" sideWeight="0.67992765" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32007232" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -637,7 +649,14 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="65" column="0" selection-start="2485" selection-end="2485" vertical-scroll-proportion="-15.761719">
+        <state line="632" column="17" selection-start="26755" selection-end="26755" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pom.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="66" column="40" selection-start="2381" selection-end="2381" vertical-scroll-proportion="0.62857145">
           <folding />
         </state>
       </provider>
