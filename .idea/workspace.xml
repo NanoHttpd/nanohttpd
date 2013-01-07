@@ -2,17 +2,26 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java" afterPath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/SimpleWebServer.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" afterPath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/nanohttpd.iml" afterPath="$PROJECT_DIR$/nanohttpd.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="nanohttpd.iws" />
     <ignored path=".idea/workspace.xml" />
-    <file path="/Dummy.txt" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357406763293" ignored="false" />
-    <file path="/NanoHTTPD.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357424956452" ignored="false" />
+    <file path="/Dummy.txt" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357493971448" ignored="false" />
+    <file path="/NanoHTTPD.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357565539754" ignored="false" />
     <file path="/HelloServer.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357424980081" ignored="false" />
-    <file path="/a.dummy" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357402180797" ignored="false" />
-    <file path="/fragment.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357403766648" ignored="false" />
+    <file path="/a.dummy" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357494182857" ignored="false" />
+    <file path="/fragment.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357565594528" ignored="false" />
     <file path="/file-upload-test.htm" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357405100108" ignored="false" />
+    <file path="/RestServer.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357492806556" ignored="false" />
+    <file path="/PATH.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357435449303" ignored="false" />
+    <file path="/ExampleHandler.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357492132515" ignored="false" />
+    <file path="/LIST.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357443608691" ignored="false" />
+    <file path="/HandlerDescriptor.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357489582772" ignored="false" />
+    <file path="/TestHandlerDescriptor.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357489482343" ignored="false" />
+    <file path="/SimpleWebServer.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357565495754" ignored="false" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,29 +83,16 @@
       <file leaf-file-name="NanoHTTPD.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="989" column="52" selection-start="43580" selection-end="43580" vertical-scroll-proportion="0.0">
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#2690#2706#0" expanded="true" />
-                <element signature="e#5037#5346#0" expanded="true" />
-                <element signature="e#5335#5336#0" expanded="true" />
-                <element signature="e#8163#8179#0" expanded="true" />
-                <element signature="e#8239#8255#0" expanded="true" />
-                <element signature="e#8314#8330#0" expanded="true" />
-                <element signature="e#16817#16833#0" expanded="true" />
-                <element signature="e#17861#17877#0" expanded="true" />
-                <element signature="e#21068#21077#0" expanded="true" />
-                <element signature="class#HTTP_STATUS#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-                <element signature="e#30599#30615#0" expanded="true" />
-              </folding>
+            <state line="68" column="13" selection-start="2587" selection-end="2587" vertical-scroll-proportion="0.0">
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="HelloServer.java" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java">
+      <file leaf-file-name="SimpleWebServer.java" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/SimpleWebServer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="18" column="42" selection-start="566" selection-end="566" vertical-scroll-proportion="0.7696793">
+            <state line="170" column="51" selection-start="8110" selection-end="8110" vertical-scroll-proportion="0.7791045">
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -123,10 +119,22 @@
     <option name="changedFiles">
       <list>
         <option value="$PROJECT_DIR$/file-upload-test.htm" />
-        <option value="$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" />
         <option value="$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/caffeinatedbliss/restful/PATH.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/caffeinatedbliss/restful/ExampleHandler.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/caffeinatedbliss/restful/LIST.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/caffeinatedbliss/restful/HandlerDescriptor.java" />
+        <option value="$PROJECT_DIR$/src/test/java/com/caffeinatedbliss/restful/TestHandlerDescriptor.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/caffeinatedbliss/restful/config/HandlerDescriptor.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/caffeinatedbliss/restful/example/ExampleHandler.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/caffeinatedbliss/restful/RestServer.java" />
+        <option value="$PROJECT_DIR$/src/main/java/fi/iki/elonen/SimpleWebServer.java" />
+        <option value="$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" />
       </list>
     </option>
+  </component>
+  <component name="MavenProjectNavigator">
+    <treeState />
   </component>
   <component name="ProjectFrameBounds">
     <option name="x" value="10" />
@@ -206,6 +214,28 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="nanohttpd" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="nanohttpd" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="java" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
     </panes>
@@ -213,29 +243,66 @@
   <component name="PropertiesComponent">
     <property name="GoToFile.includeJavaFiles" value="false" />
     <property name="project.structure.last.edited" value="Modules" />
+    <property name="OverrideImplement.combined" value="false" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="options.splitter.main.proportions" value="0.3" />
+    <property name="Repository.Attach.JavaDocs" value="true" />
     <property name="recentsLimit" value="5" />
     <property name="MemberChooser.sorted" value="false" />
-    <property name="options.lastSelected" value="editor" />
+    <property name="options.lastSelected" value="appearance" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../Resteasy/pom.xml" />
     <property name="project.structure.side.proportion" value="0.2" />
     <property name="MemberChooser.copyJavadoc" value="false" />
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="restartRequiresConfirmation" value="true" />
     <property name="MemberChooser.showClasses" value="true" />
+    <property name="Repository.Attach.Sources" value="true" />
+    <property name="FullScreen" value="false" />
     <property name="GoToClass.includeLibraries" value="false" />
-    <property name="dynamic.classpath" value="false" />
-    <property name="options.searchVisible" value="true" />
     <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
+    <property name="dynamic.classpath" value="false" />
+    <property name="Downloaded.Files.Path" value="$PROJECT_DIR$/lib" />
   </component>
   <component name="RecentsManager">
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.caffeinatedbliss.restful" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/main/java" />
       <recent name="$PROJECT_DIR$/fi/iki/elonen" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.Hello Server">
+  <component name="RunManager" selected="Application.NanoHTTPd">
+    <configuration default="false" name="TestHandlerDescriptor" type="JUnit" factoryName="JUnit" temporary="true">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea">
+        <pattern>
+          <option name="PATTERN" value="com.caffeinatedbliss.restful.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <module name="nanohttpd" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="PACKAGE_NAME" value="com.caffeinatedbliss.restful" />
+      <option name="MAIN_CLASS_NAME" value="com.caffeinatedbliss.restful.TestHandlerDescriptor" />
+      <option name="METHOD_NAME" />
+      <option name="TEST_OBJECT" value="class" />
+      <option name="VM_PARAMETERS" value="-ea" />
+      <option name="PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="TEST_SEARCH_SCOPE">
+        <value defaultName="moduleWithDependencies" />
+      </option>
+      <envs />
+      <patterns />
+      <RunnerSettings RunnerId="Run" />
+      <ConfigurationWrapper RunnerId="Run" />
+      <method />
+    </configuration>
     <configuration default="true" type="#org.jetbrains.idea.devkit.run.PluginConfigurationType" factoryName="Plugin">
       <module name="" />
       <option name="VM_PARAMETERS" value="-Xmx512m -Xms256m -XX:MaxPermSize=250m" />
@@ -248,6 +315,19 @@
       <option name="SHMEM_ADDRESS" value="javadebug" />
       <option name="HOST" value="localhost" />
       <option name="PORT" value="5005" />
+      <method />
+    </configuration>
+    <configuration default="true" type="Applet" factoryName="Applet">
+      <module name="" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="HTML_FILE_NAME" />
+      <option name="HTML_USED" value="false" />
+      <option name="WIDTH" value="400" />
+      <option name="HEIGHT" value="300" />
+      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
+      <option name="VM_PARAMETERS" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
       <method />
     </configuration>
     <configuration default="true" type="TestNG" factoryName="TestNG">
@@ -276,19 +356,6 @@
       <envs />
       <properties />
       <listeners />
-      <method />
-    </configuration>
-    <configuration default="true" type="Applet" factoryName="Applet">
-      <module name="" />
-      <option name="MAIN_CLASS_NAME" />
-      <option name="HTML_FILE_NAME" />
-      <option name="HTML_USED" value="false" />
-      <option name="WIDTH" value="400" />
-      <option name="HEIGHT" value="300" />
-      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
-      <option name="VM_PARAMETERS" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
       <method />
     </configuration>
     <configuration default="true" type="Application" factoryName="Application">
@@ -329,7 +396,7 @@
     </configuration>
     <configuration default="false" name="NanoHTTPd" type="Application" factoryName="Application">
       <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
-      <option name="MAIN_CLASS_NAME" value="fi.iki.elonen.NanoHTTPD" />
+      <option name="MAIN_CLASS_NAME" value="fi.iki.elonen.SimpleWebServer" />
       <option name="VM_PARAMETERS" value="" />
       <option name="PROGRAM_PARAMETERS" value="" />
       <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
@@ -361,10 +428,16 @@
       <ConfigurationWrapper RunnerId="Run" />
       <method />
     </configuration>
-    <list size="2">
+    <list size="3">
       <item index="0" class="java.lang.String" itemvalue="Application.NanoHTTPd" />
       <item index="1" class="java.lang.String" itemvalue="Application.Hello Server" />
+      <item index="2" class="java.lang.String" itemvalue="JUnit.TestHandlerDescriptor" />
     </list>
+    <recent_temporary>
+      <list size="1">
+        <item index="0" class="java.lang.String" itemvalue="JUnit.TestHandlerDescriptor" />
+      </list>
+    </recent_temporary>
     <configuration name="&lt;template&gt;" type="WebApp" default="true" selected="false">
       <Host>localhost</Host>
       <Port>5050</Port>
@@ -397,37 +470,41 @@
       <created>1357406766906</created>
       <updated>1357406766906</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Added cleanup and polish">
+      <created>1357425983512</created>
+      <updated>1357425983512</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="10" y="22" width="1346" height="673" extended-state="0" />
     <editor active="false" />
     <layout>
-      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32911393" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="JetGradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32911393" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32849365" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="JetGradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
-      <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32911393" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32911393" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
-      <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.14769231" sideWeight="0.6708861" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39963832" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32911393" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.14769231" sideWeight="0.67992765" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32007232" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32911393" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39963832" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -468,7 +545,7 @@
     <option name="MAXIMUM_HISTORY_ROWS" value="1000" />
     <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="false" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added project" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added cleanup and polish" />
     <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="false" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_FILES_UP_TO_DATE_BEFORE_COMMIT" value="false" />
@@ -486,6 +563,7 @@
     <MESSAGE value="Static code inspection - cleanup." />
     <MESSAGE value="Added missing Javadoc" />
     <MESSAGE value="Added project" />
+    <MESSAGE value="Added cleanup and polish" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -495,25 +573,26 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="jar:///System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar!/java/lang/Integer.class">
+    <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="6" column="19" selection-start="158" selection-end="158" vertical-scroll-proportion="0.14591439">
+        <state line="18" column="42" selection-start="566" selection-end="566" vertical-scroll-proportion="0.0">
           <folding />
         </state>
+      </provider>
+    </entry>
+    <entry file="jar:///System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar!/java/lang/Integer.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="6" column="19" selection-start="158" selection-end="158" vertical-scroll-proportion="0.14591439" />
       </provider>
     </entry>
     <entry file="jar:///System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar!/java/lang/SuppressWarnings.class">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="8" column="18" selection-start="524" selection-end="524" vertical-scroll-proportion="0.20428015">
-          <folding />
-        </state>
+        <state line="8" column="18" selection-start="524" selection-end="524" vertical-scroll-proportion="0.20428015" />
       </provider>
     </entry>
     <entry file="jar:///System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar!/java/net/URLEncoder.class">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="19" column="35" selection-start="521" selection-end="521" vertical-scroll-proportion="0.5252918">
-          <folding />
-        </state>
+        <state line="19" column="35" selection-start="521" selection-end="521" vertical-scroll-proportion="0.5252918" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/file-upload-test.htm">
@@ -532,41 +611,31 @@
     </entry>
     <entry file="jar:///System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar!/java/net/PlainSocketImpl.class">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="120" column="0" selection-start="5152" selection-end="5152" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="120" column="0" selection-start="5152" selection-end="5152" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="jar:///System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar!/java/lang/Thread.class">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="224" column="0" selection-start="8395" selection-end="8395" vertical-scroll-proportion="0.0">
+        <state line="224" column="0" selection-start="8395" selection-end="8395" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="18" column="42" selection-start="566" selection-end="566" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="989" column="52" selection-start="43580" selection-end="43580" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#2690#2706#0" expanded="true" />
-            <element signature="e#5037#5346#0" expanded="true" />
-            <element signature="e#5335#5336#0" expanded="true" />
-            <element signature="e#8163#8179#0" expanded="true" />
-            <element signature="e#8239#8255#0" expanded="true" />
-            <element signature="e#8314#8330#0" expanded="true" />
-            <element signature="e#16817#16833#0" expanded="true" />
-            <element signature="e#17861#17877#0" expanded="true" />
-            <element signature="e#21068#21077#0" expanded="true" />
-            <element signature="class#HTTP_STATUS#0;class#Response#0;class#NanoHTTPD#0" expanded="false" />
-            <element signature="e#30599#30615#0" expanded="true" />
-          </folding>
+        <state line="68" column="13" selection-start="2587" selection-end="2587" vertical-scroll-proportion="0.0">
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/SimpleWebServer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="18" column="42" selection-start="566" selection-end="566" vertical-scroll-proportion="0.7696793">
+        <state line="170" column="51" selection-start="8110" selection-end="8110" vertical-scroll-proportion="0.7791045">
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -630,7 +699,6 @@
             <option name="proportions">
               <list>
                 <option value="0.2" />
-                <option value="0.5" />
               </list>
             </option>
           </splitter-proportions>
@@ -649,6 +717,7 @@
       </state>
       <state key="ProjectLibrariesConfigurable.UI">
         <settings>
+          <last-edited>junit:junit:4.9</last-edited>
           <splitter-proportions>
             <option name="proportions">
               <list>
