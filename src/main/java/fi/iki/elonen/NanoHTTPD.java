@@ -63,39 +63,6 @@ import java.util.TimeZone;
  * See the end of the source file for distribution license (Modified BSD licence)
  */
 public abstract class NanoHTTPD {
-    /**
-     * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
-     */
-    protected static final Map<String, String> MIME_TYPES;
-    static {
-        Map<String, String> mime = new HashMap<String, String>();
-        mime.put("css", "text/css");
-        mime.put("htm", "text/html");
-        mime.put("html", "text/html");
-        mime.put("xml", "text/xml");
-        mime.put("txt", "text/plain");
-        mime.put("asc", "text/plain");
-        mime.put("gif", "image/gif");
-        mime.put("jpg", "image/jpeg");
-        mime.put("jpeg", "image/jpeg");
-        mime.put("png", "image/png");
-        mime.put("mp3", "audio/mpeg");
-        mime.put("m3u", "audio/mpeg-url");
-        mime.put("mp4", "video/mp4");
-        mime.put("ogv", "video/ogg");
-        mime.put("flv", "video/x-flv");
-        mime.put("mov", "video/quicktime");
-        mime.put("swf", "application/x-shockwave-flash");
-        mime.put("js", "application/javascript");
-        mime.put("pdf", "application/pdf");
-        mime.put("doc", "application/msword");
-        mime.put("ogg", "application/x-ogg");
-        mime.put("zip", "application/octet-stream");
-        mime.put("exe", "application/octet-stream");
-        mime.put("class", "application/octet-stream");
-        MIME_TYPES = mime;
-    }
-
     public enum METHOD {
         GET, PUT, POST, DELETE;
 
