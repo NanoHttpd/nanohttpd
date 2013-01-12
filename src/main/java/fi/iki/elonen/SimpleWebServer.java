@@ -10,6 +10,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import static fi.iki.elonen.NanoHTTPD.Response.Status.*;
+
 public class SimpleWebServer extends NanoHTTPD {
     /**
      * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
@@ -69,8 +71,15 @@ public class SimpleWebServer extends NanoHTTPD {
             + "(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n"
             + "OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.";
 
+    private File rootDir;
+
     public SimpleWebServer(int port, File wwwroot) {
-        super(port, wwwroot);
+        super(port);
+        this.rootDir = wwwroot;
+    }
+
+    public File getRootDir() {
+        return rootDir;
     }
 
     /**
@@ -103,7 +112,7 @@ public class SimpleWebServer extends NanoHTTPD {
 
         // Make sure we won't die of an exception later
         if (!homeDir.isDirectory())
-            res = new Response(Response.HTTP_STATUS.INTERNAL_ERROR, MIME_PLAINTEXT, "INTERNAL ERRROR: serveFile(): given homeDir is not a directory.");
+            res = new Response(INTERNAL_ERROR, MIME_PLAINTEXT, "INTERNAL ERRROR: serveFile(): given homeDir is not a directory.");
 
         if (res == null) {
             // Remove URL arguments
@@ -113,12 +122,12 @@ public class SimpleWebServer extends NanoHTTPD {
 
             // Prohibit getting out of current directory
             if (uri.startsWith("src/main") || uri.endsWith("src/main") || uri.contains("../"))
-                res = new Response(Response.HTTP_STATUS.FORBIDDEN, MIME_PLAINTEXT, "FORBIDDEN: Won't serve ../ for security reasons.");
+                res = new Response(FORBIDDEN, MIME_PLAINTEXT, "FORBIDDEN: Won't serve ../ for security reasons.");
         }
 
         File f = new File(homeDir, uri);
         if (res == null && !f.exists())
-            res = new Response(Response.HTTP_STATUS.NOT_FOUND, MIME_PLAINTEXT, "Error 404, file not found.");
+            res = new Response(NOT_FOUND, MIME_PLAINTEXT, "Error 404, file not found.");
 
         // List the directory, if necessary
         if (res == null && f.isDirectory()) {
@@ -126,7 +135,7 @@ public class SimpleWebServer extends NanoHTTPD {
             // directory, send a redirect.
             if (!uri.endsWith("/")) {
                 uri += "/";
-                res = new Response(Response.HTTP_STATUS.REDIRECT, MIME_HTML, "<html><body>Redirected: <a href=\"" + uri + "\">" + uri
+                res = new Response(REDIRECT, MIME_HTML, "<html><body>Redirected: <a href=\"" + uri + "\">" + uri
                         + "</a></body></html>");
                 res.addHeader("Location", uri);
             }
@@ -181,7 +190,7 @@ public class SimpleWebServer extends NanoHTTPD {
                     msg += "</body></html>";
                     res = new Response(msg);
                 } else {
-                    res = new Response(Response.HTTP_STATUS.FORBIDDEN, MIME_PLAINTEXT, "FORBIDDEN: No directory listing.");
+                    res = new Response(FORBIDDEN, MIME_PLAINTEXT, "FORBIDDEN: No directory listing.");
                 }
             }
         }
@@ -221,7 +230,7 @@ public class SimpleWebServer extends NanoHTTPD {
                 long fileLen = f.length();
                 if (range != null && startFrom >= 0) {
                     if (startFrom >= fileLen) {
-                        res = new Response(Response.HTTP_STATUS.RANGE_NOT_SATISFIABLE, MIME_PLAINTEXT, "");
+                        res = new Response(RANGE_NOT_SATISFIABLE, MIME_PLAINTEXT, "");
                         res.addHeader("Content-Range", "bytes 0-0/" + fileLen);
                         res.addHeader("ETag", etag);
                     } else {
@@ -240,23 +249,23 @@ public class SimpleWebServer extends NanoHTTPD {
                         };
                         fis.skip(startFrom);
 
-                        res = new Response(Response.HTTP_STATUS.PARTIAL_CONTENT, mime, fis);
+                        res = new Response(PARTIAL_CONTENT, mime, fis);
                         res.addHeader("Content-Length", "" + dataLen);
                         res.addHeader("Content-Range", "bytes " + startFrom + "-" + endAt + "/" + fileLen);
                         res.addHeader("ETag", etag);
                     }
                 } else {
                     if (etag.equals(header.get("if-none-match")))
-                        res = new Response(Response.HTTP_STATUS.NOT_MODIFIED, mime, "");
+                        res = new Response(NOT_MODIFIED, mime, "");
                     else {
-                        res = new Response(Response.HTTP_STATUS.OK, mime, new FileInputStream(f));
+                        res = new Response(OK, mime, new FileInputStream(f));
                         res.addHeader("Content-Length", "" + fileLen);
                         res.addHeader("ETag", etag);
                     }
                 }
             }
         } catch (IOException ioe) {
-            res = new Response(Response.HTTP_STATUS.FORBIDDEN, MIME_PLAINTEXT, "FORBIDDEN: Reading file failed.");
+            res = new Response(FORBIDDEN, MIME_PLAINTEXT, "FORBIDDEN: Reading file failed.");
         }
 
         res.addHeader("Accept-Ranges", "bytes"); // Announce that the file server accepts partial content requestes
@@ -264,7 +273,7 @@ public class SimpleWebServer extends NanoHTTPD {
     }
 
     @Override
-    public Response serve(String uri, METHOD method, Map<String, String> header, Map<String, String> parms, Map<String, String> files) {
+    public Response serve(String uri, Method method, Map<String, String> header, Map<String, String> parms, Map<String, String> files) {
         System.out.println(method + " '" + uri + "' ");
 
         Iterator<String> e = header.keySet().iterator();
@@ -308,7 +317,7 @@ public class SimpleWebServer extends NanoHTTPD {
                 break;
             }
 
-        NanoHTTPD server = new SimpleWebServer(port, wwwroot);
+        SimpleWebServer server = new SimpleWebServer(port, wwwroot);
 
         try {
             server.start();

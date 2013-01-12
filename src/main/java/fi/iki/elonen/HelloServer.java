@@ -8,11 +8,11 @@ import java.util.*;
  */
 public class HelloServer extends NanoHTTPD {
     private HelloServer() {
-        super(8080, new File("."));
+        super(8080);
     }
 
     @Override
-    public Response serve(String uri, METHOD method, Map<String, String> header, Map<String, String> parms, Map<String, String> files) {
+    public Response serve(String uri, Method method, Map<String, String> header, Map<String, String> parms, Map<String, String> files) {
         System.out.println(method + " '" + uri + "' ");
 
         String msg = "<html><body><h1>Hello server</h1>\n";
