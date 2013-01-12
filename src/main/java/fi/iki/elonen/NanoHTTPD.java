@@ -10,15 +10,18 @@ import java.util.*;
  * A simple, tiny, nicely embeddable HTTP 1.0 (partially 1.1) server in Java
  * <p/>
  * <p/>
- * NanoHTTPD version 1.25, Copyright &copy; 2001,2005-2012 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/) and Copyright &copy; 2010
- * Konstantinos Togias (info@ktogias.gr, http://ktogias.gr)
+ * NanoHTTPD version 1.25,
+ * Copyright &copy; 2001,2005-2012 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/) and
+ * Copyright &copy; 2010 Konstantinos Togias (info@ktogias.gr, http://ktogias.gr)
+ * <p/>
+ * Uplifted to Java5 by Micah Hainline and Paul Hawke (paul.hawke@gmail.com).
  * <p/>
  * <p/>
  * <b>Features + limitations: </b>
  * <ul>
  * <p/>
  * <li>Only one Java file</li>
- * <li>Java 1.1 compatible</li>
+ * <li>Java 5 compatible</li>
  * <li>Released as open source, Modified BSD licence</li>
  * <li>No fixed config files, logging, authorization etc. (Implement yourself if you need them.)</li>
  * <li>Supports parameter parsing of GET and POST methods (+ rudimentary PUT support in 1.25)</li>
@@ -41,12 +44,10 @@ import java.util.*;
  * </ul>
  * <p/>
  * <p/>
- * <b>Ways to use: </b>
+ * <b>How to use: </b>
  * <ul>
  * <p/>
- * <li>Run as a standalone app, serves files and shows requests</li>
- * <li>Subclass serve() and embed to your own program</li>
- * <li>Call serveFile() from serve() with your own base directory</li>
+ * <li>Subclass and implement serve() and embed to your own program</li>
  * <p/>
  * </ul>
  * <p/>
@@ -643,11 +644,17 @@ public abstract class NanoHTTPD {
                 this.requestStatus = requestStatus;
                 this.descr = descr;
             }
+
             private int requestStatus;
             private String descr;
 
-            public int getRequestStatus() { return this.requestStatus; }
-            public String getDescription() { return ""+this.requestStatus+" "+descr; }
+            public int getRequestStatus() {
+                return this.requestStatus;
+            }
+
+            public String getDescription() {
+                return "" + this.requestStatus + " " + descr;
+            }
         }
 
         /**
