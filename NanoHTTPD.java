@@ -20,7 +20,7 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
-import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayOutputStream;3
 import java.io.FileOutputStream;
 
 /**
@@ -394,9 +394,12 @@ public class NanoHTTPD
 				{
 					String contentType = "";
 					String contentTypeHeader = header.getProperty("content-type");
-					StringTokenizer st = new StringTokenizer( contentTypeHeader , "; " );
-					if ( st.hasMoreTokens()) {
-						contentType = st.nextToken();
+					StringTokenizer st = null;
+					if( contentTypeHeader != null) {
+						st = new StringTokenizer( contentTypeHeader , "; " );
+						if ( st.hasMoreTokens()) {
+							contentType = st.nextToken();
+						}
 					}
 
 					if (contentType.equalsIgnoreCase("multipart/form-data"))
