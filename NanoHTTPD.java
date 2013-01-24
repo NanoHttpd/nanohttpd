@@ -20,7 +20,7 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
-import java.io.ByteArrayOutputStream;3
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 
 /**
