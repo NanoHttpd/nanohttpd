@@ -2,23 +2,19 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java" afterPath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/FileUploadTesting.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" afterPath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/SimpleWebServer.java" afterPath="$PROJECT_DIR$/src/main/java/fi/iki/elonen/SimpleWebServer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/compiler.xml" afterPath="$PROJECT_DIR$/.idea/compiler.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/encodings.xml" afterPath="$PROJECT_DIR$/.idea/encodings.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/nanohttpd.iml" afterPath="$PROJECT_DIR$/nanohttpd.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/file-upload-test.htm" afterPath="$PROJECT_DIR$/file-upload-test.htm" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="nanohttpd.iws" />
     <ignored path=".idea/workspace.xml" />
-    <file path="/Dummy.txt" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1358021463063" ignored="false" />
-    <file path="/NanoHTTPD.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357565539754" ignored="false" />
+    <file path="/Dummy.txt" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1361593219111" ignored="false" />
+    <file path="/NanoHTTPD.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1358022354486" ignored="false" />
     <file path="/HelloServer.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357424980081" ignored="false" />
     <file path="/a.dummy" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357494182857" ignored="false" />
-    <file path="/fragment.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357565594528" ignored="false" />
-    <file path="/file-upload-test.htm" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357405100108" ignored="false" />
+    <file path="/fragment.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1361451930917" ignored="false" />
+    <file path="/file-upload-test.htm" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1361453192411" ignored="false" />
     <file path="/RestServer.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357492806556" ignored="false" />
     <file path="/PATH.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357435449303" ignored="false" />
     <file path="/ExampleHandler.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357492132515" ignored="false" />
@@ -27,6 +23,10 @@
     <file path="/TestHandlerDescriptor.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357489482343" ignored="false" />
     <file path="/SimpleWebServer.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1358021943118" ignored="false" />
     <file path="/pom.xml" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1357572015978" ignored="false" />
+    <file path="/FileUploadTesting.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1361465020586" ignored="false" />
+    <file path="$PROJECT_DIR$/../original-nanohttpd/nanohttpd/FileUploadTesting.java" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1361465064506" ignored="false" />
+    <file path="$PROJECT_DIR$/../original-nanohttpd/nanohttpd/dl.html" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1361466364907" ignored="false" />
+    <file path="/dl.html" changelist="301e7f25-4e5f-447c-992d-35ddc6a6b2d1" time="1361466364187" ignored="false" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -75,6 +75,50 @@
         <option name="LOG_MESSAGE" value="" />
       </breakpoint>
     </breakpoint_any>
+    <line_breakpoints default_suspend_policy="SuspendAll" default_condition_enabled="true">
+      <breakpoint url="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" line="177" class="fi.iki.elonen.NanoHTTPD.HTTPSession" package="fi.iki.elonen">
+        <option name="ENABLED" value="true" />
+        <option name="LOG_ENABLED" value="false" />
+        <option name="LOG_EXPRESSION_ENABLED" value="false" />
+        <option name="SUSPEND_POLICY" value="SuspendAll" />
+        <option name="SUSPEND" value="true" />
+        <option name="COUNT_FILTER_ENABLED" value="false" />
+        <option name="COUNT_FILTER" value="0" />
+        <option name="CONDITION_ENABLED" value="true" />
+        <option name="CLASS_FILTERS_ENABLED" value="false" />
+        <option name="INSTANCE_FILTERS_ENABLED" value="false" />
+        <option name="CONDITION" value="" />
+        <option name="LOG_MESSAGE" value="" />
+      </breakpoint>
+      <breakpoint url="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" line="229" class="fi.iki.elonen.NanoHTTPD.HTTPSession" package="fi.iki.elonen">
+        <option name="ENABLED" value="true" />
+        <option name="LOG_ENABLED" value="false" />
+        <option name="LOG_EXPRESSION_ENABLED" value="false" />
+        <option name="SUSPEND_POLICY" value="SuspendAll" />
+        <option name="SUSPEND" value="true" />
+        <option name="COUNT_FILTER_ENABLED" value="false" />
+        <option name="COUNT_FILTER" value="0" />
+        <option name="CONDITION_ENABLED" value="true" />
+        <option name="CLASS_FILTERS_ENABLED" value="false" />
+        <option name="INSTANCE_FILTERS_ENABLED" value="false" />
+        <option name="CONDITION" value="" />
+        <option name="LOG_MESSAGE" value="" />
+      </breakpoint>
+      <breakpoint url="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" line="418" class="fi.iki.elonen.NanoHTTPD.HTTPSession" package="fi.iki.elonen">
+        <option name="ENABLED" value="true" />
+        <option name="LOG_ENABLED" value="false" />
+        <option name="LOG_EXPRESSION_ENABLED" value="false" />
+        <option name="SUSPEND_POLICY" value="SuspendAll" />
+        <option name="SUSPEND" value="true" />
+        <option name="COUNT_FILTER_ENABLED" value="false" />
+        <option name="COUNT_FILTER" value="0" />
+        <option name="CONDITION_ENABLED" value="true" />
+        <option name="CLASS_FILTERS_ENABLED" value="false" />
+        <option name="INSTANCE_FILTERS_ENABLED" value="false" />
+        <option name="CONDITION" value="" />
+        <option name="LOG_MESSAGE" value="" />
+      </breakpoint>
+    </line_breakpoints>
     <ui_properties default_suspend_policy="SuspendAll" default_condition_enabled="true" />
     <breakpoint_rules />
     <ui_properties />
@@ -85,78 +129,41 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="NanoHTTPD.java" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="NanoHTTPD.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+            <state line="384" column="0" selection-start="16286" selection-end="16286" vertical-scroll-proportion="11.185898">
               <folding>
-                <element signature="docComment;class#NanoHTTPD#0" expanded="true" />
                 <element signature="class#Method#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;field#MIME_PLAINTEXT#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;method#NanoHTTPD#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;method#start#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="e#3263#3572#0" expanded="true" />
-                <element signature="e#3561#3562#0" expanded="true" />
-                <element signature="docComment;method#stop#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;method#serve#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="e#6255#6271#0" expanded="true" />
-                <element signature="e#6331#6347#0" expanded="true" />
-                <element signature="e#6406#6422#0" expanded="true" />
-                <element signature="docComment;method#decodeHeader#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;method#decodeMultipartData#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="e#15154#15170#0" expanded="true" />
-                <element signature="e#16193#16209#0" expanded="true" />
-                <element signature="docComment;method#findHeaderEnd#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;method#getBoundaryPositions#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="e#19390#19399#0" expanded="true" />
-                <element signature="docComment;method#saveTmpFile#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;method#stripMultipartHeaders#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;method#decodePercent#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;method#decodeParms#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;method#sendError#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;method#sendResponse#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="class#Response#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;class#Status#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="class#Status#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="method#getRequestStatus#0;class#Status#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;method#Response#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;method#Response#1;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;method#Response#2;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;method#addHeader#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;field#status#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;field#mimeType#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;field#data#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="docComment;field#header#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-                <element signature="e#29011#29027#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SimpleWebServer.java" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="FileUploadTesting.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/FileUploadTesting.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="4" column="0" selection-start="74" selection-end="74" vertical-scroll-proportion="0.0">
+              <folding>
+                <element signature="docComment;class#FileUploadTesting#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="file-upload-test.htm" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/file-upload-test.htm">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="9" column="56" selection-start="487" selection-end="487" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SimpleWebServer.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/SimpleWebServer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="12" column="55" selection-start="343" selection-end="343" vertical-scroll-proportion="-12.477723">
-              <folding>
-                <element signature="docComment;field#MIME_TYPES#0;class#SimpleWebServer#0" expanded="true" />
-                <element signature="e#600#616#0" expanded="true" />
-                <element signature="docComment;field#LICENCE#0;class#SimpleWebServer#0" expanded="true" />
-                <element signature="method#getRootDir#0;class#SimpleWebServer#0" expanded="true" />
-                <element signature="docComment;method#encodeUri#0;class#SimpleWebServer#0" expanded="true" />
-                <element signature="docComment;method#serveFile#0;class#SimpleWebServer#0" expanded="true" />
-                <element signature="class#10939:11179" expanded="true" />
-                <element signature="docComment;method#main#0;class#SimpleWebServer#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="HelloServer.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="37" column="54" selection-start="1163" selection-end="1163" vertical-scroll-proportion="0.0">
+            <state line="321" column="0" selection-start="14134" selection-end="14581" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -180,7 +187,6 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/file-upload-test.htm" />
         <option value="$PROJECT_DIR$/src/main/java/com/caffeinatedbliss/restful/PATH.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/caffeinatedbliss/restful/ExampleHandler.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/caffeinatedbliss/restful/LIST.java" />
@@ -191,8 +197,10 @@
         <option value="$PROJECT_DIR$/src/main/java/com/caffeinatedbliss/restful/RestServer.java" />
         <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java" />
-        <option value="$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" />
         <option value="$PROJECT_DIR$/src/main/java/fi/iki/elonen/SimpleWebServer.java" />
+        <option value="$PROJECT_DIR$/src/main/java/fi/iki/elonen/FileUploadTesting.java" />
+        <option value="$PROJECT_DIR$/file-upload-test.htm" />
+        <option value="$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java" />
       </list>
     </option>
   </component>
@@ -200,8 +208,8 @@
     <treeState />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="480" />
-    <option name="y" value="18" />
+    <option name="x" value="498" />
+    <option name="y" value="239" />
     <option name="width" value="1180" />
     <option name="height" value="793" />
   </component>
@@ -216,7 +224,7 @@
     <ConfirmationsSetting value="0" id="Remove" />
   </component>
   <component name="ProjectReloadState">
-    <option name="STATE" value="2" />
+    <option name="STATE" value="0" />
   </component>
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1" splitterProportion="0.5">
@@ -231,8 +239,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -279,29 +285,36 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="GoToFile.includeJavaFiles" value="false" />
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
+    <property name="OverrideImplement.combined" value="false" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="MemberChooser.sorted" value="false" />
     <property name="recentsLimit" value="5" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/pom.xml" />
+    <property name="MemberChooser.sorted" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../asynchrony" />
     <property name="MemberChooser.showClasses" value="true" />
     <property name="GoToClass.includeLibraries" value="false" />
     <property name="MemberChooser.copyJavadoc" value="false" />
+    <property name="dynamic.classpath" value="false" />
   </component>
   <component name="RecentsManager">
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="com.caffeinatedbliss.restful" />
+    </key>
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="fi.iki.elonen" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/main/java" />
       <recent name="$PROJECT_DIR$/fi/iki/elonen" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.NanoHTTPd">
+  <component name="RunManager" selected="Application.FileUploadTesting">
     <configuration default="false" name="TestHandlerDescriptor" type="JUnit" factoryName="JUnit" temporary="true">
       <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea">
         <pattern>
@@ -327,6 +340,34 @@
       <envs />
       <patterns />
       <RunnerSettings RunnerId="Run" />
+      <ConfigurationWrapper RunnerId="Run" />
+      <method />
+    </configuration>
+    <configuration default="false" name="FileUploadTesting" type="Application" factoryName="Application" temporary="true">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea">
+        <pattern>
+          <option name="PATTERN" value="fi.iki.elonen.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="MAIN_CLASS_NAME" value="fi.iki.elonen.FileUploadTesting" />
+      <option name="VM_PARAMETERS" value="" />
+      <option name="PROGRAM_PARAMETERS" value="" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" value="" />
+      <option name="ENABLE_SWING_INSPECTOR" value="false" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <module name="nanohttpd" />
+      <envs />
+      <RunnerSettings RunnerId="Debug">
+        <option name="DEBUG_PORT" value="" />
+        <option name="TRANSPORT" value="0" />
+        <option name="LOCAL" value="true" />
+      </RunnerSettings>
+      <RunnerSettings RunnerId="Run" />
+      <ConfigurationWrapper RunnerId="Debug" />
       <ConfigurationWrapper RunnerId="Run" />
       <method />
     </configuration>
@@ -393,6 +434,13 @@
       <patterns />
       <method />
     </configuration>
+    <configuration default="true" type="JavascriptDebugSession" factoryName="Local" singleton="true">
+      <JSDebuggerConfigurationSettings>
+        <option name="engineId" value="embedded" />
+        <option name="fileUrl" />
+      </JSDebuggerConfigurationSettings>
+      <method />
+    </configuration>
     <configuration default="false" name="NanoHTTPd" type="Application" factoryName="Application">
       <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
       <option name="MAIN_CLASS_NAME" value="fi.iki.elonen.SimpleWebServer" />
@@ -427,14 +475,16 @@
       <ConfigurationWrapper RunnerId="Run" />
       <method />
     </configuration>
-    <list size="3">
+    <list size="4">
       <item index="0" class="java.lang.String" itemvalue="Application.NanoHTTPd" />
       <item index="1" class="java.lang.String" itemvalue="Application.Hello Server" />
       <item index="2" class="java.lang.String" itemvalue="JUnit.TestHandlerDescriptor" />
+      <item index="3" class="java.lang.String" itemvalue="Application.FileUploadTesting" />
     </list>
     <recent_temporary>
-      <list size="1">
-        <item index="0" class="java.lang.String" itemvalue="JUnit.TestHandlerDescriptor" />
+      <list size="2">
+        <item index="0" class="java.lang.String" itemvalue="Application.FileUploadTesting" />
+        <item index="1" class="java.lang.String" itemvalue="JUnit.TestHandlerDescriptor" />
       </list>
     </recent_temporary>
     <configuration name="&lt;template&gt;" type="WebApp" default="true" selected="false">
@@ -473,35 +523,43 @@
       <created>1357425983512</created>
       <updated>1357425983512</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Code cleanup">
+      <created>1358022063912</created>
+      <updated>1358022063912</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Code cleanup">
+      <created>1358022407703</created>
+      <updated>1358022407703</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="480" y="18" width="1180" height="793" extended-state="0" />
+    <frame x="498" y="239" width="1180" height="793" extended-state="0" />
     <editor active="false" />
     <layout>
-      <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32776934" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.23065251" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="JetGradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.43378997" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.16905189" sideWeight="0.67223066" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32007232" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24329159" sideWeight="0.7693475" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4520548" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32911393" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32911393" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39963832" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
     </layout>
@@ -511,8 +569,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="true" />
-    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="true" />
-    <option name="CHECK_NEW_TODO" value="true" />
+    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
+    <option name="CHECK_NEW_TODO" value="false" />
     <option name="myTodoPanelSettings">
       <value>
         <are-packages-shown value="false" />
@@ -544,7 +602,7 @@
     <option name="MAXIMUM_HISTORY_ROWS" value="1000" />
     <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="false" />
-    <option name="LAST_COMMIT_MESSAGE" />
+    <option name="LAST_COMMIT_MESSAGE" value="Code cleanup" />
     <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="true" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_FILES_UP_TO_DATE_BEFORE_COMMIT" value="false" />
@@ -557,6 +615,7 @@
     <option name="UPDATE_GROUP_BY_CHANGELIST" value="false" />
     <option name="SHOW_FILE_HISTORY_AS_TREE" value="false" />
     <option name="FILE_HISTORY_SPLITTER_PROPORTION" value="0.6" />
+    <MESSAGE value="Code cleanup" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -566,50 +625,18 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="37" column="54" selection-start="1163" selection-end="1163" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="632" column="17" selection-start="26755" selection-end="26755" vertical-scroll-proportion="0.0">
           <folding>
-            <element signature="docComment;class#NanoHTTPD#0" expanded="true" />
             <element signature="class#Method#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;field#MIME_PLAINTEXT#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#NanoHTTPD#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#start#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="e#3263#3572#0" expanded="true" />
-            <element signature="e#3561#3562#0" expanded="true" />
-            <element signature="docComment;method#stop#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#serve#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="e#6255#6271#0" expanded="true" />
-            <element signature="e#6331#6347#0" expanded="true" />
-            <element signature="e#6406#6422#0" expanded="true" />
-            <element signature="docComment;method#decodeHeader#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#decodeMultipartData#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="e#15154#15170#0" expanded="true" />
-            <element signature="e#16193#16209#0" expanded="true" />
-            <element signature="docComment;method#findHeaderEnd#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#getBoundaryPositions#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="e#19390#19399#0" expanded="true" />
-            <element signature="docComment;method#saveTmpFile#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#stripMultipartHeaders#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#decodePercent#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#decodeParms#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#sendError#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#sendResponse#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;class#Status#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="class#Status#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="method#getRequestStatus#0;class#Status#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#Response#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#Response#1;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#Response#2;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#addHeader#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;field#status#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;field#mimeType#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;field#data#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;field#header#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="e#29011#29027#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -624,16 +651,7 @@
     <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/SimpleWebServer.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="16" column="11" selection-start="437" selection-end="437" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="docComment;field#MIME_TYPES#0;class#SimpleWebServer#0" expanded="true" />
-            <element signature="e#600#616#0" expanded="true" />
-            <element signature="docComment;field#LICENCE#0;class#SimpleWebServer#0" expanded="true" />
-            <element signature="method#getRootDir#0;class#SimpleWebServer#0" expanded="true" />
-            <element signature="docComment;method#encodeUri#0;class#SimpleWebServer#0" expanded="true" />
-            <element signature="docComment;method#serveFile#0;class#SimpleWebServer#0" expanded="true" />
-            <element signature="class#10939:11179" expanded="true" />
-            <element signature="docComment;method#main#0;class#SimpleWebServer#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -641,46 +659,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state line="632" column="17" selection-start="26755" selection-end="26755" vertical-scroll-proportion="0.0">
           <folding>
-            <element signature="docComment;class#NanoHTTPD#0" expanded="true" />
             <element signature="class#Method#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;field#MIME_PLAINTEXT#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#NanoHTTPD#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#start#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="e#3263#3572#0" expanded="true" />
-            <element signature="e#3561#3562#0" expanded="true" />
-            <element signature="docComment;method#stop#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#serve#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="e#6255#6271#0" expanded="true" />
-            <element signature="e#6331#6347#0" expanded="true" />
-            <element signature="e#6406#6422#0" expanded="true" />
-            <element signature="docComment;method#decodeHeader#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#decodeMultipartData#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="e#15154#15170#0" expanded="true" />
-            <element signature="e#16193#16209#0" expanded="true" />
-            <element signature="docComment;method#findHeaderEnd#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#getBoundaryPositions#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="e#19390#19399#0" expanded="true" />
-            <element signature="docComment;method#saveTmpFile#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#stripMultipartHeaders#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#decodePercent#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#decodeParms#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#sendError#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#sendResponse#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;class#Status#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="class#Status#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="method#getRequestStatus#0;class#Status#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#Response#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#Response#1;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#Response#2;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#addHeader#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;field#status#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;field#mimeType#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;field#data#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;field#header#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="e#29011#29027#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -695,41 +674,13 @@
     <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/SimpleWebServer.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="16" column="11" selection-start="437" selection-end="437" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="docComment;field#MIME_TYPES#0;class#SimpleWebServer#0" expanded="true" />
-            <element signature="e#600#616#0" expanded="true" />
-            <element signature="docComment;field#LICENCE#0;class#SimpleWebServer#0" expanded="true" />
-            <element signature="method#getRootDir#0;class#SimpleWebServer#0" expanded="true" />
-            <element signature="docComment;method#encodeUri#0;class#SimpleWebServer#0" expanded="true" />
-            <element signature="docComment;method#serveFile#0;class#SimpleWebServer#0" expanded="true" />
-            <element signature="class#10939:11179" expanded="true" />
-            <element signature="docComment;method#main#0;class#SimpleWebServer#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="18" column="42" selection-start="566" selection-end="566" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/file-upload-test.htm">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="7" selection-start="289" selection-end="289" vertical-scroll-proportion="-4.375">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/README.md">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="58" selection-start="357" selection-end="357" vertical-scroll-proportion="0.44407895" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="37" column="54" selection-start="1163" selection-end="1163" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pom.xml">
@@ -739,66 +690,53 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java">
+    <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="docComment;class#NanoHTTPD#0" expanded="true" />
-            <element signature="class#Method#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;field#MIME_PLAINTEXT#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#NanoHTTPD#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#start#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="e#3263#3572#0" expanded="true" />
-            <element signature="e#3561#3562#0" expanded="true" />
-            <element signature="docComment;method#stop#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#serve#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="e#6255#6271#0" expanded="true" />
-            <element signature="e#6331#6347#0" expanded="true" />
-            <element signature="e#6406#6422#0" expanded="true" />
-            <element signature="docComment;method#decodeHeader#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#decodeMultipartData#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="e#15154#15170#0" expanded="true" />
-            <element signature="e#16193#16209#0" expanded="true" />
-            <element signature="docComment;method#findHeaderEnd#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#getBoundaryPositions#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="e#19390#19399#0" expanded="true" />
-            <element signature="docComment;method#saveTmpFile#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#stripMultipartHeaders#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#decodePercent#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#decodeParms#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#sendError#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#sendResponse#0;class#HTTPSession#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;class#Status#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="class#Status#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="method#getRequestStatus#0;class#Status#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#Response#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#Response#1;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#Response#2;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;method#addHeader#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;field#status#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;field#mimeType#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;field#data#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="docComment;field#header#0;class#Response#0;class#NanoHTTPD#0" expanded="true" />
-            <element signature="e#29011#29027#0" expanded="true" />
-          </folding>
+        <state line="9" column="58" selection-start="357" selection-end="357" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/HelloServer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="32" column="52" selection-start="1024" selection-end="1024" vertical-scroll-proportion="0.40869564">
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/SimpleWebServer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="12" column="55" selection-start="343" selection-end="343" vertical-scroll-proportion="-12.477723">
+        <state line="321" column="0" selection-start="14134" selection-end="14581" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/file-upload-test.htm">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="9" column="56" selection-start="487" selection-end="487" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../asynchrony/android-radar/android-radar.iml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/FileUploadTesting.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="4" column="0" selection-start="74" selection-end="74" vertical-scroll-proportion="0.0">
           <folding>
-            <element signature="docComment;field#MIME_TYPES#0;class#SimpleWebServer#0" expanded="true" />
-            <element signature="e#600#616#0" expanded="true" />
-            <element signature="docComment;field#LICENCE#0;class#SimpleWebServer#0" expanded="true" />
-            <element signature="method#getRootDir#0;class#SimpleWebServer#0" expanded="true" />
-            <element signature="docComment;method#encodeUri#0;class#SimpleWebServer#0" expanded="true" />
-            <element signature="docComment;method#serveFile#0;class#SimpleWebServer#0" expanded="true" />
-            <element signature="class#10939:11179" expanded="true" />
-            <element signature="docComment;method#main#0;class#SimpleWebServer#0" expanded="true" />
+            <element signature="docComment;class#FileUploadTesting#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/fi/iki/elonen/NanoHTTPD.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="384" column="0" selection-start="16286" selection-end="16286" vertical-scroll-proportion="11.185898">
+          <folding>
+            <element signature="class#Method#0;class#NanoHTTPD#0" expanded="true" />
           </folding>
         </state>
       </provider>

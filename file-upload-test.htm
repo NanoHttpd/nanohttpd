@@ -1,11 +1,15 @@
 <html>
  <body>
   <p>This is a file upload test for NanoHTTPD.</p>
-   <form action="." enctype="multipart/form-data" method="post">
+   <form action="http://localhost:8080/" enctype="multipart/form-data" method="post">
     <label for="textline">Text:</label>
        <input type="text" id="textline" name="textline" size="30"><br>
-    <label for="datafile">File:</label>
-       <input type="file" id="datafile" name="datafile" size="40"><br>
+    <label for="datafile1">First File:</label>
+       <input type="file" id="datafile1" name="datafile1" size="40"><br>
+    <label for="datafile2">Second File:</label>
+       <input type="file" id="datafile2" name="datafile2" size="40"><br>
+    <label for="datafile2">Third File:</label>
+       <input type="file" id="datafile3" name="datafile3" size="40"><br>
     <input type="submit">
    </form>
  </body>

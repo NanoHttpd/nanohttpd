@@ -238,7 +238,7 @@ public abstract class NanoHTTPD {
                 if (Method.POST.equals(method)) {
                     String contentType = "";
                     String contentTypeHeader = header.get("content-type");
-                    StringTokenizer st = new StringTokenizer(contentTypeHeader, "; ");
+                    StringTokenizer st = new StringTokenizer(contentTypeHeader, ",; ");
                     if (st.hasMoreTokens()) {
                         contentType = st.nextToken();
                     }
