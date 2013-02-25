@@ -2,3 +2,5 @@ out
 target
 
 *.class
+.swp
+.idea
