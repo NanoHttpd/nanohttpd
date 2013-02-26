@@ -1,18 +1,34 @@
 package fi.iki.elonen;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.StringTokenizer;
+import java.util.TimeZone;
 
 /**
  * A simple, tiny, nicely embeddable HTTP 1.0 (partially 1.1) server in Java
  * <p/>
  * <p/>
- * NanoHTTPD version 1.25,
- * Copyright &copy; 2001,2005-2012 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/) and
- * Copyright &copy; 2010 Konstantinos Togias (info@ktogias.gr, http://ktogias.gr)
+ * NanoHTTPD version 1.25, Copyright &copy; 2001,2005-2012 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/) and Copyright &copy; 2010
+ * Konstantinos Togias (info@ktogias.gr, http://ktogias.gr)
  * <p/>
  * Uplifted to Java5 by Micah Hainline and Paul Hawke (paul.hawke@gmail.com).
  * <p/>
@@ -126,14 +142,19 @@ public abstract class NanoHTTPD {
      * <p/>
      * <p/>
      * (By default, this delegates to serveFile() and allows directory listing.)
-     *
-     * @param uri    Percent-decoded URI without parameters, for example "/index.cgi"
-     * @param method "GET", "POST" etc.
-     * @param parms  Parsed, percent decoded parameters from URI and, in case of POST, data.
-     * @param header Header entries, percent decoded
+     * 
+     * @param uri
+     *            Percent-decoded URI without parameters, for example "/index.cgi"
+     * @param method
+     *            "GET", "POST" etc.
+     * @param parms
+     *            Parsed, percent decoded parameters from URI and, in case of POST, data.
+     * @param header
+     *            Header entries, percent decoded
      * @return HTTP response, see class Response for details
      */
-    public abstract Response serve(String uri, Method method, Map<String, String> header, Map<String, String> parms, Map<String, String> files);
+    public abstract Response serve(String uri, Method method, Map<String, String> header, Map<String, String> parms,
+            Map<String, String> files);
 
     /**
      * Handles one session, i.e. parses the HTTP request and returns the response.
@@ -238,6 +259,9 @@ public abstract class NanoHTTPD {
                 if (Method.POST.equals(method)) {
                     String contentType = "";
                     String contentTypeHeader = header.get("content-type");
+
+                    // multipart/form-data, boundary="agi90jbRx:FMpMKOpjMg7N''IM4bL=,he2WVeQdbD17M+)bKcw1Y20z?bKy77qmGTV9blo"
+
                     StringTokenizer st = new StringTokenizer(contentTypeHeader, ",; ");
                     if (st.hasMoreTokens()) {
                         contentType = st.nextToken();
@@ -249,14 +273,11 @@ public abstract class NanoHTTPD {
                             sendError(Response.Status.BAD_REQUEST,
                                     "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
                         }
-                        String boundaryExp = st.nextToken();
-                        st = new StringTokenizer(boundaryExp, "=");
-                        if (st.countTokens() != 2) {
-                            sendError(Response.Status.BAD_REQUEST,
-                                    "BAD REQUEST: Content type is multipart/form-data but boundary syntax error. Usage: GET /example/file.html");
-                        }
-                        st.nextToken();
-                        String boundary = st.nextToken();
+
+                        String boundaryStartString = "boundary=\"";
+                        int boundaryContentStart = contentTypeHeader.indexOf(boundaryStartString) + boundaryStartString.length();
+                        int boundaryContentEnd = contentTypeHeader.indexOf('\"', boundaryContentStart);
+                        String boundary = contentTypeHeader.substring(boundaryContentStart, boundaryContentEnd);
 
                         decodeMultipartData(boundary, fbuf, in, parms, files);
                     } else {
@@ -352,7 +373,7 @@ public abstract class NanoHTTPD {
          * Decodes the Multipart Body data and put it into java Properties' key - value pairs.
          */
         private void decodeMultipartData(String boundary, byte[] fbuf, BufferedReader in, Map<String, String> parms,
-                                         Map<String, String> files) throws InterruptedException {
+                Map<String, String> files) throws InterruptedException {
             try {
                 int[] bpositions = getBoundaryPositions(fbuf, boundary.getBytes());
                 int boundarycount = 1;
@@ -511,16 +532,16 @@ public abstract class NanoHTTPD {
                 for (int i = 0; i < str.length(); i++) {
                     char c = str.charAt(i);
                     switch (c) {
-                        case '+':
-                            sb.append(' ');
-                            break;
-                        case '%':
-                            sb.append((char) Integer.parseInt(str.substring(i + 1, i + 3), 16));
-                            i += 2;
-                            break;
-                        default:
-                            sb.append(c);
-                            break;
+                    case '+':
+                        sb.append(' ');
+                        break;
+                    case '%':
+                        sb.append((char) Integer.parseInt(str.substring(i + 1, i + 3), 16));
+                        i += 2;
+                        break;
+                    default:
+                        sb.append(c);
+                        break;
                     }
                 }
                 return sb.toString();
@@ -627,18 +648,10 @@ public abstract class NanoHTTPD {
          * Some HTTP response status codes
          */
         public enum Status {
-            OK(200, "OK"),
-            CREATED(201, "Created"),
-            NO_CONTENT(204, "No Content"),
-            PARTIAL_CONTENT(206, "Partial Content"),
-            REDIRECT(301, "Moved Permanently"),
-            NOT_MODIFIED(304, "Not Modified"),
-            BAD_REQUEST(400, "Bad Request"),
-            UNAUTHORIZED(401, "Unauthorized"),
-            FORBIDDEN(403, "Forbidden"),
-            NOT_FOUND(404, "Not Found"),
-            RANGE_NOT_SATISFIABLE(416, "Requested Range Not Satisfiable"),
-            INTERNAL_ERROR(500, "Internal Server Error");
+            OK(200, "OK"), CREATED(201, "Created"), NO_CONTENT(204, "No Content"), PARTIAL_CONTENT(206, "Partial Content"), REDIRECT(301,
+                    "Moved Permanently"), NOT_MODIFIED(304, "Not Modified"), BAD_REQUEST(400, "Bad Request"), UNAUTHORIZED(401,
+                    "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), RANGE_NOT_SATISFIABLE(416,
+                    "Requested Range Not Satisfiable"), INTERNAL_ERROR(500, "Internal Server Error");
 
             Status(int requestStatus, String descr) {
                 this.requestStatus = requestStatus;
