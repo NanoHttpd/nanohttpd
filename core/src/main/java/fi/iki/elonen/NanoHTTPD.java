@@ -62,12 +62,16 @@ public abstract class NanoHTTPD {
     private final int myPort;
     private ServerSocket myServerSocket;
     private Thread myThread;
+    private TempFileManagerFactory tempFileManagerFactory;
+    private AsyncRunner asyncRunner;
 
     /**
      * Constructs an HTTP server on given port.
      */
     public NanoHTTPD(int port) {
         this.myPort = port;
+        this.tempFileManagerFactory = new DefaultTempFileManagerFactory();
+        this.asyncRunner = new DefaultAsyncRunner();
     }
 
     /**
@@ -104,6 +108,14 @@ public abstract class NanoHTTPD {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public void setTempFileManagerFactory(TempFileManagerFactory tempFileManagerFactory) {
+        this.tempFileManagerFactory = tempFileManagerFactory;
+    }
+
+    public void setAsyncRunner(AsyncRunner asyncRunner) {
+        this.asyncRunner = asyncRunner;
     }
 
     /**
@@ -222,12 +234,12 @@ public abstract class NanoHTTPD {
      */
     private class HTTPSession implements Runnable {
         private final Socket mySocket;
+        private final TempFileManager tempFileManager;
 
         public HTTPSession(Socket s) {
             mySocket = s;
-            Thread t = new Thread(this);
-            t.setDaemon(true);
-            t.start();
+            tempFileManager = tempFileManagerFactory.create();
+            asyncRunner.exec(this);
         }
 
         @Override
@@ -338,10 +350,12 @@ public abstract class NanoHTTPD {
                                     "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
                         }
 
-                        String boundaryStartString = "boundary=\"";
+                        String boundaryStartString = "boundary=";
                         int boundaryContentStart = contentTypeHeader.indexOf(boundaryStartString) + boundaryStartString.length();
-                        int boundaryContentEnd = contentTypeHeader.indexOf('\"', boundaryContentStart);
-                        String boundary = contentTypeHeader.substring(boundaryContentStart, boundaryContentEnd);
+                        String boundary = contentTypeHeader.substring(boundaryContentStart, contentTypeHeader.length());
+                        if (boundary.startsWith("\"") && boundary.startsWith("\"")) {
+                            boundary = boundary.substring(1, boundary.length() - 1);
+                        }
 
                         decodeMultipartData(boundary, fbuf, in, parms, files);
                     } else {
@@ -378,6 +392,8 @@ public abstract class NanoHTTPD {
                 }
             } catch (InterruptedException ie) {
                 // Thrown by sendError, ignore and exit the thread.
+            } finally {
+                tempFileManager.clear();
             }
         }
 
@@ -561,13 +577,12 @@ public abstract class NanoHTTPD {
         private String saveTmpFile(byte[] b, int offset, int len) {
             String path = "";
             if (len > 0) {
-                String tmpdir = System.getProperty("java.io.tmpdir");
                 try {
-                    File temp = File.createTempFile("NanoHTTPD", "", new File(tmpdir));
-                    OutputStream fstream = new FileOutputStream(temp);
+                    TempFile tempFile = tempFileManager.createTempFile();
+                    OutputStream fstream = tempFile.open();
                     fstream.write(b, offset, len);
                     fstream.close();
-                    path = temp.getAbsolutePath();
+                    path = tempFile.getName();
                 } catch (Exception e) { // Catch exception if any
                     System.err.println("Error: " + e.getMessage());
                 }
@@ -705,5 +720,92 @@ public abstract class NanoHTTPD {
                 }
             }
         }
+    }
+
+    private class DefaultTempFileManagerFactory implements TempFileManagerFactory {
+        @Override
+        public TempFileManager create() {
+            return new DefaultTempFileManager();
+        }
+    }
+
+    private class DefaultTempFileManager implements TempFileManager {
+        private final String tmpdir;
+        private final List<TempFile> tempFiles;
+
+        private DefaultTempFileManager() {
+            tmpdir = System.getProperty("java.io.tmpdir");
+            tempFiles = new ArrayList<TempFile>();
+        }
+
+        @Override
+        public TempFile createTempFile() throws Exception {
+            DefaultTempFile tempFile = new DefaultTempFile(tmpdir);
+            tempFiles.add(tempFile);
+            return tempFile;
+        }
+
+        @Override
+        public void clear() {
+            for (TempFile file : tempFiles) {
+                try {
+                    file.delete();
+                } catch (Exception ignored) {}
+            }
+            tempFiles.clear();
+        }
+    }
+
+    public static class DefaultTempFile implements TempFile {
+        private File file;
+        private OutputStream fstream;
+
+        private DefaultTempFile(String tempdir) throws IOException {
+            file = File.createTempFile("NanoHTTPD-", "", new File(tempdir));
+            fstream = new FileOutputStream(file);
+        }
+
+        @Override
+        public OutputStream open() throws Exception {
+            return fstream;
+        }
+
+        @Override
+        public void delete() throws Exception {
+            file.delete();
+        }
+
+        @Override
+        public String getName() {
+            return file.getAbsolutePath();
+        }
+    }
+
+    private class DefaultAsyncRunner implements AsyncRunner {
+        @Override
+        public void exec(Runnable code) {
+            Thread t = new Thread(code);
+            t.setDaemon(true);
+            t.start();
+        }
+    }
+
+    public interface AsyncRunner {
+        void exec(Runnable code);
+    }
+
+    public interface TempFileManagerFactory {
+        TempFileManager create();
+    }
+
+    public interface TempFileManager {
+        TempFile createTempFile() throws Exception;
+        void clear();
+    }
+
+    public interface TempFile {
+        OutputStream open() throws Exception;
+        void delete() throws Exception;
+        String getName();
     }
 }
