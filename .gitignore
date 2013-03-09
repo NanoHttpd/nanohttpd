@@ -1,6 +1,10 @@
 out
 target
 
+*.iml
 *.class
+
 .swp
 .idea
+.classpath
+.project
