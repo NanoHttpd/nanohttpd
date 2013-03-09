@@ -1,7 +1,6 @@
 package fi.iki.elonen;
 
-import java.io.*;
-import java.util.*;
+import java.util.Map;
 
 /**
  * An example of subclassing NanoHTTPD to make a custom HTTP server.
