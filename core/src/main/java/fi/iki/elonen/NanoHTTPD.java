@@ -760,7 +760,7 @@ public abstract class NanoHTTPD {
         private File file;
         private OutputStream fstream;
 
-        private DefaultTempFile(String tempdir) throws IOException {
+        public DefaultTempFile(String tempdir) throws IOException {
             file = File.createTempFile("NanoHTTPD-", "", new File(tempdir));
             fstream = new FileOutputStream(file);
         }
