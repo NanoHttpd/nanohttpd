@@ -323,11 +323,12 @@ public abstract class NanoHTTPD {
                     String contentType = "";
                     String contentTypeHeader = header.get("content-type");
 
-                    // multipart/form-data, boundary="agi90jbRx:FMpMKOpjMg7N''IM4bL=,he2WVeQdbD17M+)bKcw1Y20z?bKy77qmGTV9blo"
-
-                    StringTokenizer st = new StringTokenizer(contentTypeHeader, ",; ");
-                    if (st.hasMoreTokens()) {
-                        contentType = st.nextToken();
+                    StringTokenizer st = null;
+                    if (contentTypeHeader != null) {
+                        st = new StringTokenizer(contentTypeHeader, ",; ");
+                        if (st.hasMoreTokens()) {
+                            contentType = st.nextToken();
+                        }
                     }
 
                     if ("multipart/form-data".equalsIgnoreCase(contentType)) {
