@@ -84,12 +84,28 @@ public abstract class NanoHTTPD {
         myThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    do {
-                        new HTTPSession(myServerSocket.accept());
-                    } while (true);
-                } catch (IOException ignored) {
-                }
+                do {
+                    try {
+                        final Socket finalAccept = myServerSocket.accept();
+                        InputStream inputStream = finalAccept.getInputStream();
+                        OutputStream outputStream = finalAccept.getOutputStream();
+                        TempFileManager tempFileManager = tempFileManagerFactory.create();
+                        final HTTPSession session = new HTTPSession(tempFileManager, inputStream, outputStream);
+                        asyncRunner.exec(new Runnable() {
+                            @Override
+                            public void run() {
+                                session.run();
+                                if (finalAccept != null) {
+                                    try {
+                                        finalAccept.close();
+                                    } catch (IOException ignored) {
+                                    }
+                                }
+                            }
+                        });
+                    } catch (IOException e) {
+                    }
+                } while (true);
             }
         });
         myThread.setDaemon(true);
@@ -144,6 +160,28 @@ public abstract class NanoHTTPD {
             }
             return null;
         }
+    }
+
+    public interface AsyncRunner {
+        void exec(Runnable code);
+    }
+
+    public interface TempFileManagerFactory {
+        TempFileManager create();
+    }
+
+    public interface TempFileManager {
+        TempFile createTempFile() throws Exception;
+
+        void clear();
+    }
+
+    public interface TempFile {
+        OutputStream open() throws Exception;
+
+        void delete() throws Exception;
+
+        String getName();
     }
 
     /**
@@ -229,25 +267,51 @@ public abstract class NanoHTTPD {
         }
     }
 
+    public static class DefaultTempFile implements TempFile {
+        private File file;
+        private OutputStream fstream;
+
+        public DefaultTempFile(String tempdir) throws IOException {
+            file = File.createTempFile("NanoHTTPD-", "", new File(tempdir));
+            fstream = new FileOutputStream(file);
+        }
+
+        @Override
+        public OutputStream open() throws Exception {
+            return fstream;
+        }
+
+        @Override
+        public void delete() throws Exception {
+            file.delete();
+        }
+
+        @Override
+        public String getName() {
+            return file.getAbsolutePath();
+        }
+    }
+
     /**
      * Handles one session, i.e. parses the HTTP request and returns the response.
      */
     private class HTTPSession implements Runnable {
-        private final Socket mySocket;
         private final TempFileManager tempFileManager;
+        private InputStream is;
+        private OutputStream outputStream;
 
-        public HTTPSession(Socket s) {
-            mySocket = s;
-            tempFileManager = tempFileManagerFactory.create();
-            asyncRunner.exec(this);
+        public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
+            this.tempFileManager = tempFileManager;
+            this.is = inputStream;
+            this.outputStream = outputStream;
         }
 
         @Override
         public void run() {
             try {
-                InputStream is = mySocket.getInputStream();
-                if (is == null)
+                if (is == null) {
                     return;
+                }
 
                 // Read the first 8192 bytes.
                 // The full header should fit in here.
@@ -673,8 +737,7 @@ public abstract class NanoHTTPD {
                 if (status == null) {
                     throw new Error("sendResponse(): Status can't be null.");
                 }
-                OutputStream out = mySocket.getOutputStream();
-                PrintWriter pw = new PrintWriter(out);
+                PrintWriter pw = new PrintWriter(outputStream);
                 pw.print("HTTP/1.0 " + status.getDescription() + " \r\n");
 
                 if (mime != null) {
@@ -704,20 +767,16 @@ public abstract class NanoHTTPD {
                         if (read <= 0) {
                             break;
                         }
-                        out.write(buff, 0, read);
+                        outputStream.write(buff, 0, read);
                         pending -= read;
                     }
                 }
-                out.flush();
-                out.close();
+                outputStream.flush();
+                outputStream.close();
                 if (data != null)
                     data.close();
             } catch (IOException ioe) {
                 // Couldn't write? No can do.
-                try {
-                    mySocket.close();
-                } catch (Throwable ignored) {
-                }
             }
         }
     }
@@ -750,34 +809,10 @@ public abstract class NanoHTTPD {
             for (TempFile file : tempFiles) {
                 try {
                     file.delete();
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
             tempFiles.clear();
-        }
-    }
-
-    public static class DefaultTempFile implements TempFile {
-        private File file;
-        private OutputStream fstream;
-
-        public DefaultTempFile(String tempdir) throws IOException {
-            file = File.createTempFile("NanoHTTPD-", "", new File(tempdir));
-            fstream = new FileOutputStream(file);
-        }
-
-        @Override
-        public OutputStream open() throws Exception {
-            return fstream;
-        }
-
-        @Override
-        public void delete() throws Exception {
-            file.delete();
-        }
-
-        @Override
-        public String getName() {
-            return file.getAbsolutePath();
         }
     }
 
@@ -788,24 +823,5 @@ public abstract class NanoHTTPD {
             t.setDaemon(true);
             t.start();
         }
-    }
-
-    public interface AsyncRunner {
-        void exec(Runnable code);
-    }
-
-    public interface TempFileManagerFactory {
-        TempFileManager create();
-    }
-
-    public interface TempFileManager {
-        TempFile createTempFile() throws Exception;
-        void clear();
-    }
-
-    public interface TempFile {
-        OutputStream open() throws Exception;
-        void delete() throws Exception;
-        String getName();
     }
 }
