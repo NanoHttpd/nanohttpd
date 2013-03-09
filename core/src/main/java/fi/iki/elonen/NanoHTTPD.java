@@ -1,27 +1,10 @@
 package fi.iki.elonen;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-import java.util.StringTokenizer;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * A simple, tiny, nicely embeddable HTTP 1.0 (partially 1.1) server in Java
@@ -70,26 +53,12 @@ import java.util.TimeZone;
  * See the end of the source file for distribution license (Modified BSD licence)
  */
 public abstract class NanoHTTPD {
-    public enum Method {
-        GET, PUT, POST, DELETE;
-
-        static Method lookup(String method) {
-            for (Method m : Method.values()) {
-                if (m.toString().equalsIgnoreCase(method)) {
-                    return m;
-                }
-            }
-            return null;
-        }
-    }
-
     /**
      * Common mime types for dynamic content
      */
     public static final String MIME_PLAINTEXT = "text/plain";
     public static final String MIME_HTML = "text/html";
     public static final String MIME_DEFAULT_BINARY = "application/octet-stream";
-
     private final int myPort;
     private ServerSocket myServerSocket;
     private Thread myThread;
@@ -142,24 +111,118 @@ public abstract class NanoHTTPD {
      * <p/>
      * <p/>
      * (By default, this delegates to serveFile() and allows directory listing.)
-     * 
-     * @param uri
-     *            Percent-decoded URI without parameters, for example "/index.cgi"
-     * @param method
-     *            "GET", "POST" etc.
-     * @param parms
-     *            Parsed, percent decoded parameters from URI and, in case of POST, data.
-     * @param header
-     *            Header entries, percent decoded
+     *
+     * @param uri    Percent-decoded URI without parameters, for example "/index.cgi"
+     * @param method "GET", "POST" etc.
+     * @param parms  Parsed, percent decoded parameters from URI and, in case of POST, data.
+     * @param header Header entries, percent decoded
      * @return HTTP response, see class Response for details
      */
     public abstract Response serve(String uri, Method method, Map<String, String> header, Map<String, String> parms,
-            Map<String, String> files);
+                                   Map<String, String> files);
+
+    public enum Method {
+        GET, PUT, POST, DELETE;
+
+        static Method lookup(String method) {
+            for (Method m : Method.values()) {
+                if (m.toString().equalsIgnoreCase(method)) {
+                    return m;
+                }
+            }
+            return null;
+        }
+    }
+
+    /**
+     * HTTP response. Return one of these from serve().
+     */
+    public static class Response {
+        /**
+         * HTTP status code after processing, e.g. "200 OK", HTTP_OK
+         */
+        public Status status;
+        /**
+         * MIME type of content, e.g. "text/html"
+         */
+        public String mimeType;
+        /**
+         * Data of the response, may be null.
+         */
+        public InputStream data;
+        /**
+         * Headers for the HTTP response. Use addHeader() to add lines.
+         */
+        public Map<String, String> header = new HashMap<String, String>();
+
+        /**
+         * Default constructor: response = HTTP_OK, mime = MIME_HTML and your supplied message
+         */
+        public Response(String msg) {
+            this(Status.OK, MIME_HTML, msg);
+        }
+
+        /**
+         * Basic constructor.
+         */
+        public Response(Status status, String mimeType, InputStream data) {
+            this.status = status;
+            this.mimeType = mimeType;
+            this.data = data;
+        }
+
+        /**
+         * Convenience method that makes an InputStream out of given text.
+         */
+        public Response(Status status, String mimeType, String txt) {
+            this.status = status;
+            this.mimeType = mimeType;
+            try {
+                this.data = new ByteArrayInputStream(txt.getBytes("UTF-8"));
+            } catch (java.io.UnsupportedEncodingException uee) {
+                uee.printStackTrace();
+            }
+        }
+
+        /**
+         * Adds given line to the header.
+         */
+        public void addHeader(String name, String value) {
+            header.put(name, value);
+        }
+
+        /**
+         * Some HTTP response status codes
+         */
+        public enum Status {
+            OK(200, "OK"), CREATED(201, "Created"), NO_CONTENT(204, "No Content"), PARTIAL_CONTENT(206, "Partial Content"), REDIRECT(301,
+                    "Moved Permanently"), NOT_MODIFIED(304, "Not Modified"), BAD_REQUEST(400, "Bad Request"), UNAUTHORIZED(401,
+                    "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), RANGE_NOT_SATISFIABLE(416,
+                    "Requested Range Not Satisfiable"), INTERNAL_ERROR(500, "Internal Server Error");
+            private int requestStatus;
+            private String descr;
+
+            Status(int requestStatus, String descr) {
+                this.requestStatus = requestStatus;
+                this.descr = descr;
+            }
+
+            public int getRequestStatus() {
+                return this.requestStatus;
+            }
+
+            public String getDescription() {
+                return "" + this.requestStatus + " " + descr;
+            }
+        }
+    }
 
     /**
      * Handles one session, i.e. parses the HTTP request and returns the response.
      */
     private class HTTPSession implements Runnable {
+        private final Socket mySocket;
+
         public HTTPSession(Socket s) {
             mySocket = s;
             Thread t = new Thread(this);
@@ -299,10 +362,11 @@ public abstract class NanoHTTPD {
 
                 // Ok, now do the serve()
                 Response r = serve(uri, method, header, parms, files);
-                if (r == null)
+                if (r == null) {
                     sendError(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
-                else
+                } else {
                     sendResponse(r.status, r.mimeType, r.header, r.data);
+                }
 
                 in.close();
                 is.close();
@@ -346,8 +410,9 @@ public abstract class NanoHTTPD {
                 if (qmi >= 0) {
                     decodeParms(uri.substring(qmi + 1), parms);
                     uri = decodePercent(uri.substring(0, qmi));
-                } else
+                } else {
                     uri = decodePercent(uri);
+                }
 
                 // If there's another token, it's protocol version,
                 // followed by HTTP headers. Ignore version but parse headers.
@@ -373,7 +438,7 @@ public abstract class NanoHTTPD {
          * Decodes the Multipart Body data and put it into java Properties' key - value pairs.
          */
         private void decodeMultipartData(String boundary, byte[] fbuf, BufferedReader in, Map<String, String> parms,
-                Map<String, String> files) throws InterruptedException {
+                                         Map<String, String> files) throws InterruptedException {
             try {
                 int[] bpositions = getBoundaryPositions(fbuf, boundary.getBytes());
                 int boundarycount = 1;
@@ -532,16 +597,16 @@ public abstract class NanoHTTPD {
                 for (int i = 0; i < str.length(); i++) {
                     char c = str.charAt(i);
                     switch (c) {
-                    case '+':
-                        sb.append(' ');
-                        break;
-                    case '%':
-                        sb.append((char) Integer.parseInt(str.substring(i + 1, i + 3), 16));
-                        i += 2;
-                        break;
-                    default:
-                        sb.append(c);
-                        break;
+                        case '+':
+                            sb.append(' ');
+                            break;
+                        case '%':
+                            sb.append((char) Integer.parseInt(str.substring(i + 1, i + 3), 16));
+                            i += 2;
+                            break;
+                        default:
+                            sb.append(c);
+                            break;
                     }
                 }
                 return sb.toString();
@@ -565,7 +630,10 @@ public abstract class NanoHTTPD {
                 String e = st.nextToken();
                 int sep = e.indexOf('=');
                 if (sep >= 0) {
-                    p.put(decodePercent(e.substring(0, sep)).trim(), decodePercent(e.substring(sep + 1)));
+                    p.put(decodePercent(e.substring(0, sep)).trim(),
+                            decodePercent(e.substring(sep + 1)));
+                } else {
+                    p.put(decodePercent(e).trim(), "");
                 }
             }
         }
@@ -636,94 +704,5 @@ public abstract class NanoHTTPD {
                 }
             }
         }
-
-        private final Socket mySocket;
-    }
-
-    /**
-     * HTTP response. Return one of these from serve().
-     */
-    public static class Response {
-        /**
-         * Some HTTP response status codes
-         */
-        public enum Status {
-            OK(200, "OK"), CREATED(201, "Created"), NO_CONTENT(204, "No Content"), PARTIAL_CONTENT(206, "Partial Content"), REDIRECT(301,
-                    "Moved Permanently"), NOT_MODIFIED(304, "Not Modified"), BAD_REQUEST(400, "Bad Request"), UNAUTHORIZED(401,
-                    "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), RANGE_NOT_SATISFIABLE(416,
-                    "Requested Range Not Satisfiable"), INTERNAL_ERROR(500, "Internal Server Error");
-
-            Status(int requestStatus, String descr) {
-                this.requestStatus = requestStatus;
-                this.descr = descr;
-            }
-
-            private int requestStatus;
-            private String descr;
-
-            public int getRequestStatus() {
-                return this.requestStatus;
-            }
-
-            public String getDescription() {
-                return "" + this.requestStatus + " " + descr;
-            }
-        }
-
-        /**
-         * Default constructor: response = HTTP_OK, mime = MIME_HTML and your supplied message
-         */
-        public Response(String msg) {
-            this(Status.OK, MIME_HTML, msg);
-        }
-
-        /**
-         * Basic constructor.
-         */
-        public Response(Status status, String mimeType, InputStream data) {
-            this.status = status;
-            this.mimeType = mimeType;
-            this.data = data;
-        }
-
-        /**
-         * Convenience method that makes an InputStream out of given text.
-         */
-        public Response(Status status, String mimeType, String txt) {
-            this.status = status;
-            this.mimeType = mimeType;
-            try {
-                this.data = new ByteArrayInputStream(txt.getBytes("UTF-8"));
-            } catch (java.io.UnsupportedEncodingException uee) {
-                uee.printStackTrace();
-            }
-        }
-
-        /**
-         * Adds given line to the header.
-         */
-        public void addHeader(String name, String value) {
-            header.put(name, value);
-        }
-
-        /**
-         * HTTP status code after processing, e.g. "200 OK", HTTP_OK
-         */
-        public Status status;
-
-        /**
-         * MIME type of content, e.g. "text/html"
-         */
-        public String mimeType;
-
-        /**
-         * Data of the response, may be null.
-         */
-        public InputStream data;
-
-        /**
-         * Headers for the HTTP response. Use addHeader() to add lines.
-         */
-        public Map<String, String> header = new HashMap<String, String>();
     }
 }

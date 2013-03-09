@@ -30,21 +30,6 @@ public class HelloServer extends NanoHTTPD {
     }
 
     public static void main(String[] args) {
-        HelloServer helloServer = new HelloServer();
-
-        try {
-            helloServer.start();
-        } catch (IOException ioe) {
-            System.err.println("Couldn't start server:\n" + ioe);
-            System.exit(-1);
-        }
-
-        System.out.println("Listening on port 8080. Hit Enter to stop.\n");
-        try {
-            System.in.read();
-        } catch (Throwable ignored) {
-        }
-
-        helloServer.stop();
+        ServerRunner.run(HelloServer.class);
     }
 }
