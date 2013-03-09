@@ -315,23 +315,6 @@ public class SimpleWebServer extends NanoHTTPD {
                 break;
             }
 
-        SimpleWebServer server = new SimpleWebServer(port, wwwroot);
-
-        try {
-            server.start();
-        } catch (IOException ioe) {
-            System.err.println("Couldn't start server:\n" + ioe);
-            System.exit(-1);
-        }
-
-        System.out.println("Now serving files in port " + port + " from \"" + wwwroot + "\"");
-        System.out.println("Hit Enter to stop.\n");
-
-        try {
-            System.in.read();
-        } catch (Throwable ignored) {
-        }
-
-        server.stop();
+        ServerRunner.executeInstance(new SimpleWebServer(port, wwwroot));
     }
 }

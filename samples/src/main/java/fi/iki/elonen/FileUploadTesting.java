@@ -13,24 +13,7 @@ public class FileUploadTesting extends NanoHTTPD {
     }
 
     public static void main(String[] args) {
-        FileUploadTesting server = new FileUploadTesting();
-
-        try {
-            server.start();
-        } catch (IOException ioe) {
-            System.err.println("Couldn't start server:\n" + ioe);
-            System.exit(-1);
-        }
-
-        System.out.println("Server started, Hit Enter to stop.\n");
-
-        try {
-            System.in.read();
-        } catch (Throwable ignored) {
-        }
-
-        server.stop();
-        System.out.println("Server stopped.\n");
+        ServerRunner.run(FileUploadTesting.class);
     }
 
     @Override
