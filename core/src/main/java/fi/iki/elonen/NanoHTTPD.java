@@ -242,6 +242,65 @@ public abstract class NanoHTTPD {
         }
 
         /**
+         * Sends given response to the socket.
+         */
+        private void send(OutputStream outputStream) {
+            String mime = mimeType;
+            SimpleDateFormat gmtFrmt = new SimpleDateFormat("E, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
+            gmtFrmt.setTimeZone(TimeZone.getTimeZone("GMT"));
+
+            try {
+                if (status == null) {
+                    throw new Error("sendResponse(): Status can't be null.");
+                }
+                PrintWriter pw = new PrintWriter(outputStream);
+                pw.print("HTTP/1.0 " + status.getDescription() + " \r\n");
+
+                if (mime != null) {
+                    pw.print("Content-Type: " + mime + "\r\n");
+                }
+
+                if (header == null || header.get("Date") == null) {
+                    pw.print("Date: " + gmtFrmt.format(new Date()) + "\r\n");
+                }
+
+                if (header != null) {
+                    for (String key : header.keySet()) {
+                        String value = header.get(key);
+                        pw.print(key + ": " + value + "\r\n");
+                    }
+                }
+
+                pw.print("\r\n");
+                pw.flush();
+
+                if (data != null) {
+                    int pending = data.available(); // This is to support partial sends, see serveFile()
+                    int BUFFER_SIZE = 16 * 1024;
+                    byte[] buff = new byte[BUFFER_SIZE];
+                    while (pending > 0) {
+                        int read = data.read(buff, 0, ((pending > BUFFER_SIZE) ? BUFFER_SIZE : pending));
+                        if (read <= 0) {
+                            break;
+                        }
+                        outputStream.write(buff, 0, read);
+                        pending -= read;
+                    }
+                }
+                outputStream.flush();
+                outputStream.close();
+                if (data != null)
+                    data.close();
+            } catch (IOException ioe) {
+                // Couldn't write? No can do.
+            }
+        }
+
+        public static void error(OutputStream outputStream, Status error, String message) {
+            new Response(error, MIME_PLAINTEXT, message).send(outputStream);
+        }
+
+        /**
          * Some HTTP response status codes
          */
         public enum Status {
@@ -297,19 +356,20 @@ public abstract class NanoHTTPD {
      */
     private class HTTPSession implements Runnable {
         private final TempFileManager tempFileManager;
-        private InputStream is;
+        private InputStream inputStream;
         private OutputStream outputStream;
+        public static final int BUFSIZE = 8192;
 
         public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
             this.tempFileManager = tempFileManager;
-            this.is = inputStream;
+            this.inputStream = inputStream;
             this.outputStream = outputStream;
         }
 
         @Override
         public void run() {
             try {
-                if (is == null) {
+                if (inputStream == null) {
                     return;
                 }
 
@@ -317,46 +377,36 @@ public abstract class NanoHTTPD {
                 // The full header should fit in here.
                 // Apache's default header limit is 8KB.
                 // Do NOT assume that a single read will get the entire header at once!
-                final int bufsize = 8192;
-                byte[] buf = new byte[bufsize];
+                byte[] buf = new byte[BUFSIZE];
                 int splitbyte = 0;
                 int rlen = 0;
                 {
-                    int read = is.read(buf, 0, bufsize);
+                    int read = inputStream.read(buf, 0, BUFSIZE);
                     while (read > 0) {
                         rlen += read;
                         splitbyte = findHeaderEnd(buf, rlen);
                         if (splitbyte > 0)
                             break;
-                        read = is.read(buf, rlen, bufsize - rlen);
+                        read = inputStream.read(buf, rlen, BUFSIZE - rlen);
                     }
                 }
 
                 // Create a BufferedReader for parsing the header.
-                ByteArrayInputStream hbis = new ByteArrayInputStream(buf, 0, rlen);
-                BufferedReader hin = new BufferedReader(new InputStreamReader(hbis));
-                Properties pre = new Properties();
+                BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, rlen)));
+                Map<String, String> pre = new HashMap<String, String>();
                 Map<String, String> parms = new HashMap<String, String>();
                 Map<String, String> header = new HashMap<String, String>();
                 Map<String, String> files = new HashMap<String, String>();
 
                 // Decode the header into parms and header java properties
                 decodeHeader(hin, pre, parms, header);
-                Method method = Method.lookup(pre.getProperty("method"));
+                Method method = Method.lookup(pre.get("method"));
                 if (method == null) {
-                    sendError(Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error.");
+                    Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error.");
+                    throw new InterruptedException();
                 }
-                String uri = pre.getProperty("uri");
-
-                long size = 0x7FFFFFFFFFFFFFFFl;
-                String contentLength = header.get("content-length");
-                if (contentLength != null) {
-                    try {
-                        size = Integer.parseInt(contentLength);
-                    } catch (NumberFormatException ex) {
-                        ex.printStackTrace();
-                    }
-                }
+                String uri = pre.get("uri");
+                long size = extractContentLength(header);
 
                 // Write the part of body already read to ByteArrayOutputStream f
                 ByteArrayOutputStream f = new ByteArrayOutputStream();
@@ -379,7 +429,7 @@ public abstract class NanoHTTPD {
                 // Now read all the body and write it to f
                 buf = new byte[512];
                 while (rlen >= 0 && size > 0) {
-                    rlen = is.read(buf, 0, 512);
+                    rlen = inputStream.read(buf, 0, 512);
                     size -= rlen;
                     if (rlen > 0) {
                         f.write(buf, 0, rlen);
@@ -410,8 +460,8 @@ public abstract class NanoHTTPD {
                     if ("multipart/form-data".equalsIgnoreCase(contentType)) {
                         // Handle multipart/form-data
                         if (!st.hasMoreTokens()) {
-                            sendError(Response.Status.BAD_REQUEST,
-                                    "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
+                            Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
+                            throw new InterruptedException();
                         }
 
                         String boundaryStartString = "boundary=";
@@ -442,16 +492,18 @@ public abstract class NanoHTTPD {
                 // Ok, now do the serve()
                 Response r = serve(uri, method, header, parms, files);
                 if (r == null) {
-                    sendError(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
+                    Response.error(outputStream, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
+                    throw new InterruptedException();
                 } else {
-                    sendResponse(r.status, r.mimeType, r.header, r.data);
+                    r.send(outputStream);
                 }
 
                 in.close();
-                is.close();
+                inputStream.close();
             } catch (IOException ioe) {
                 try {
-                    sendError(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+                    Response.error(outputStream, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+                    throw new InterruptedException();
                 } catch (Throwable ignored) {
                 }
             } catch (InterruptedException ie) {
@@ -461,10 +513,23 @@ public abstract class NanoHTTPD {
             }
         }
 
+        private long extractContentLength(Map<String, String> header) {
+            long size = 0x7FFFFFFFFFFFFFFFl;
+            String contentLength = header.get("content-length");
+            if (contentLength != null) {
+                try {
+                    size = Integer.parseInt(contentLength);
+                } catch (NumberFormatException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            return size;
+        }
+
         /**
-         * Decodes the sent headers and loads the data into java Properties' key - value pairs
+         * Decodes the sent headers and loads the data into Key/value pairs
          */
-        private void decodeHeader(BufferedReader in, Properties pre, Map<String, String> parms, Map<String, String> header)
+        private void decodeHeader(BufferedReader in, Map<String, String> pre, Map<String, String> parms, Map<String, String> header)
                 throws InterruptedException {
             try {
                 // Read the request line
@@ -475,13 +540,15 @@ public abstract class NanoHTTPD {
 
                 StringTokenizer st = new StringTokenizer(inLine);
                 if (!st.hasMoreTokens()) {
-                    sendError(Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error. Usage: GET /example/file.html");
+                    Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error. Usage: GET /example/file.html");
+                    throw new InterruptedException();
                 }
 
                 pre.put("method", st.nextToken());
 
                 if (!st.hasMoreTokens()) {
-                    sendError(Response.Status.BAD_REQUEST, "BAD REQUEST: Missing URI. Usage: GET /example/file.html");
+                    Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Missing URI. Usage: GET /example/file.html");
+                    throw new InterruptedException();
                 }
 
                 String uri = st.nextToken();
@@ -511,12 +578,13 @@ public abstract class NanoHTTPD {
 
                 pre.put("uri", uri);
             } catch (IOException ioe) {
-                sendError(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+                Response.error(outputStream, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+                throw new InterruptedException();
             }
         }
 
         /**
-         * Decodes the Multipart Body data and put it into java Properties' key - value pairs.
+         * Decodes the Multipart Body data and put it into Key/Value pairs.
          */
         private void decodeMultipartData(String boundary, byte[] fbuf, BufferedReader in, Map<String, String> parms,
                                          Map<String, String> files) throws InterruptedException {
@@ -526,8 +594,8 @@ public abstract class NanoHTTPD {
                 String mpline = in.readLine();
                 while (mpline != null) {
                     if (!mpline.contains(boundary)) {
-                        sendError(Response.Status.BAD_REQUEST,
-                                "BAD REQUEST: Content type is multipart/form-data but next chunk does not start with boundary. Usage: GET /example/file.html");
+                        Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but next chunk does not start with boundary. Usage: GET /example/file.html");
+                        throw new InterruptedException();
                     }
                     boundarycount++;
                     Map<String, String> item = new HashMap<String, String>();
@@ -542,8 +610,8 @@ public abstract class NanoHTTPD {
                     if (mpline != null) {
                         String contentDisposition = item.get("content-disposition");
                         if (contentDisposition == null) {
-                            sendError(Response.Status.BAD_REQUEST,
-                                    "BAD REQUEST: Content type is multipart/form-data but no content-disposition info found. Usage: GET /example/file.html");
+                            Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but no content-disposition info found. Usage: GET /example/file.html");
+                            throw new InterruptedException();
                         }
                         StringTokenizer st = new StringTokenizer(contentDisposition, "; ");
                         Map<String, String> disposition = new HashMap<String, String>();
@@ -572,7 +640,8 @@ public abstract class NanoHTTPD {
                             }
                         } else {
                             if (boundarycount > bpositions.length) {
-                                sendError(Response.Status.INTERNAL_ERROR, "Error processing request");
+                                Response.error(outputStream, Response.Status.INTERNAL_ERROR, "Error processing request");
+                                throw new InterruptedException();
                             }
                             int offset = stripMultipartHeaders(fbuf, bpositions[boundarycount - 2]);
                             String path = saveTmpFile(fbuf, offset, bpositions[boundarycount - 1] - offset - 4);
@@ -587,7 +656,8 @@ public abstract class NanoHTTPD {
                     }
                 }
             } catch (IOException ioe) {
-                sendError(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+                Response.error(outputStream, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+                throw new InterruptedException();
             }
         }
 
@@ -691,15 +761,14 @@ public abstract class NanoHTTPD {
                 }
                 return sb.toString();
             } catch (Exception e) {
-                sendError(Response.Status.BAD_REQUEST, "BAD REQUEST: Bad percent-encoding.");
-                return null;
+                Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Bad percent-encoding.");
+                throw new InterruptedException();
             }
         }
 
         /**
-         * Decodes parameters in percent-encoded URI-format ( e.g. "name=Jack%20Daniels&pass=Single%20Malt" ) and adds them to given
-         * Properties. NOTE: this doesn't support multiple identical keys due to the simplicity of Properties -- if you need multiples, you
-         * might want to replace the Properties with a Hashtable of Vectors or such.
+         * Decodes parameters in percent-encoded URI-format ( e.g. "name=Jack%20Daniels&pass=Single%20Malt" ) and
+         * adds them to given Map. NOTE: this doesn't support multiple identical keys due to the simplicity of Map.
          */
         private void decodeParms(String parms, Map<String, String> p) throws InterruptedException {
             if (parms == null)
@@ -715,68 +784,6 @@ public abstract class NanoHTTPD {
                 } else {
                     p.put(decodePercent(e).trim(), "");
                 }
-            }
-        }
-
-        /**
-         * Returns an error message as a HTTP response and throws InterruptedException to stop further request processing.
-         */
-        private void sendError(Response.Status status, String msg) throws InterruptedException {
-            sendResponse(status, MIME_PLAINTEXT, null, new ByteArrayInputStream(msg.getBytes()));
-            throw new InterruptedException();
-        }
-
-        /**
-         * Sends given response to the socket.
-         */
-        private void sendResponse(Response.Status status, String mime, Map<String, String> header, InputStream data) {
-            SimpleDateFormat gmtFrmt = new SimpleDateFormat("E, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
-            gmtFrmt.setTimeZone(TimeZone.getTimeZone("GMT"));
-
-            try {
-                if (status == null) {
-                    throw new Error("sendResponse(): Status can't be null.");
-                }
-                PrintWriter pw = new PrintWriter(outputStream);
-                pw.print("HTTP/1.0 " + status.getDescription() + " \r\n");
-
-                if (mime != null) {
-                    pw.print("Content-Type: " + mime + "\r\n");
-                }
-
-                if (header == null || header.get("Date") == null) {
-                    pw.print("Date: " + gmtFrmt.format(new Date()) + "\r\n");
-                }
-
-                if (header != null) {
-                    for (String key : header.keySet()) {
-                        String value = header.get(key);
-                        pw.print(key + ": " + value + "\r\n");
-                    }
-                }
-
-                pw.print("\r\n");
-                pw.flush();
-
-                if (data != null) {
-                    int pending = data.available(); // This is to support partial sends, see serveFile()
-                    int BUFFER_SIZE = 16 * 1024;
-                    byte[] buff = new byte[BUFFER_SIZE];
-                    while (pending > 0) {
-                        int read = data.read(buff, 0, ((pending > BUFFER_SIZE) ? BUFFER_SIZE : pending));
-                        if (read <= 0) {
-                            break;
-                        }
-                        outputStream.write(buff, 0, read);
-                        pending -= read;
-                    }
-                }
-                outputStream.flush();
-                outputStream.close();
-                if (data != null)
-                    data.close();
-            } catch (IOException ioe) {
-                // Couldn't write? No can do.
             }
         }
     }
