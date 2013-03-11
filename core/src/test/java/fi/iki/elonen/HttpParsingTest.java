@@ -14,4 +14,9 @@ public class HttpParsingTest extends HttpServerTest {
             assertEquals("" + expected, testServer.decodePercent(input));
         }
     }
+
+    @Test
+    public void testPlusInQueryParams() throws Exception {
+        assertEquals("foo bar", testServer.decodePercent("foo+bar"));
+    }
 }
