@@ -53,6 +53,10 @@ import java.util.*;
  * See the end of the source file for distribution license (Modified BSD licence)
  */
 public abstract class NanoHTTPD {
+    /*
+     * Pseudo-Parameter to use to store the actual query string in the parameters map for later re-processing.
+     */
+    public static final String QUERY_STRING_PARAMETER = "NanoHttpd.QUERY_STRING";
     /**
      * Common mime types for dynamic content
      */
@@ -149,6 +153,61 @@ public abstract class NanoHTTPD {
     public abstract Response serve(String uri, Method method, Map<String, String> header, Map<String, String> parms,
                                    Map<String, String> files);
 
+    /**
+     * Decodes the percent encoding scheme. <br/>
+     * For example: "an+example%20string" -> "an example string"
+     */
+    private String decodePercent(String str) throws InterruptedException {
+        try {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < str.length(); i++) {
+                char c = str.charAt(i);
+                switch (c) {
+                    case '+':
+                        sb.append(' ');
+                        break;
+                    case '%':
+                        sb.append((char) Integer.parseInt(str.substring(i + 1, i + 3), 16));
+                        i += 2;
+                        break;
+                    default:
+                        sb.append(c);
+                        break;
+                }
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            throw new InterruptedException();
+        }
+    }
+    protected Map<String, List<String>> decodeParameters(Map<String, String> parms) {
+        return this.decodeParameters(parms.get(QUERY_STRING_PARAMETER));
+    }
+
+    protected Map<String, List<String>> decodeParameters(String queryString) {
+        Map<String, List<String>> parms = new HashMap<String, List<String>>();
+        if (queryString != null) {
+            StringTokenizer st = new StringTokenizer(queryString, "&");
+            while (st.hasMoreTokens()) {
+                String e = st.nextToken();
+                int sep = e.indexOf('=');
+                try {
+                    String propertyName = (sep >= 0) ? decodePercent(e.substring(0, sep)).trim() : decodePercent(e).trim();
+                    if (!parms.containsKey(propertyName)) {
+                        parms.put(propertyName, new ArrayList<String>());
+                    }
+                    String propertyValue = (sep >= 0) ? decodePercent(e.substring(sep + 1)) : null;
+                    if (propertyValue != null) {
+                        parms.get(propertyName).add(propertyValue);
+                    }
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+        return parms;
+    }
+
     public enum Method {
         GET, PUT, POST, DELETE;
 
@@ -234,6 +293,10 @@ public abstract class NanoHTTPD {
             }
         }
 
+        public static void error(OutputStream outputStream, Status error, String message) {
+            new Response(error, MIME_PLAINTEXT, message).send(outputStream);
+        }
+
         /**
          * Adds given line to the header.
          */
@@ -296,10 +359,6 @@ public abstract class NanoHTTPD {
             }
         }
 
-        public static void error(OutputStream outputStream, Status error, String message) {
-            new Response(error, MIME_PLAINTEXT, message).send(outputStream);
-        }
-
         /**
          * Some HTTP response status codes
          */
@@ -354,11 +413,11 @@ public abstract class NanoHTTPD {
     /**
      * Handles one session, i.e. parses the HTTP request and returns the response.
      */
-    private class HTTPSession implements Runnable {
+    protected class HTTPSession implements Runnable {
+        public static final int BUFSIZE = 8192;
         private final TempFileManager tempFileManager;
         private InputStream inputStream;
         private OutputStream outputStream;
-        public static final int BUFSIZE = 8192;
 
         public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
             this.tempFileManager = tempFileManager;
@@ -738,52 +797,30 @@ public abstract class NanoHTTPD {
         }
 
         /**
-         * Decodes the percent encoding scheme. <br/>
-         * For example: "an+example%20string" -> "an example string"
-         */
-        private String decodePercent(String str) throws InterruptedException {
-            try {
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < str.length(); i++) {
-                    char c = str.charAt(i);
-                    switch (c) {
-                        case '+':
-                            sb.append(' ');
-                            break;
-                        case '%':
-                            sb.append((char) Integer.parseInt(str.substring(i + 1, i + 3), 16));
-                            i += 2;
-                            break;
-                        default:
-                            sb.append(c);
-                            break;
-                    }
-                }
-                return sb.toString();
-            } catch (Exception e) {
-                Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Bad percent-encoding.");
-                throw new InterruptedException();
-            }
-        }
-
-        /**
          * Decodes parameters in percent-encoded URI-format ( e.g. "name=Jack%20Daniels&pass=Single%20Malt" ) and
          * adds them to given Map. NOTE: this doesn't support multiple identical keys due to the simplicity of Map.
          */
         private void decodeParms(String parms, Map<String, String> p) throws InterruptedException {
-            if (parms == null)
+            if (parms == null) {
+                p.put(QUERY_STRING_PARAMETER, "");
                 return;
+            }
 
+            p.put(QUERY_STRING_PARAMETER, parms);
             StringTokenizer st = new StringTokenizer(parms, "&");
-            while (st.hasMoreTokens()) {
-                String e = st.nextToken();
-                int sep = e.indexOf('=');
-                if (sep >= 0) {
-                    p.put(decodePercent(e.substring(0, sep)).trim(),
-                            decodePercent(e.substring(sep + 1)));
-                } else {
-                    p.put(decodePercent(e).trim(), "");
+            try {
+                while (st.hasMoreTokens()) {
+                    String e = st.nextToken();
+                    int sep = e.indexOf('=');
+                    if (sep >= 0) {
+                        p.put(decodePercent(e.substring(0, sep)).trim(),
+                                decodePercent(e.substring(sep + 1)));
+                    } else {
+                        p.put(decodePercent(e).trim(), "");
+                    }
                 }
+            } catch (InterruptedException e) {
+                Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Bad percent-encoding.");
             }
         }
     }
