@@ -91,6 +91,11 @@ public class HttpServerTest {
             this.decodedParamters = decodeParameters(parms.get("NanoHttpd.QUERY_STRING"));
             return response;
         }
+
+        @Override
+        public String decodePercent(String str) throws InterruptedException {
+            return super.decodePercent(str);
+        }
     }
 
     protected class TestFileManager implements NanoHTTPD.TempFileManager {

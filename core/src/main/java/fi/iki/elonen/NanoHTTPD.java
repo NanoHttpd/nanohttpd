@@ -157,7 +157,7 @@ public abstract class NanoHTTPD {
      * Decodes the percent encoding scheme. <br/>
      * For example: "an+example%20string" -> "an example string"
      */
-    private String decodePercent(String str) throws InterruptedException {
+    protected String decodePercent(String str) throws InterruptedException {
         try {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < str.length(); i++) {
