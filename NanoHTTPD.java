@@ -26,8 +26,8 @@ import java.io.FileOutputStream;
 /**
  * A simple, tiny, nicely embeddable HTTP 1.0 (partially 1.1) server in Java
  *
- * <p> NanoHTTPD version 1.25,
- * Copyright &copy; 2001,2005-2012 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/)
+ * <p> NanoHTTPD version 1.27,
+ * Copyright &copy; 2001,2005-2013 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/)
  * and Copyright &copy; 2010 Konstantinos Togias (info@ktogias.gr, http://ktogias.gr)
  *
  * <p><b>Features + limitations: </b><ul>
@@ -258,7 +258,7 @@ public class NanoHTTPD
 	 */
 	public static void main( String[] args )
 	{
-		myOut.println( "NanoHTTPD 1.25 (C) 2001,2005-2011 Jarno Elonen and (C) 2010 Konstantinos Togias\n" +
+		myOut.println( "NanoHTTPD 1.27 (C) 2001,2005-2013 Jarno Elonen and (C) 2010 Konstantinos Togias\n" +
 				"(Command line options: [-p port] [-d root-dir] [--licence])\n" );
 
 		// Defaults
@@ -367,7 +367,7 @@ public class NanoHTTPD
 				// have reached the end of the data to be sent or we should
 				// expect the first byte of the body at the next read.
 				if (splitbyte < rlen)
-					size -= rlen-splitbyte+1;
+					size -= rlen-splitbyte;
 				else if (splitbyte==0 || size == 0x7FFFFFFFFFFFFFFFl)
 					size = 0;
 
@@ -1113,7 +1113,7 @@ public class NanoHTTPD
 	 * The distribution licence
 	 */
 	private static final String LICENCE =
-		"Copyright (C) 2001,2005-2011 by Jarno Elonen <elonen@iki.fi>\n"+
+		"Copyright (C) 2001,2005-2013 by Jarno Elonen <elonen@iki.fi>\n"+
 		"and Copyright (C) 2010 by Konstantinos Togias <info@ktogias.gr>\n"+
 		"\n"+
 		"Redistribution and use in source and binary forms, with or without\n"+
