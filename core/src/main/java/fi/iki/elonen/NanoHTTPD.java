@@ -1,6 +1,7 @@
 package fi.iki.elonen;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
@@ -63,6 +64,7 @@ public abstract class NanoHTTPD {
     public static final String MIME_PLAINTEXT = "text/plain";
     public static final String MIME_HTML = "text/html";
     public static final String MIME_DEFAULT_BINARY = "application/octet-stream";
+    private final String hostname;
     private final int myPort;
     private ServerSocket myServerSocket;
     private Thread myThread;
@@ -73,6 +75,11 @@ public abstract class NanoHTTPD {
      * Constructs an HTTP server on given port.
      */
     public NanoHTTPD(int port) {
+        this(null, port);
+    }
+
+    public NanoHTTPD(String hostname, int port) {
+        this.hostname = hostname;
         this.myPort = port;
         this.tempFileManagerFactory = new DefaultTempFileManagerFactory();
         this.asyncRunner = new DefaultAsyncRunner();
@@ -84,7 +91,9 @@ public abstract class NanoHTTPD {
      * Throws an IOException if the socket is already in use
      */
     public void start() throws IOException {
-        myServerSocket = new ServerSocket(myPort);
+        myServerSocket = new ServerSocket();
+        myServerSocket.bind((hostname != null) ? new InetSocketAddress(hostname, myPort) : new InetSocketAddress(myPort));
+
         myThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -180,6 +189,7 @@ public abstract class NanoHTTPD {
             throw new InterruptedException();
         }
     }
+
     protected Map<String, List<String>> decodeParameters(Map<String, String> parms) {
         return this.decodeParameters(parms.get(QUERY_STRING_PARAMETER));
     }

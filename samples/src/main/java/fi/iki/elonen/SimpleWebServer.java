@@ -71,8 +71,8 @@ public class SimpleWebServer extends NanoHTTPD {
 
     private File rootDir;
 
-    public SimpleWebServer(int port, File wwwroot) {
-        super(port);
+    public SimpleWebServer(String host, int port, File wwwroot) {
+        super(host, port);
         this.rootDir = wwwroot;
     }
 
@@ -298,15 +298,18 @@ public class SimpleWebServer extends NanoHTTPD {
      */
     public static void main(String[] args) {
         System.out.println("NanoHTTPD 1.25 (C) 2001,2005-2011 Jarno Elonen and (C) 2010 Konstantinos Togias\n"
-                + "(Command line options: [-p port] [-d root-dir] [--licence])\n");
+                + "(Command line options: [-h hostname] [-p port] [-d root-dir] [--licence])\n");
 
         // Defaults
         int port = 8080;
+        String host = "127.0.0.1";
         File wwwroot = new File(".").getAbsoluteFile();
 
         // Show licence if requested
         for (int i = 0; i < args.length; ++i)
-            if (args[i].equalsIgnoreCase("-p"))
+            if (args[i].equalsIgnoreCase("-h"))
+                host = args[i + 1];
+            else if (args[i].equalsIgnoreCase("-p"))
                 port = Integer.parseInt(args[i + 1]);
             else if (args[i].equalsIgnoreCase("-d"))
                 wwwroot = new File(args[i + 1]).getAbsoluteFile();
@@ -315,6 +318,6 @@ public class SimpleWebServer extends NanoHTTPD {
                 break;
             }
 
-        ServerRunner.executeInstance(new SimpleWebServer(port, wwwroot));
+        ServerRunner.executeInstance(new SimpleWebServer(host, port, wwwroot));
     }
 }
