@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -478,7 +480,7 @@ public abstract class NanoHTTPD {
                 long size = extractContentLength(header);
 
                 // Write the part of body already read to ByteArrayOutputStream f
-                ByteArrayOutputStream f = new ByteArrayOutputStream();
+                RandomAccessFile f = getTmpBucket();
                 if (splitbyte < rlen) {
                     f.write(buf, splitbyte, rlen - splitbyte);
                 }
@@ -506,10 +508,11 @@ public abstract class NanoHTTPD {
                 }
 
                 // Get the raw body as a byte []
-                byte[] fbuf = f.toByteArray();
+                ByteBuffer fbuf = f.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, f.length());
+                f.seek(0);
 
                 // Create a BufferedReader for easily reading it as string.
-                ByteArrayInputStream bin = new ByteArrayInputStream(fbuf);
+                InputStream bin = new FileInputStream(f.getFD());
                 BufferedReader in = new BufferedReader(new InputStreamReader(bin));
 
                 // If the method is POST, there may be parameters
@@ -556,7 +559,7 @@ public abstract class NanoHTTPD {
                 }
 
                 if (Method.PUT.equals(method))
-                    files.put("content", saveTmpFile(fbuf, 0, f.size()));
+                    files.put("content", saveTmpFile(fbuf, 0, fbuf.limit()));
 
                 // Ok, now do the serve()
                 Response r = serve(uri, method, header, parms, files);
@@ -655,7 +658,7 @@ public abstract class NanoHTTPD {
         /**
          * Decodes the Multipart Body data and put it into Key/Value pairs.
          */
-        private void decodeMultipartData(String boundary, byte[] fbuf, BufferedReader in, Map<String, String> parms,
+        private void decodeMultipartData(String boundary, ByteBuffer fbuf, BufferedReader in, Map<String, String> parms,
                                          Map<String, String> files) throws InterruptedException {
             try {
                 int[] bpositions = getBoundaryPositions(fbuf, boundary.getBytes());
@@ -747,12 +750,12 @@ public abstract class NanoHTTPD {
         /**
          * Find the byte positions where multipart boundaries start.
          */
-        public int[] getBoundaryPositions(byte[] b, byte[] boundary) {
+        public int[] getBoundaryPositions(ByteBuffer b, byte[] boundary) {
             int matchcount = 0;
             int matchbyte = -1;
             List<Integer> matchbytes = new ArrayList<Integer>();
-            for (int i = 0; i < b.length; i++) {
-                if (b[i] == boundary[matchcount]) {
+            for (int i=0; i<b.limit(); i++) {
+                if (b.get(i) == boundary[matchcount]) {
                     if (matchcount == 0)
                         matchbyte = i;
                     matchcount++;
@@ -777,14 +780,15 @@ public abstract class NanoHTTPD {
         /**
          * Retrieves the content of a sent file and saves it to a temporary file. The full path to the saved file is returned.
          */
-        private String saveTmpFile(byte[] b, int offset, int len) {
+        private String saveTmpFile(ByteBuffer  b, int offset, int len) {
             String path = "";
             if (len > 0) {
                 try {
                     TempFile tempFile = tempFileManager.createTempFile();
-                    OutputStream fstream = tempFile.open();
-                    fstream.write(b, offset, len);
-                    fstream.close();
+                    ByteBuffer src = b.duplicate();
+                    FileChannel dest = new FileOutputStream(tempFile.getName()).getChannel();
+                    src.position(offset).limit(offset + len);
+                    dest.write(src.slice());
                     path = tempFile.getName();
                 } catch (Exception e) { // Catch exception if any
                     System.err.println("Error: " + e.getMessage());
@@ -793,13 +797,23 @@ public abstract class NanoHTTPD {
             return path;
         }
 
+        private RandomAccessFile getTmpBucket() throws IOException {
+            try {
+                TempFile tempFile = tempFileManager.createTempFile();
+                return new RandomAccessFile(tempFile.getName(), "rw");
+            } catch (Exception e) {
+                System.err.println("Error: " + e.getMessage());
+            }
+            return null;
+        }
+
         /**
          * It returns the offset separating multipart file headers from the file's data.
          */
-        private int stripMultipartHeaders(byte[] b, int offset) {
+        private int stripMultipartHeaders(ByteBuffer b, int offset) {
             int i;
-            for (i = offset; i < b.length; i++) {
-                if (b[i] == '\r' && b[++i] == '\n' && b[++i] == '\r' && b[++i] == '\n') {
+            for (i=offset; i<b.limit(); i++) {
+                if (b.get(i) == '\r' && b.get(++i) == '\n' && b.get(++i) == '\r' && b.get(++i) == '\n') {
                     break;
                 }
             }
@@ -842,11 +856,11 @@ public abstract class NanoHTTPD {
         }
     }
 
-    private class DefaultTempFileManager implements TempFileManager {
+    public static class DefaultTempFileManager implements TempFileManager {
         private final String tmpdir;
         private final List<TempFile> tempFiles;
 
-        private DefaultTempFileManager() {
+        public DefaultTempFileManager() {
             tmpdir = System.getProperty("java.io.tmpdir");
             tempFiles = new ArrayList<TempFile>();
         }

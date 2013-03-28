@@ -44,7 +44,7 @@ public class HttpServerTest {
     protected ByteArrayOutputStream invokeServer(String request) {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        NanoHTTPD.HTTPSession session = testServer.createSession(new TestFileManager(), inputStream, outputStream);
+        NanoHTTPD.HTTPSession session = testServer.createSession(new NanoHTTPD.DefaultTempFileManager(), inputStream, outputStream);
         session.run();
         return outputStream;
     }
@@ -95,17 +95,6 @@ public class HttpServerTest {
         @Override
         public String decodePercent(String str) throws InterruptedException {
             return super.decodePercent(str);
-        }
-    }
-
-    protected class TestFileManager implements NanoHTTPD.TempFileManager {
-        @Override
-        public NanoHTTPD.TempFile createTempFile() throws Exception {
-            return null;
-        }
-
-        @Override
-        public void clear() {
         }
     }
 }
