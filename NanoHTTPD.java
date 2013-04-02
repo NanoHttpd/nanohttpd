@@ -1010,6 +1010,7 @@ public class NanoHTTPD
 					{
 						res = new Response( HTTP_RANGE_NOT_SATISFIABLE, MIME_PLAINTEXT, "" );
 						res.addHeader( "Content-Range", "bytes 0-0/" + fileLen);
+						res.addHeader( "Content-Disposition", "attachment; filename=\"" + f.getName() + "\"");
 						res.addHeader( "ETag", etag);
 					}
 					else
@@ -1028,6 +1029,7 @@ public class NanoHTTPD
 						res = new Response( HTTP_PARTIALCONTENT, mime, fis );
 						res.addHeader( "Content-Length", "" + dataLen);
 						res.addHeader( "Content-Range", "bytes " + startFrom + "-" + endAt + "/" + fileLen);
+						res.addHeader( "Content-Disposition", "attachment; filename=\"" + f.getName() + "\"");
 						res.addHeader( "ETag", etag);
 					}
 				}
@@ -1039,6 +1041,7 @@ public class NanoHTTPD
 					{
 						res = new Response( HTTP_OK, mime, new FileInputStream( f ));
 						res.addHeader( "Content-Length", "" + fileLen);
+						res.addHeader( "Content-Disposition", "attachment; filename=\"" + f.getName() + "\"");
 						res.addHeader( "ETag", etag);
 					}
 				}
