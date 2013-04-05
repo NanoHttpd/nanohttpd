@@ -548,11 +548,11 @@ public class NanoHTTPD
 						{
 							sendError( HTTP_BADREQUEST, "BAD REQUEST: Content type is multipart/form-data but no content-disposition info found. Usage: GET /example/file.html" );
 						}
-						StringTokenizer st = new StringTokenizer( contentDisposition , "; " );
+						StringTokenizer st = new StringTokenizer( contentDisposition , ";" );
 						Properties disposition = new Properties();
 						while ( st.hasMoreTokens())
 						{
-							String token = st.nextToken();
+							String token = st.nextToken().trim();
 							int p = token.indexOf( '=' );
 							if (p!=-1)
 								disposition.put( token.substring(0,p).trim().toLowerCase(), token.substring(p+1).trim());
