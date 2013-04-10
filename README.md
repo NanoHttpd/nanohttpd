@@ -1,7 +1,5 @@
-NanoHTTPD
-=========
+NanoHTTPD for JDK 1.1
+=====================
 
-Tiny, easily embeddable HTTP server in Java.
-Modified BSD licence.
-
-Project website is at: http://iki.fi/elonen/code/nanohttpd/
+This is the original JDK 1.1 compatible one java file -version of NanoHTTPD.
+If Java 1.6 is acceptable for you, try http://github.com/NanoHttpd instead.
