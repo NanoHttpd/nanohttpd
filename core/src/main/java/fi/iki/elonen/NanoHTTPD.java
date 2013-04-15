@@ -13,10 +13,13 @@ import java.util.*;
  * A simple, tiny, nicely embeddable HTTP 1.0 (partially 1.1) server in Java
  * <p/>
  * <p/>
- * NanoHTTPD version 1.25, Copyright &copy; 2001,2005-2012 Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/) and Copyright &copy; 2010
- * Konstantinos Togias (info@ktogias.gr, http://ktogias.gr)
+ * NanoHTTPD 
+ *   -- version 1.25, Copyright &copy; 2001,2005-2012 
+ *      Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/) and 
+ *      Copyright &copy; 2010 Konstantinos Togias (info@ktogias.gr, http://ktogias.gr)
  * <p/>
- * Uplifted to Java5 by Micah Hainline and Paul Hawke (paul.hawke@gmail.com).
+ *   -- version 6 and above, Copyright &copy; 2012-
+ *      Uplifted to Java6 by Paul Hawke (paul.hawke@gmail.com) and Micah Hainline.
  * <p/>
  * <p/>
  * <b>Features + limitations: </b>
@@ -53,7 +56,7 @@ import java.util.*;
  * <p/>
  * </ul>
  * <p/>
- * See the end of the source file for distribution license (Modified BSD licence)
+ * See the separate "LICENSE.md" file for the distribution license (Modified BSD licence)
  */
 public abstract class NanoHTTPD {
     /*
