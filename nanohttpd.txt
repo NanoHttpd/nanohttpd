@@ -1,0 +1,150 @@
+=========
+NanoHTTPD
+=========
+
+A free, simple, tiny (1 java file!), nicely embeddable HTTP server in Java.
+
+Current version: 1.27 (2013-04-01)
+
+.. contents:: Table of Contents
+   :backlinks: none
+
+NanoHTTPD
+=========
+
+Why another Java HTTPD?
+-----------------------
+
+I couldn't find a small enough, embeddable and easily modifiable HTTP server
+that I could just copy and paste into my other Java projects. Every one of them
+consisted of dozens of .java files and/or jars, usually with - from my point
+of view - "overkill features" like servlet support, web administration,
+configuration files, logging etc.
+
+So I made my own. Take it, hopefully you'll find it useful, too.
+
+Features & limitations
+----------------------
+
+* Only one Java file
+* Java 1.1 compatible
+* Released as open source, Modified BSD licence
+* No fixed config files, logging, authorization etc.
+  (Implement by yourself if you need them.)
+* Supports parameter parsing of GET and POST methods  (+ rudimentary PUT support in 1.25)
+* Parameter names must be unique. (Adding support to multiple instance of a parameter is not difficult, but would make the interface a bit more cumbersome to use.)
+* Supports both dynamic content and file serving
+* Supports file upload (since version 1.2, 2010)
+* Never caches anything
+* Doesn't limit bandwidth, request time or simultaneous connections
+* Default code serves files and shows all HTTP parameters and headers
+* File server supports directory listing, ``index.html`` and ``index.htm``
+* File server supports partial content (streaming)
+* File server supports ETags
+* File server does the 301 redirection trick for directories without ``/``
+* File server supports simple skipping for files (continue download)
+* File server serves also very long files without memory overhead
+* Contains a built-in list of most common mime types
+* All header names are converted lowercase so they don't vary between browsers/clients
+
+Ways to use
+-----------
+
+* Run as a standalone app (serves files from current directory and shows requests)
+* Subclass serve() and embed to your own program (see `HelloServer.java <http://github.com/elonen/nanohttpd/blob/master/HelloServer.java>`_ for a simple example)
+* Call serveFile() from serve() with your own base directory
+* To test file uploading, try browsing `file-upload-test.htm <http://github.com/elonen/nanohttpd/blob/master/file-upload-test.htm>`_ through NanoHTTPD, upload something and watch the console output
+
+Java 1.6 version
+----------------
+
+If need, for example, support for large uploads on Android and don't mind running
+Java 6, you might also want to take a look at Paul Hawke's fork at http://github.com/psh/nanohttpd
+
+Source code
+-----------
+
+The version control repository is `at github <http://github.com/elonen/nanohttpd>`_.
+
+* Latest source code:
+
+  * Download `complete zip file <http://github.com/elonen/nanohttpd/zipball/master>`_
+
+  * `NanoHTTPD.java <http://github.com/elonen/nanohttpd/raw/master/NanoHTTPD.java>`_
+
+    * `Syntax highlighted HTML version <http://github.com/elonen/nanohttpd/blob/master/NanoHTTPD.java>`_
+
+  * `Javadoc <javadoc/index.htm>`_
+
+* Linux binary: run ``gcj -o nanohttpd NanoHTTPD.java --main=NanoHTTPD``
+
+* `Documentation <nanohttpd.txt>`_ (this page in text format)
+
+
+
+Changelog
+---------
+
+* 1.27 (2013-04-01): Merged several bug fixes from github forks
+* 1.26 (2013-03-27): fixed an off-by one bug
+* 1.25 (2012-02-12): rudimetary PUT support, buffer size now configurable, support for etag "if-none-match" check, log output stream now configurable
+* 1.24 (2011-08-04): etags + video mime types (for HTML5 video streaming)
+* 1.23 (2011-08-02): better support for partial requests
+* 1.22 (2011-07-21): support for custom www root dir
+* 1.21 (2011-01-03): minor bug fixes
+* 1.2  (2010-12-31): file upload (by Konstantinos Togias) and some small bug fixes
+* 1.14 (2010-08-20): added a stop() function
+* 1.13 (2010-06-27): fixed a wrong case in 'range' header
+* 1.12 (2010-01-07): fixed a null ptr exception
+* 1.11 (2008-04-21): fixed a double URI decoding (caused problems when there was a percent-coded percent)
+* 1.10 (2007-02-09): improved browser compatibility by forcing headers lowercase; fixed a POST method over-read bug
+* 1.05 (2006-03-30): honor Content-Length header; support for clients that leave TCP connection open; better MIME support for symlinked files
+* 1.02 (2005-07-08): fixed a stream read starvation bug
+* 1.01 (2003-04-03): first published version
+
+Thank you to everyone who has reported bugs and suggested fixes.
+
+License
+=======
+
+**(The Modified BSD Licence)**
+
+  Copyright |C| 2001,2005-2013 Jarno Elonen <elonen@iki.fi>
+  and Copyright |C| 2010 Konstantinos Togias <info@ktogias.gr>
+
+  Redistribution and use in source and binary forms, with or without modification,
+  are permitted provided that the following conditions are met:
+
+  * Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+  * The name of the author may not be used to endorse or promote products derived
+    from this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ''AS IS'' AND ANY EXPRESS OR IMPLIED
+  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+  AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR
+  BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+.. |C| unicode:: 0xA9 .. copyright sign
+
+.. meta::
+   :keywords: HTTP, server, java, tiny, minimal, simple, small, open source, free
+   :description: Free, simple, tiny (1 java file!), nicely embeddable HTTP server in Java.
+   :DC.date: 2013-04-01
+   :OS.title: NanoHTTPD
+   :OS.topic: http, server, httpd, embedded, minimal
+   :OS.description: Simple, tiny (1 java file!), nicely embeddable HTTP server in Java.
+   :OS.creator: Jarno Elonen <http://iki.fi/elonen/>
+   :OS.programmingLanguage: Java
+   :OS.license: Modified BSD
+   :OS.firstVersion: 2001-06
+   :OS.latestVersion: 2013-04-01
