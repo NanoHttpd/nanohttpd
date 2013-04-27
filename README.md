@@ -33,9 +33,11 @@
 
 The project is managed with a "fork and pull-request" pattern.  If you want to contribute, fork this repo and submit a pull-request of your changes when you're ready.  Anyone can create Issues, and pull requests should be tied back to an issue describing the purpose of the submitted code.
 
-## Where can I find the original NanoHttpd?
+## Where can I find the original (Java1.1) NanoHttpd?
 
-The original (Java 1.1 project) and the Java 6 project merged in early 2013 to pool resources around "NanoHttpd" as a whole, regardless of flavor.  Development of the Java 1.1 version continues as a permanent branch in the main http://github.com/NanoHttpd/nanohttpd repository.
+The original (Java 1.1 project) and the Java 6 project merged in early 2013 to pool resources 
+around "NanoHttpd" as a whole, regardless of flavor.  Development of the Java 1.1 version continues 
+as a permanent branch ("nanohttpd-for-java1.1") in the main http://github.com/NanoHttpd/nanohttpd repository.
 
 ## How do I use nanohttpd?
 
@@ -93,7 +95,7 @@ In the words of the original founder of the project
 > of view - "overkill features" like servlet support, web administration,
 > configuration files, logging etc.
 
-Since that start we fixed a number of bugs and moved the build to _maven_ and pulled out 
+Since that time we fixed a number of bugs, moved the build to _maven_ and pulled out 
 the samples from the runtime JAR to further slim it down.
 
 The two projects pooled resources in early 2013, merging code-bases, to better support the
@@ -118,4 +120,4 @@ user base and reduce confusion over why _two_ NanoHttpd projects existed.
 * 1.02 (2005-07-08): fixed a stream read starvation bug
 * 1.01 (2003-04-03): first published version
 
-Thank you to everyone who has reported bugs and suggested fixe
+Thank you to everyone who has reported bugs and suggested fixes.
