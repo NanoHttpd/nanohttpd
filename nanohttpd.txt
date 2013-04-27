@@ -4,7 +4,7 @@ NanoHTTPD
 
 A free, simple, tiny (1 java file!), nicely embeddable HTTP server in Java.
 
-Current version: 1.27 (2013-04-01)
+Current version: 1.28 (2013-04-27)
 
 .. contents:: Table of Contents
    :backlinks: none
@@ -85,6 +85,7 @@ The version control repository is `at github <http://github.com/elonen/nanohttpd
 Changelog
 ---------
 
+* 1.28 (2013-04-27): UTF8 fixes, white space support for file server
 * 1.27 (2013-04-01): Merged several bug fixes from github forks
 * 1.26 (2013-03-27): fixed an off-by one bug
 * 1.25 (2012-02-12): rudimetary PUT support, buffer size now configurable, support for etag "if-none-match" check, log output stream now configurable
@@ -139,7 +140,7 @@ License
 .. meta::
    :keywords: HTTP, server, java, tiny, minimal, simple, small, open source, free
    :description: Free, simple, tiny (1 java file!), nicely embeddable HTTP server in Java.
-   :DC.date: 2013-04-01
+   :DC.date: 2013-04-27
    :OS.title: NanoHTTPD
    :OS.topic: http, server, httpd, embedded, minimal
    :OS.description: Simple, tiny (1 java file!), nicely embeddable HTTP server in Java.
@@ -147,4 +148,4 @@ License
    :OS.programmingLanguage: Java
    :OS.license: Modified BSD
    :OS.firstVersion: 2001-06
-   :OS.latestVersion: 2013-04-01
+   :OS.latestVersion: 2013-04-27
