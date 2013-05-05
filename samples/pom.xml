@@ -20,6 +20,11 @@
             <artifactId>nanohttpd</artifactId>
             <version>1.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>fi.iki.elonen</groupId>
+            <artifactId>nanohttpd-webserver</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
     <distributionManagement>

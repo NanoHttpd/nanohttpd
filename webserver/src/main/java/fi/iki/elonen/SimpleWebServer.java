@@ -297,8 +297,11 @@ public class SimpleWebServer extends NanoHTTPD {
      * Starts as a standalone file server and waits for Enter.
      */
     public static void main(String[] args) {
-        System.out.println("NanoHTTPD 1.25 (C) 2001,2005-2011 Jarno Elonen and (C) 2010 Konstantinos Togias\n"
-                + "(Command line options: [-h hostname] [-p port] [-d root-dir] [--licence])\n");
+        System.out.println(
+                "NanoHttpd 2.0: Command line options: [-h hostname] [-p port] [-d root-dir] [--licence]\n" +
+                        "(C) 2001,2005-2011 Jarno Elonen \n" +
+                        "(C) 2010 Konstantinos Togias\n" +
+                        "(C) 2012- Paul S. Hawke");
 
         // Defaults
         int port = 8080;
