@@ -14,60 +14,63 @@ public class SimpleWebServer extends NanoHTTPD {
     /**
      * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
      */
-    private static final Map<String, String> MIME_TYPES;
-    static {
-        Map<String, String> mime = new HashMap<String, String>();
-        mime.put("css", "text/css");
-        mime.put("htm", "text/html");
-        mime.put("html", "text/html");
-        mime.put("xml", "text/xml");
-        mime.put("txt", "text/plain");
-        mime.put("asc", "text/plain");
-        mime.put("gif", "image/gif");
-        mime.put("jpg", "image/jpeg");
-        mime.put("jpeg", "image/jpeg");
-        mime.put("png", "image/png");
-        mime.put("mp3", "audio/mpeg");
-        mime.put("m3u", "audio/mpeg-url");
-        mime.put("mp4", "video/mp4");
-        mime.put("ogv", "video/ogg");
-        mime.put("flv", "video/x-flv");
-        mime.put("mov", "video/quicktime");
-        mime.put("swf", "application/x-shockwave-flash");
-        mime.put("js", "application/javascript");
-        mime.put("pdf", "application/pdf");
-        mime.put("doc", "application/msword");
-        mime.put("ogg", "application/x-ogg");
-        mime.put("zip", "application/octet-stream");
-        mime.put("exe", "application/octet-stream");
-        mime.put("class", "application/octet-stream");
-        MIME_TYPES = mime;
-    }
+    private static final Map<String, String> MIME_TYPES = new HashMap<String, String>() {{
+        put("css", "text/css");
+        put("htm", "text/html");
+        put("html", "text/html");
+        put("xml", "text/xml");
+        put("txt", "text/plain");
+        put("asc", "text/plain");
+        put("gif", "image/gif");
+        put("jpg", "image/jpeg");
+        put("jpeg", "image/jpeg");
+        put("png", "image/png");
+        put("mp3", "audio/mpeg");
+        put("m3u", "audio/mpeg-url");
+        put("mp4", "video/mp4");
+        put("ogv", "video/ogg");
+        put("flv", "video/x-flv");
+        put("mov", "video/quicktime");
+        put("swf", "application/x-shockwave-flash");
+        put("js", "application/javascript");
+        put("pdf", "application/pdf");
+        put("doc", "application/msword");
+        put("ogg", "application/x-ogg");
+        put("zip", "application/octet-stream");
+        put("exe", "application/octet-stream");
+        put("class", "application/octet-stream");
+    }};
 
     /**
      * The distribution licence
      */
-    private static final String LICENCE = "Copyright (C) 2001,2005-2011 by Jarno Elonen <elonen@iki.fi>\n"
-            + "and Copyright (C) 2010 by Konstantinos Togias <info@ktogias.gr>\n" + "\n"
-            + "Redistribution and use in source and binary forms, with or without\n"
-            + "modification, are permitted provided that the following conditions\n" + "are met:\n" + "\n"
-            + "Redistributions of source code must retain the above copyright notice,\n"
-            + "this list of conditions and the following disclaimer. Redistributions in\n"
-            + "binary form must reproduce the above copyright notice, this list of\n"
-            + "conditions and the following disclaimer in the documentation and/or other\n"
-            + "materials provided with the distribution. The name of the author may not\n"
-            + "be used to endorse or promote products derived from this software without\n"
-            + "specific prior written permission. \n"
-            + " \n" + "THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR\n"
-            + "IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES\n"
-            + "OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.\n"
-            + "IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,\n"
-            + "INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT\n"
-            + "NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\n"
-            + "DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\n"
-            + "THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n"
-            + "(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n"
-            + "OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.";
+    private static final String LICENCE =
+            "Copyright (C) 2001,2005-2011 by Jarno Elonen <elonen@iki.fi>,\n"
+                    + "(C) 2010 by Konstantinos Togias <info@ktogias.gr>\n"
+                    + "and (C) 2012- by Paul S. Hawke\n"
+                    + "\n"
+                    + "Redistribution and use in source and binary forms, with or without\n"
+                    + "modification, are permitted provided that the following conditions\n"
+                    + "are met:\n"
+                    + "\n"
+                    + "Redistributions of source code must retain the above copyright notice,\n"
+                    + "this list of conditions and the following disclaimer. Redistributions in\n"
+                    + "binary form must reproduce the above copyright notice, this list of\n"
+                    + "conditions and the following disclaimer in the documentation and/or other\n"
+                    + "materials provided with the distribution. The name of the author may not\n"
+                    + "be used to endorse or promote products derived from this software without\n"
+                    + "specific prior written permission. \n"
+                    + " \n"
+                    + "THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR\n"
+                    + "IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES\n"
+                    + "OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.\n"
+                    + "IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,\n"
+                    + "INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT\n"
+                    + "NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\n"
+                    + "DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\n"
+                    + "THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n"
+                    + "(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n"
+                    + "OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.";
 
     private File rootDir;
 
@@ -301,7 +304,7 @@ public class SimpleWebServer extends NanoHTTPD {
                 "NanoHttpd 2.0: Command line options: [-h hostname] [-p port] [-d root-dir] [--licence]\n" +
                         "(C) 2001,2005-2011 Jarno Elonen \n" +
                         "(C) 2010 Konstantinos Togias\n" +
-                        "(C) 2012- Paul S. Hawke");
+                        "(C) 2012- Paul S. Hawke\n");
 
         // Defaults
         int port = 8080;
