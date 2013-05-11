@@ -9,7 +9,9 @@
 * 2 "flavors" - one strictly Java 1.1 compatible, one at "current" standards.
 * Released as open source, free software, under a Modified BSD licence.
 * No fixed config files, logging, authorization etc. (Implement by yourself if you need them.)
-* Supports parameter parsing of GET and POST methods  (+ rudimentary PUT support in 1.25)
+* Supports parameter parsing of GET and POST methods  
+* Rudimentary PUT support (added in 1.25)
+* Support for HEAD requests
 * Parameter names must be unique, with a helper method to extract multi-value parameters if needed.
 * Supports file upload (since version 1.2, 2010)
 * Never caches anything.
