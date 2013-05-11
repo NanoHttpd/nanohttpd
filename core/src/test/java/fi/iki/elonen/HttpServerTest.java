@@ -63,7 +63,7 @@ public class HttpServerTest {
     }
 
     protected static class TestServer extends NanoHTTPD {
-        private Response response = new Response("");
+        protected Response response = new Response("");
         protected String uri;
         protected Method method;
         protected Map<String, String> header;
@@ -93,7 +93,7 @@ public class HttpServerTest {
         }
 
         @Override
-        public String decodePercent(String str) throws InterruptedException {
+        public String decodePercent(String str) {
             return super.decodePercent(str);
         }
     }
