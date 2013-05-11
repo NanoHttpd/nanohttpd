@@ -13,9 +13,9 @@ import java.util.*;
  * A simple, tiny, nicely embeddable HTTP 1.0 (partially 1.1) server in Java
  * <p/>
  * <p/>
- * NanoHTTPD 
- *   -- version 1.25, Copyright &copy; 2001,2005-2012 
- *      Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/) and 
+ * NanoHTTPD
+ *   -- version 1.25, Copyright &copy; 2001,2005-2012
+ *      Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/) and
  *      Copyright &copy; 2010 Konstantinos Togias (info@ktogias.gr, http://ktogias.gr)
  * <p/>
  *   -- version 6 and above, Copyright &copy; 2012-
@@ -172,28 +172,24 @@ public abstract class NanoHTTPD {
      * Decodes the percent encoding scheme. <br/>
      * For example: "an+example%20string" -> "an example string"
      */
-    protected String decodePercent(String str) throws InterruptedException {
-        try {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < str.length(); i++) {
-                char c = str.charAt(i);
-                switch (c) {
-                    case '+':
-                        sb.append(' ');
-                        break;
-                    case '%':
-                        sb.append((char) Integer.parseInt(str.substring(i + 1, i + 3), 16));
-                        i += 2;
-                        break;
-                    default:
-                        sb.append(c);
-                        break;
-                }
+    protected String decodePercent(String str) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            switch (c) {
+                case '+':
+                    sb.append(' ');
+                    break;
+                case '%':
+                    sb.append((char) Integer.parseInt(str.substring(i + 1, i + 3), 16));
+                    i += 2;
+                    break;
+                default:
+                    sb.append(c);
+                    break;
             }
-            return sb.toString();
-        } catch (Exception e) {
-            throw new InterruptedException();
         }
+        return sb.toString();
     }
 
     protected Map<String, List<String>> decodeParameters(Map<String, String> parms) {
@@ -207,17 +203,13 @@ public abstract class NanoHTTPD {
             while (st.hasMoreTokens()) {
                 String e = st.nextToken();
                 int sep = e.indexOf('=');
-                try {
-                    String propertyName = (sep >= 0) ? decodePercent(e.substring(0, sep)).trim() : decodePercent(e).trim();
-                    if (!parms.containsKey(propertyName)) {
-                        parms.put(propertyName, new ArrayList<String>());
-                    }
-                    String propertyValue = (sep >= 0) ? decodePercent(e.substring(sep + 1)) : null;
-                    if (propertyValue != null) {
-                        parms.get(propertyName).add(propertyValue);
-                    }
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
+                String propertyName = (sep >= 0) ? decodePercent(e.substring(0, sep)).trim() : decodePercent(e).trim();
+                if (!parms.containsKey(propertyName)) {
+                    parms.put(propertyName, new ArrayList<String>());
+                }
+                String propertyValue = (sep >= 0) ? decodePercent(e.substring(sep + 1)) : null;
+                if (propertyValue != null) {
+                    parms.get(propertyName).add(propertyValue);
                 }
             }
         }
@@ -225,7 +217,7 @@ public abstract class NanoHTTPD {
     }
 
     public enum Method {
-        GET, PUT, POST, DELETE;
+        GET, PUT, POST, DELETE, HEAD;
 
         static Method lookup(String method) {
             for (Method m : Method.values()) {
@@ -279,7 +271,7 @@ public abstract class NanoHTTPD {
          * Headers for the HTTP response. Use addHeader() to add lines.
          */
         public Map<String, String> header = new HashMap<String, String>();
-
+        protected Method requestMethod;
         /**
          * Default constructor: response = HTTP_OK, mime = MIME_HTML and your supplied message
          */
@@ -311,6 +303,10 @@ public abstract class NanoHTTPD {
 
         public static void error(OutputStream outputStream, Status error, String message) {
             new Response(error, MIME_PLAINTEXT, message).send(outputStream);
+        }
+
+        public void setRequestMethod(Method requestMethod) {
+            this.requestMethod = requestMethod;
         }
 
         /**
@@ -353,7 +349,7 @@ public abstract class NanoHTTPD {
                 pw.print("\r\n");
                 pw.flush();
 
-                if (data != null) {
+                if (requestMethod != Method.HEAD && data != null) {
                     int pending = data.available(); // This is to support partial sends, see serveFile()
                     int BUFFER_SIZE = 16 * 1024;
                     byte[] buff = new byte[BUFFER_SIZE];
@@ -363,6 +359,7 @@ public abstract class NanoHTTPD {
                             break;
                         }
                         outputStream.write(buff, 0, read);
+
                         pending -= read;
                     }
                 }
@@ -560,10 +557,9 @@ public abstract class NanoHTTPD {
                         postLine = postLine.trim();
                         decodeParms(postLine, parms);
                     }
-                }
-
-                if (Method.PUT.equals(method))
+                } else if (Method.PUT.equals(method)) {
                     files.put("content", saveTmpFile(fbuf, 0, fbuf.limit()));
+                }
 
                 // Ok, now do the serve()
                 Response r = serve(uri, method, header, parms, files);
@@ -571,6 +567,7 @@ public abstract class NanoHTTPD {
                     Response.error(outputStream, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
                     throw new InterruptedException();
                 } else {
+                    r.setRequestMethod(method);
                     r.send(outputStream);
                 }
 
@@ -836,19 +833,15 @@ public abstract class NanoHTTPD {
 
             p.put(QUERY_STRING_PARAMETER, parms);
             StringTokenizer st = new StringTokenizer(parms, "&");
-            try {
-                while (st.hasMoreTokens()) {
-                    String e = st.nextToken();
-                    int sep = e.indexOf('=');
-                    if (sep >= 0) {
-                        p.put(decodePercent(e.substring(0, sep)).trim(),
-                                decodePercent(e.substring(sep + 1)));
-                    } else {
-                        p.put(decodePercent(e).trim(), "");
-                    }
+            while (st.hasMoreTokens()) {
+                String e = st.nextToken();
+                int sep = e.indexOf('=');
+                if (sep >= 0) {
+                    p.put(decodePercent(e.substring(0, sep)).trim(),
+                            decodePercent(e.substring(sep + 1)));
+                } else {
+                    p.put(decodePercent(e).trim(), "");
                 }
-            } catch (InterruptedException e) {
-                Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Bad percent-encoding.");
             }
         }
     }
