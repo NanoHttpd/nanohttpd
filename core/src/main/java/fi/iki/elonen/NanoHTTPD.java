@@ -10,15 +10,15 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * A simple, tiny, nicely embeddable HTTP 1.0 (partially 1.1) server in Java
+ * A simple, tiny, nicely embeddable HTTP server in Java
  * <p/>
  * <p/>
  * NanoHTTPD
- *   -- version 1.25, Copyright &copy; 2001,2005-2012
- *      Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/) and
+ *   -- version 1.25, Copyright &copy; 2001,2005-2012<br/>
+ *      Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/) and<br/>
  *      Copyright &copy; 2010 Konstantinos Togias (info@ktogias.gr, http://ktogias.gr)
  * <p/>
- *   -- version 6 and above, Copyright &copy; 2012-
+ *   -- version 6 and above, Copyright &copy; 2012-<br/>
  *      Uplifted to Java6 by Paul Hawke (paul.hawke@gmail.com) and Micah Hainline.
  * <p/>
  * <p/>
@@ -59,22 +59,26 @@ import java.util.*;
  * See the separate "LICENSE.md" file for the distribution license (Modified BSD licence)
  */
 public abstract class NanoHTTPD {
-    /*
-     * Pseudo-Parameter to use to store the actual query string in the parameters map for later re-processing.
-     */
-    public static final String QUERY_STRING_PARAMETER = "NanoHttpd.QUERY_STRING";
     /**
-     * Common mime types for dynamic content
+     * Common mime type for dynamic content: plain text
      */
     public static final String MIME_PLAINTEXT = "text/plain";
+    /**
+     * Common mime type for dynamic content: html
+     */
     public static final String MIME_HTML = "text/html";
+    /**
+     * Common mime type for dynamic content: binary
+     */
     public static final String MIME_DEFAULT_BINARY = "application/octet-stream";
     private final String hostname;
     private final int myPort;
     private ServerSocket myServerSocket;
     private Thread myThread;
-    private TempFileManagerFactory tempFileManagerFactory;
-    private AsyncRunner asyncRunner;
+    /**
+     * Pseudo-Parameter to use to store the actual query string in the parameters map for later re-processing.
+     */
+    private static final String QUERY_STRING_PARAMETER = "NanoHttpd.QUERY_STRING";
 
     /**
      * Constructs an HTTP server on given port.
@@ -83,17 +87,19 @@ public abstract class NanoHTTPD {
         this(null, port);
     }
 
+    /**
+     * Constructs an HTTP server on given hostname andport.
+     */
     public NanoHTTPD(String hostname, int port) {
         this.hostname = hostname;
         this.myPort = port;
-        this.tempFileManagerFactory = new DefaultTempFileManagerFactory();
-        this.asyncRunner = new DefaultAsyncRunner();
+        setTempFileManagerFactory(new DefaultTempFileManagerFactory());
+        setAsyncRunner(new DefaultAsyncRunner());
     }
 
     /**
-     * Starts the server
-     * <p/>
-     * Throws an IOException if the socket is already in use
+     * Start the server.
+     * @throws IOException if the socket is in use.
      */
     public void start() throws IOException {
         myServerSocket = new ServerSocket();
@@ -132,25 +138,15 @@ public abstract class NanoHTTPD {
     }
 
     /**
-     * Stops the server.
+     * Stop the server.
      */
     public void stop() {
         try {
             myServerSocket.close();
             myThread.join();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public void setTempFileManagerFactory(TempFileManagerFactory tempFileManagerFactory) {
-        this.tempFileManagerFactory = tempFileManagerFactory;
-    }
-
-    public void setAsyncRunner(AsyncRunner asyncRunner) {
-        this.asyncRunner = asyncRunner;
     }
 
     /**
@@ -169,8 +165,9 @@ public abstract class NanoHTTPD {
                                    Map<String, String> files);
 
     /**
-     * Decodes the percent encoding scheme. <br/>
-     * For example: "an+example%20string" -> "an example string"
+     * Decode percent encoded <code>String</code> values.
+     * @param str the percent encoded <code>String</code>
+     * @return expanded form of the input, for example "foo%20bar" becomes "foo bar"
      */
     protected String decodePercent(String str) {
         StringBuilder sb = new StringBuilder();
@@ -192,10 +189,26 @@ public abstract class NanoHTTPD {
         return sb.toString();
     }
 
+    /**
+     * Decode parameters from a URL, handing the case where a single parameter name might have been
+     * supplied several times, by return lists of values.  In general these lists will contain a single
+     * element.
+     *
+     * @param parms original <b>NanoHttpd</b> parameters values, as passed to the <code>serve()</code> method.
+     * @return a map of <code>String</code> (parameter name) to <code>List&lt;String&gt;</code> (a list of the values supplied).
+     */
     protected Map<String, List<String>> decodeParameters(Map<String, String> parms) {
         return this.decodeParameters(parms.get(QUERY_STRING_PARAMETER));
     }
 
+    /**
+     * Decode parameters from a URL, handing the case where a single parameter name might have been
+     * supplied several times, by return lists of values.  In general these lists will contain a single
+     * element.
+     *
+     * @param queryString a query string pulled from the URL.
+     * @return a map of <code>String</code> (parameter name) to <code>List&lt;String&gt;</code> (a list of the values supplied).
+     */
     protected Map<String, List<String>> decodeParameters(String queryString) {
         Map<String, List<String>> parms = new HashMap<String, List<String>>();
         if (queryString != null) {
@@ -216,6 +229,9 @@ public abstract class NanoHTTPD {
         return parms;
     }
 
+    /**
+     * HTTP Request methods, with the ability to decode a <code>String</code> back to its enum value.
+     */
     public enum Method {
         GET, PUT, POST, DELETE, HEAD;
 
@@ -229,20 +245,95 @@ public abstract class NanoHTTPD {
         }
     }
 
+    // ------------------------------------------------------------------------------- //
+    //
+    // Threading Strategy.
+    //
+    // ------------------------------------------------------------------------------- //
+
+    /**
+     * Pluggable strategy for asynchronously executing requests.
+     */
+    private AsyncRunner asyncRunner;
+
+    /**
+     * Pluggable strategy for asynchronously executing requests.
+     * @param asyncRunner new strategy for handling threads.
+     */
+    public void setAsyncRunner(AsyncRunner asyncRunner) {
+        this.asyncRunner = asyncRunner;
+    }
+
+    /**
+     * Pluggable strategy for asynchronously executing requests.
+     */
     public interface AsyncRunner {
         void exec(Runnable code);
     }
 
+    /**
+     * Default threading strategy for NanoHttpd.
+     *
+     * <p>By default, the server spawns a new Thread for every incoming request.  These are set
+     * to <i>daemon</i> status, and named according to the request number.  The name is
+     * useful when profiling the application.</p>
+     */
+    public static class DefaultAsyncRunner implements AsyncRunner {
+        private long requestCount;
+        @Override
+        public void exec(Runnable code) {
+            ++requestCount;
+            Thread t = new Thread(code);
+            t.setDaemon(true);
+            t.setName("NanoHttpd Request Processor (#" + requestCount + ")");
+            t.start();
+        }
+    }
+
+    // ------------------------------------------------------------------------------- //
+    //
+    // Temp file handling strategy.
+    //
+    // ------------------------------------------------------------------------------- //
+
+    /**
+     * Pluggable strategy for creating and cleaning up temporary files.
+     */
+    private TempFileManagerFactory tempFileManagerFactory;
+
+    /**
+     * Pluggable strategy for creating and cleaning up temporary files.
+     * @param tempFileManagerFactory new strategy for handling temp files.
+     */
+    public void setTempFileManagerFactory(TempFileManagerFactory tempFileManagerFactory) {
+        this.tempFileManagerFactory = tempFileManagerFactory;
+    }
+
+    /**
+     * Factory to create temp file managers.
+     */
     public interface TempFileManagerFactory {
         TempFileManager create();
     }
 
+    /**
+     * Temp file manager.
+     *
+     * <p>Temp file managers are created 1-to-1 with incoming requests, to create and cleanup
+     * temporary files created as a result of handling the request.</p>
+     */
     public interface TempFileManager {
         TempFile createTempFile() throws Exception;
 
         void clear();
     }
 
+    /**
+     * A temp file.
+     *
+     * <p>Temp files are responsible for managing the actual temporary storage and cleaning
+     * themselves up when no longer needed.</p>
+     */
     public interface TempFile {
         OutputStream open() throws Exception;
 
@@ -250,6 +341,86 @@ public abstract class NanoHTTPD {
 
         String getName();
     }
+
+    /**
+     * Default strategy for creating and cleaning up temporary files.
+     */
+    private class DefaultTempFileManagerFactory implements TempFileManagerFactory {
+        @Override
+        public TempFileManager create() {
+            return new DefaultTempFileManager();
+        }
+    }
+
+    /**
+     * Default strategy for creating and cleaning up temporary files.
+     *
+     * <p></p>This class stores its files in the standard location (that is,
+     * wherever <code>java.io.tmpdir</code> points to).  Files are added
+     * to an internal list, and deleted when no longer needed (that is,
+     * when <code>clear()</code> is invoked at the end of processing a
+     * request).</p>
+     */
+    public static class DefaultTempFileManager implements TempFileManager {
+        private final String tmpdir;
+        private final List<TempFile> tempFiles;
+
+        public DefaultTempFileManager() {
+            tmpdir = System.getProperty("java.io.tmpdir");
+            tempFiles = new ArrayList<TempFile>();
+        }
+
+        @Override
+        public TempFile createTempFile() throws Exception {
+            DefaultTempFile tempFile = new DefaultTempFile(tmpdir);
+            tempFiles.add(tempFile);
+            return tempFile;
+        }
+
+        @Override
+        public void clear() {
+            for (TempFile file : tempFiles) {
+                try {
+                    file.delete();
+                } catch (Exception ignored) {
+                }
+            }
+            tempFiles.clear();
+        }
+    }
+
+    /**
+     * Default strategy for creating and cleaning up temporary files.
+     *
+     * <p></p></[>By default, files are created by <code>File.createTempFile()</code> in
+     * the directory specified.</p>
+     */
+    public static class DefaultTempFile implements TempFile {
+        private File file;
+        private OutputStream fstream;
+
+        public DefaultTempFile(String tempdir) throws IOException {
+            file = File.createTempFile("NanoHTTPD-", "", new File(tempdir));
+            fstream = new FileOutputStream(file);
+        }
+
+        @Override
+        public OutputStream open() throws Exception {
+            return fstream;
+        }
+
+        @Override
+        public void delete() throws Exception {
+            file.delete();
+        }
+
+        @Override
+        public String getName() {
+            return file.getAbsolutePath();
+        }
+    }
+
+    // ------------------------------------------------------------------------------- //
 
     /**
      * HTTP response. Return one of these from serve().
@@ -395,31 +566,6 @@ public abstract class NanoHTTPD {
             public String getDescription() {
                 return "" + this.requestStatus + " " + descr;
             }
-        }
-    }
-
-    public static class DefaultTempFile implements TempFile {
-        private File file;
-        private OutputStream fstream;
-
-        public DefaultTempFile(String tempdir) throws IOException {
-            file = File.createTempFile("NanoHTTPD-", "", new File(tempdir));
-            fstream = new FileOutputStream(file);
-        }
-
-        @Override
-        public OutputStream open() throws Exception {
-            return fstream;
-        }
-
-        @Override
-        public void delete() throws Exception {
-            file.delete();
-        }
-
-        @Override
-        public String getName() {
-            return file.getAbsolutePath();
         }
     }
 
@@ -843,53 +989,6 @@ public abstract class NanoHTTPD {
                     p.put(decodePercent(e).trim(), "");
                 }
             }
-        }
-    }
-
-    private class DefaultTempFileManagerFactory implements TempFileManagerFactory {
-        @Override
-        public TempFileManager create() {
-            return new DefaultTempFileManager();
-        }
-    }
-
-    public static class DefaultTempFileManager implements TempFileManager {
-        private final String tmpdir;
-        private final List<TempFile> tempFiles;
-
-        public DefaultTempFileManager() {
-            tmpdir = System.getProperty("java.io.tmpdir");
-            tempFiles = new ArrayList<TempFile>();
-        }
-
-        @Override
-        public TempFile createTempFile() throws Exception {
-            DefaultTempFile tempFile = new DefaultTempFile(tmpdir);
-            tempFiles.add(tempFile);
-            return tempFile;
-        }
-
-        @Override
-        public void clear() {
-            for (TempFile file : tempFiles) {
-                try {
-                    file.delete();
-                } catch (Exception ignored) {
-                }
-            }
-            tempFiles.clear();
-        }
-    }
-
-    private class DefaultAsyncRunner implements AsyncRunner {
-        private long requestCount;
-        @Override
-        public void exec(Runnable code) {
-            ++requestCount;
-            Thread t = new Thread(code);
-            t.setDaemon(true);
-            t.setName("NanoHttpd Request Processor (#" + requestCount + ")");
-            t.start();
         }
     }
 }
