@@ -119,11 +119,9 @@ public abstract class NanoHTTPD {
                             @Override
                             public void run() {
                                 session.run();
-                                if (finalAccept != null) {
-                                    try {
-                                        finalAccept.close();
-                                    } catch (IOException ignored) {
-                                    }
+                                try {
+                                    finalAccept.close();
+                                } catch (IOException ignored) {
                                 }
                             }
                         });
@@ -429,20 +427,23 @@ public abstract class NanoHTTPD {
         /**
          * HTTP status code after processing, e.g. "200 OK", HTTP_OK
          */
-        public Status status;
+        private final Status status;
         /**
          * MIME type of content, e.g. "text/html"
          */
-        public String mimeType;
+        private final String mimeType;
         /**
          * Data of the response, may be null.
          */
-        public InputStream data;
+        private InputStream data;
         /**
          * Headers for the HTTP response. Use addHeader() to add lines.
          */
-        public Map<String, String> header = new HashMap<String, String>();
-        protected Method requestMethod;
+        private final Map<String, String> header = new HashMap<String, String>();
+        /**
+         * The request method that spawned this response.
+         */
+        private Method requestMethod;
         /**
          * Default constructor: response = HTTP_OK, mime = MIME_HTML and your supplied message
          */
@@ -551,12 +552,12 @@ public abstract class NanoHTTPD {
                     "Moved Permanently"), NOT_MODIFIED(304, "Not Modified"), BAD_REQUEST(400, "Bad Request"), UNAUTHORIZED(401,
                     "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), RANGE_NOT_SATISFIABLE(416,
                     "Requested Range Not Satisfiable"), INTERNAL_ERROR(500, "Internal Server Error");
-            private int requestStatus;
-            private String descr;
+            private final int requestStatus;
+            private final String description;
 
-            Status(int requestStatus, String descr) {
+            Status(int requestStatus, String description) {
                 this.requestStatus = requestStatus;
-                this.descr = descr;
+                this.description = description;
             }
 
             public int getRequestStatus() {
@@ -564,7 +565,7 @@ public abstract class NanoHTTPD {
             }
 
             public String getDescription() {
-                return "" + this.requestStatus + " " + descr;
+                return "" + this.requestStatus + " " + description;
             }
         }
     }
@@ -575,8 +576,8 @@ public abstract class NanoHTTPD {
     protected class HTTPSession implements Runnable {
         public static final int BUFSIZE = 8192;
         private final TempFileManager tempFileManager;
-        private InputStream inputStream;
-        private OutputStream outputStream;
+        private final InputStream inputStream;
+        private final OutputStream outputStream;
 
         public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
             this.tempFileManager = tempFileManager;
@@ -944,7 +945,7 @@ public abstract class NanoHTTPD {
             return path;
         }
 
-        private RandomAccessFile getTmpBucket() throws IOException {
+        private RandomAccessFile getTmpBucket() {
             try {
                 TempFile tempFile = tempFileManager.createTempFile();
                 return new RandomAccessFile(tempFile.getName(), "rw");
@@ -971,7 +972,7 @@ public abstract class NanoHTTPD {
          * Decodes parameters in percent-encoded URI-format ( e.g. "name=Jack%20Daniels&pass=Single%20Malt" ) and
          * adds them to given Map. NOTE: this doesn't support multiple identical keys due to the simplicity of Map.
          */
-        private void decodeParms(String parms, Map<String, String> p) throws InterruptedException {
+        private void decodeParms(String parms, Map<String, String> p) {
             if (parms == null) {
                 p.put(QUERY_STRING_PARAMETER, "");
                 return;
