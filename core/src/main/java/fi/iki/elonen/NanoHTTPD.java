@@ -467,7 +467,7 @@ public abstract class NanoHTTPD {
             this.status = status;
             this.mimeType = mimeType;
             try {
-                this.data = new ByteArrayInputStream(txt.getBytes("UTF-8"));
+                this.data = txt != null ? new ByteArrayInputStream(txt.getBytes("UTF-8")) : null;
             } catch (java.io.UnsupportedEncodingException uee) {
                 uee.printStackTrace();
             }
@@ -548,7 +548,7 @@ public abstract class NanoHTTPD {
          * Some HTTP response status codes
          */
         public enum Status {
-            OK(200, "OK"), CREATED(201, "Created"), NO_CONTENT(204, "No Content"), PARTIAL_CONTENT(206, "Partial Content"), REDIRECT(301,
+            OK(200, "OK"), CREATED(201, "Created"), ACCEPTED(202, "Accepted"), NO_CONTENT(204, "No Content"), PARTIAL_CONTENT(206, "Partial Content"), REDIRECT(301,
                     "Moved Permanently"), NOT_MODIFIED(304, "Not Modified"), BAD_REQUEST(400, "Bad Request"), UNAUTHORIZED(401,
                     "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), RANGE_NOT_SATISFIABLE(416,
                     "Requested Range Not Satisfiable"), INTERNAL_ERROR(500, "Internal Server Error");
