@@ -32,6 +32,10 @@ public class HttpServerTest {
 
     protected void assertResponse(ByteArrayOutputStream outputStream, String[] expected) throws IOException {
         List<String> lines = getOutputLines(outputStream);
+        assertLinesOfText(expected, lines);
+    }
+
+    protected void assertLinesOfText(String[] expected, List<String> lines) {
         assertEquals(expected.length, lines.size());
         for (int i = 0; i < expected.length; i++) {
             String line = lines.get(i);
@@ -51,6 +55,10 @@ public class HttpServerTest {
 
     protected List<String> getOutputLines(ByteArrayOutputStream outputStream) throws IOException {
         BufferedReader reader = new BufferedReader(new StringReader(outputStream.toString()));
+        return readLinesFromFile(reader);
+    }
+
+    protected List<String> readLinesFromFile(BufferedReader reader) throws IOException {
         List<String> lines = new ArrayList<String>();
         String line = "";
         while (line != null) {
