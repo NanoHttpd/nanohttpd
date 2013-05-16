@@ -427,11 +427,11 @@ public abstract class NanoHTTPD {
         /**
          * HTTP status code after processing, e.g. "200 OK", HTTP_OK
          */
-        private final Status status;
+        private Status status;
         /**
          * MIME type of content, e.g. "text/html"
          */
-        private final String mimeType;
+        private String mimeType;
         /**
          * Data of the response, may be null.
          */
@@ -439,7 +439,7 @@ public abstract class NanoHTTPD {
         /**
          * Headers for the HTTP response. Use addHeader() to add lines.
          */
-        private final Map<String, String> header = new HashMap<String, String>();
+        private Map<String, String> header = new HashMap<String, String>();
         /**
          * The request method that spawned this response.
          */
@@ -475,10 +475,6 @@ public abstract class NanoHTTPD {
 
         public static void error(OutputStream outputStream, Status error, String message) {
             new Response(error, MIME_PLAINTEXT, message).send(outputStream);
-        }
-
-        public void setRequestMethod(Method requestMethod) {
-            this.requestMethod = requestMethod;
         }
 
         /**
@@ -542,6 +538,38 @@ public abstract class NanoHTTPD {
             } catch (IOException ioe) {
                 // Couldn't write? No can do.
             }
+        }
+
+        public Status getStatus() {
+            return status;
+        }
+
+        public void setStatus(Status status) {
+            this.status = status;
+        }
+
+        public String getMimeType() {
+            return mimeType;
+        }
+
+        public void setMimeType(String mimeType) {
+            this.mimeType = mimeType;
+        }
+
+        public InputStream getData() {
+            return data;
+        }
+
+        public void setData(InputStream data) {
+            this.data = data;
+        }
+
+        public Method getRequestMethod() {
+            return requestMethod;
+        }
+
+        public void setRequestMethod(Method requestMethod) {
+            this.requestMethod = requestMethod;
         }
 
         /**
