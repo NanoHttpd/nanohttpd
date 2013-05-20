@@ -70,17 +70,17 @@ public class HttpServerTest {
         return lines;
     }
 
-    protected static class TestServer extends NanoHTTPD {
-        protected Response response = new Response("");
-        protected String uri;
-        protected Method method;
-        protected Map<String, String> header;
-        protected Map<String, String> parms;
-        protected Map<String, String> files;
-        protected Map<String, List<String>> decodedParamters;
-        protected Map<String, List<String>> decodedParamtersFromParameter;
+    public static class TestServer extends NanoHTTPD {
+        public Response response = new Response("");
+        public String uri;
+        public Method method;
+        public Map<String, String> header;
+        public Map<String, String> parms;
+        public Map<String, String> files;
+        public Map<String, List<String>> decodedParamters;
+        public Map<String, List<String>> decodedParamtersFromParameter;
 
-        private TestServer() {
+        public TestServer() {
             super(8080);
         }
 
