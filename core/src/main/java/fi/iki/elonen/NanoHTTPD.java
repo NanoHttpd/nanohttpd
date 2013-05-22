@@ -14,12 +14,7 @@ import java.util.*;
  * <p/>
  * <p/>
  * NanoHTTPD
- *   -- version 1.25, Copyright &copy; 2001,2005-2012<br/>
- *      Jarno Elonen (elonen@iki.fi, http://iki.fi/elonen/) and<br/>
- *      Copyright &copy; 2010 Konstantinos Togias (info@ktogias.gr, http://ktogias.gr)
- * <p/>
- *   -- version 6 and above, Copyright &copy; 2012-<br/>
- *      Uplifted to Java6 by Paul Hawke (paul.hawke@gmail.com) and Micah Hainline.
+ * <p></p>Copyright (c) 2012-2013 by Paul S. Hawke, 2001,2005-2013 by Jarno Elonen, 2010 by Konstantinos Togias</p>
  * <p/>
  * <p/>
  * <b>Features + limitations: </b>

@@ -9,7 +9,7 @@
 * 2 "flavors" - one strictly Java 1.1 compatible, one at "current" standards.
 * Released as open source, free software, under a Modified BSD licence.
 * No fixed config files, logging, authorization etc. (Implement by yourself if you need them.)
-* Supports parameter parsing of GET and POST methods  
+* Supports parameter parsing of GET and POST methods
 * Rudimentary PUT support (added in 1.25)
 * Support for HEAD requests
 * Parameter names must be unique, with a helper method to extract multi-value parameters if needed.
@@ -37,8 +37,8 @@ The project is managed with a "fork and pull-request" pattern.  If you want to c
 
 ## Where can I find the original (Java1.1) NanoHttpd?
 
-The original (Java 1.1 project) and the Java 6 project merged in early 2013 to pool resources 
-around "NanoHttpd" as a whole, regardless of flavor.  Development of the Java 1.1 version continues 
+The original (Java 1.1 project) and the Java 6 project merged in early 2013 to pool resources
+around "NanoHttpd" as a whole, regardless of flavor.  Development of the Java 1.1 version continues
 as a permanent branch ("nanohttpd-for-java1.1") in the main http://github.com/NanoHttpd/nanohttpd repository.
 
 ## How do I use nanohttpd?
@@ -83,11 +83,11 @@ public class DebugServer extends NanoHTTPD {
 
 ## Why fork the original repo?
 
-The Java 6 version of *nanohttpd* was born when we realized that embedding Jetty inside our 
-Android application was going to inflate the size without bringing along features that we 
-were going to need.  The search for a smaller more streamlined HTTP server lead us 
-to *nanohttpd* as the project had started with exactly the same goals, but we wanted to 
-clear up the old code - move from Java 1.1, run _static code analysis_ tools and cleanup 
+The Java 6 version of *nanohttpd* was born when we realized that embedding Jetty inside our
+Android application was going to inflate the size without bringing along features that we
+were going to need.  The search for a smaller more streamlined HTTP server lead us
+to *nanohttpd* as the project had started with exactly the same goals, but we wanted to
+clear up the old code - move from Java 1.1, run _static code analysis_ tools and cleanup
 the findings and pull out sample/test code from the source.
 
 In the words of the original founder of the project
@@ -97,11 +97,17 @@ In the words of the original founder of the project
 > of view - "overkill features" like servlet support, web administration,
 > configuration files, logging etc.
 
-Since that time we fixed a number of bugs, moved the build to _maven_ and pulled out 
+Since that time we fixed a number of bugs, moved the build to _maven_ and pulled out
 the samples from the runtime JAR to further slim it down.
 
 The two projects pooled resources in early 2013, merging code-bases, to better support the
 user base and reduce confusion over why _two_ NanoHttpd projects existed.
+
+## Version History (Java 6+ version)
+* (2013-05-20) : Test suite looks complete.
+* (2013-05-05) : Web server pulled out of samples and promoted to top-level project
+* (2013-03-09) : Work on test suite begins - the push for release 2.0.0 begins!
+* (2013-01-04) : Initial commit on "uplift" fork
 
 ## Version History (Java 1.1 version)
 

@@ -45,9 +45,7 @@ public class SimpleWebServer extends NanoHTTPD {
      * The distribution licence
      */
     private static final String LICENCE =
-            "Copyright (C) 2001,2005-2011 by Jarno Elonen <elonen@iki.fi>,\n"
-                    + "(C) 2010 by Konstantinos Togias <info@ktogias.gr>\n"
-                    + "and (C) 2012- by Paul S. Hawke\n"
+            "Copyright (c) 2012-2013 by Paul S. Hawke, 2001,2005-2013 by Jarno Elonen, 2010 by Konstantinos Togias\n"
                     + "\n"
                     + "Redistribution and use in source and binary forms, with or without\n"
                     + "modification, are permitted provided that the following conditions\n"
