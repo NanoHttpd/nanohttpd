@@ -6,19 +6,19 @@
 
 ## Core Features
 * Only one Java file.
-* 2 "flavors" - one strictly Java 1.1 compatible, one at "current" standards.
+* 2 "flavors" - one at "current" standards and one strictly Java 1.1 compatible.
 * Released as open source, free software, under a Modified BSD licence.
 * No fixed config files, logging, authorization etc. (Implement by yourself if you need them.)
-* Supports parameter parsing of GET and POST methods
-* Rudimentary PUT support (added in 1.25)
-* Support for HEAD requests
-* Parameter names must be unique, with a helper method to extract multi-value parameters if needed.
-* Supports file upload (since version 1.2, 2010)
+* Supports parameter parsing of GET and POST methods.
+* Rudimentary PUT support (added in 1.25).
+* Support for HEAD and DELETE requests.
+* Supports single and multi-value parameters (w/ a helper method) if needed.
+* Supports file upload (since version 1.2, 2010) with minimal memory overhead.
 * Never caches anything.
 * Doesn't limit bandwidth, request time or simultaneous connections.
 * All header names are converted lowercase so they don't vary between browsers/clients.
 * Very low memory overhead when processing even the largest of requests.
-* Temp file usage and threading model are easily cutomized
+* Temp file usage and threading model are easily cutomized.
 
 ## Webserver Features
 * Supports both dynamic content and file serving.
