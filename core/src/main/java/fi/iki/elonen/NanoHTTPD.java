@@ -1,13 +1,31 @@
 package fi.iki.elonen;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.TimeZone;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -71,7 +89,7 @@ public abstract class NanoHTTPD {
     public static final String MIME_DEFAULT_BINARY = "application/octet-stream";
     private final String hostname;
     private final int myPort;
-    private ServerSocket myServerSocket;
+    private ServerSocketChannel myServerSocket;
     private Thread myThread;
     ThreadPoolExecutor pool;
     /**
@@ -93,6 +111,7 @@ public abstract class NanoHTTPD {
         this.hostname = hostname;
         this.myPort = port;
         
+        
 		final int maxThreads = 100;
 		
 		final int minThreads = 5;
@@ -111,17 +130,28 @@ public abstract class NanoHTTPD {
      * @throws IOException if the socket is in use.
      */
     public void start() throws IOException {
-        myServerSocket = new ServerSocket();
-        myServerSocket.bind((hostname != null) ? new InetSocketAddress(hostname, myPort) : new InetSocketAddress(myPort));
+    	
+        myServerSocket = ServerSocketChannel.open();
+		
+        //myServerSocket.configureBlocking(false); Use after migrating away from Channels.newIS and Channels.newOS
+ 		
+        myServerSocket.bind(new InetSocketAddress(hostname, myPort));
 
         myThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 do {
                     try {
-                        final Socket finalAccept = myServerSocket.accept();
-                        InputStream inputStream = finalAccept.getInputStream();
-                        OutputStream outputStream = finalAccept.getOutputStream();
+                        
+                    	final SocketChannel finalAccept = myServerSocket.accept();
+                        
+                    	
+                    	if (finalAccept == null) {
+                    		continue;
+                    	}
+                        
+                        InputStream inputStream = Channels.newInputStream(finalAccept);
+                        OutputStream outputStream = Channels.newOutputStream(finalAccept);
                         final HTTPSession session = new HTTPSession(inputStream, outputStream);
                         pool.execute(new Runnable() {
                             @Override
@@ -135,7 +165,7 @@ public abstract class NanoHTTPD {
                         });
                     } catch (IOException e) {
                     }
-                } while (!myServerSocket.isClosed());
+                } while (!myServerSocket.socket().isClosed());
             }
         });
         myThread.setDaemon(true);
