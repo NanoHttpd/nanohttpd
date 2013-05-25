@@ -8,6 +8,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A simple, tiny, nicely embeddable HTTP server in Java
@@ -70,6 +73,7 @@ public abstract class NanoHTTPD {
     private final int myPort;
     private ServerSocket myServerSocket;
     private Thread myThread;
+    ThreadPoolExecutor pool;
     /**
      * Pseudo-Parameter to use to store the actual query string in the parameters map for later re-processing.
      */
@@ -89,7 +93,18 @@ public abstract class NanoHTTPD {
         this.hostname = hostname;
         this.myPort = port;
         setTempFileManagerFactory(new DefaultTempFileManagerFactory());
-        setAsyncRunner(new DefaultAsyncRunner());
+        
+		final int maxThreads = 100;
+		
+		final int minThreads = 5;
+		
+		final TimeUnit timeUnit = TimeUnit.MICROSECONDS;
+		
+		final int keepIdleThreads = 100;
+		
+		final ArrayBlockingQueue<Runnable> threadQueue = new ArrayBlockingQueue<Runnable>(100);
+		
+		pool = new ThreadPoolExecutor(minThreads, maxThreads, keepIdleThreads, timeUnit, threadQueue);
     }
 
     /**
@@ -110,7 +125,7 @@ public abstract class NanoHTTPD {
                         OutputStream outputStream = finalAccept.getOutputStream();
                         TempFileManager tempFileManager = tempFileManagerFactory.create();
                         final HTTPSession session = new HTTPSession(tempFileManager, inputStream, outputStream);
-                        asyncRunner.exec(new Runnable() {
+                        pool.execute(new Runnable() {
                             @Override
                             public void run() {
                                 session.run();
@@ -235,51 +250,6 @@ public abstract class NanoHTTPD {
                 }
             }
             return null;
-        }
-    }
-
-    // ------------------------------------------------------------------------------- //
-    //
-    // Threading Strategy.
-    //
-    // ------------------------------------------------------------------------------- //
-
-    /**
-     * Pluggable strategy for asynchronously executing requests.
-     */
-    private AsyncRunner asyncRunner;
-
-    /**
-     * Pluggable strategy for asynchronously executing requests.
-     * @param asyncRunner new strategy for handling threads.
-     */
-    public void setAsyncRunner(AsyncRunner asyncRunner) {
-        this.asyncRunner = asyncRunner;
-    }
-
-    /**
-     * Pluggable strategy for asynchronously executing requests.
-     */
-    public interface AsyncRunner {
-        void exec(Runnable code);
-    }
-
-    /**
-     * Default threading strategy for NanoHttpd.
-     *
-     * <p>By default, the server spawns a new Thread for every incoming request.  These are set
-     * to <i>daemon</i> status, and named according to the request number.  The name is
-     * useful when profiling the application.</p>
-     */
-    public static class DefaultAsyncRunner implements AsyncRunner {
-        private long requestCount;
-        @Override
-        public void exec(Runnable code) {
-            ++requestCount;
-            Thread t = new Thread(code);
-            t.setDaemon(true);
-            t.setName("NanoHttpd Request Processor (#" + requestCount + ")");
-            t.start();
         }
     }
 
