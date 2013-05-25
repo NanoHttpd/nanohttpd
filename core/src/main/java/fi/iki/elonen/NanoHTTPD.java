@@ -92,7 +92,6 @@ public abstract class NanoHTTPD {
     public NanoHTTPD(String hostname, int port) {
         this.hostname = hostname;
         this.myPort = port;
-        setTempFileManagerFactory(new DefaultTempFileManagerFactory());
         
 		final int maxThreads = 100;
 		
@@ -123,8 +122,7 @@ public abstract class NanoHTTPD {
                         final Socket finalAccept = myServerSocket.accept();
                         InputStream inputStream = finalAccept.getInputStream();
                         OutputStream outputStream = finalAccept.getOutputStream();
-                        TempFileManager tempFileManager = tempFileManagerFactory.create();
-                        final HTTPSession session = new HTTPSession(tempFileManager, inputStream, outputStream);
+                        final HTTPSession session = new HTTPSession(inputStream, outputStream);
                         pool.execute(new Runnable() {
                             @Override
                             public void run() {
@@ -253,137 +251,6 @@ public abstract class NanoHTTPD {
         }
     }
 
-    // ------------------------------------------------------------------------------- //
-    //
-    // Temp file handling strategy.
-    //
-    // ------------------------------------------------------------------------------- //
-
-    /**
-     * Pluggable strategy for creating and cleaning up temporary files.
-     */
-    private TempFileManagerFactory tempFileManagerFactory;
-
-    /**
-     * Pluggable strategy for creating and cleaning up temporary files.
-     * @param tempFileManagerFactory new strategy for handling temp files.
-     */
-    public void setTempFileManagerFactory(TempFileManagerFactory tempFileManagerFactory) {
-        this.tempFileManagerFactory = tempFileManagerFactory;
-    }
-
-    /**
-     * Factory to create temp file managers.
-     */
-    public interface TempFileManagerFactory {
-        TempFileManager create();
-    }
-
-    /**
-     * Temp file manager.
-     *
-     * <p>Temp file managers are created 1-to-1 with incoming requests, to create and cleanup
-     * temporary files created as a result of handling the request.</p>
-     */
-    public interface TempFileManager {
-        TempFile createTempFile() throws Exception;
-
-        void clear();
-    }
-
-    /**
-     * A temp file.
-     *
-     * <p>Temp files are responsible for managing the actual temporary storage and cleaning
-     * themselves up when no longer needed.</p>
-     */
-    public interface TempFile {
-        OutputStream open() throws Exception;
-
-        void delete() throws Exception;
-
-        String getName();
-    }
-
-    /**
-     * Default strategy for creating and cleaning up temporary files.
-     */
-    private class DefaultTempFileManagerFactory implements TempFileManagerFactory {
-        @Override
-        public TempFileManager create() {
-            return new DefaultTempFileManager();
-        }
-    }
-
-    /**
-     * Default strategy for creating and cleaning up temporary files.
-     *
-     * <p></p>This class stores its files in the standard location (that is,
-     * wherever <code>java.io.tmpdir</code> points to).  Files are added
-     * to an internal list, and deleted when no longer needed (that is,
-     * when <code>clear()</code> is invoked at the end of processing a
-     * request).</p>
-     */
-    public static class DefaultTempFileManager implements TempFileManager {
-        private final String tmpdir;
-        private final List<TempFile> tempFiles;
-
-        public DefaultTempFileManager() {
-            tmpdir = System.getProperty("java.io.tmpdir");
-            tempFiles = new ArrayList<TempFile>();
-        }
-
-        @Override
-        public TempFile createTempFile() throws Exception {
-            DefaultTempFile tempFile = new DefaultTempFile(tmpdir);
-            tempFiles.add(tempFile);
-            return tempFile;
-        }
-
-        @Override
-        public void clear() {
-            for (TempFile file : tempFiles) {
-                try {
-                    file.delete();
-                } catch (Exception ignored) {
-                }
-            }
-            tempFiles.clear();
-        }
-    }
-
-    /**
-     * Default strategy for creating and cleaning up temporary files.
-     *
-     * <p></p></[>By default, files are created by <code>File.createTempFile()</code> in
-     * the directory specified.</p>
-     */
-    public static class DefaultTempFile implements TempFile {
-        private File file;
-        private OutputStream fstream;
-
-        public DefaultTempFile(String tempdir) throws IOException {
-            file = File.createTempFile("NanoHTTPD-", "", new File(tempdir));
-            fstream = new FileOutputStream(file);
-        }
-
-        @Override
-        public OutputStream open() throws Exception {
-            return fstream;
-        }
-
-        @Override
-        public void delete() throws Exception {
-            file.delete();
-        }
-
-        @Override
-        public String getName() {
-            return file.getAbsolutePath();
-        }
-    }
-
-    // ------------------------------------------------------------------------------- //
 
     /**
      * HTTP response. Return one of these from serve().
@@ -568,12 +435,10 @@ public abstract class NanoHTTPD {
      */
     protected class HTTPSession implements Runnable {
         public static final int BUFSIZE = 8192;
-        private final TempFileManager tempFileManager;
         private final InputStream inputStream;
         private final OutputStream outputStream;
 
-        public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
-            this.tempFileManager = tempFileManager;
+        public HTTPSession(InputStream inputStream, OutputStream outputStream) {
             this.inputStream = inputStream;
             this.outputStream = outputStream;
         }
@@ -721,8 +586,6 @@ public abstract class NanoHTTPD {
                 }
             } catch (InterruptedException ie) {
                 // Thrown by sendError, ignore and exit the thread.
-            } finally {
-                tempFileManager.clear();
             }
         }
 
@@ -925,9 +788,9 @@ public abstract class NanoHTTPD {
             String path = "";
             if (len > 0) {
                 try {
-                    TempFile tempFile = tempFileManager.createTempFile();
+                	File tempFile = createTempFile();
                     ByteBuffer src = b.duplicate();
-                    FileChannel dest = new FileOutputStream(tempFile.getName()).getChannel();
+                    FileChannel dest = new FileOutputStream(tempFile).getChannel();
                     src.position(offset).limit(offset + len);
                     dest.write(src.slice());
                     path = tempFile.getName();
@@ -940,8 +803,8 @@ public abstract class NanoHTTPD {
 
         private RandomAccessFile getTmpBucket() {
             try {
-                TempFile tempFile = tempFileManager.createTempFile();
-                return new RandomAccessFile(tempFile.getName(), "rw");
+                File tempFile = createTempFile();
+                return new RandomAccessFile(tempFile, "rw");
             } catch (Exception e) {
                 System.err.println("Error: " + e.getMessage());
             }
@@ -984,5 +847,11 @@ public abstract class NanoHTTPD {
                 }
             }
         }
+    }
+    
+    public File createTempFile() throws IOException {
+    	File file = File.createTempFile("NHD", null);
+    	file.deleteOnExit();
+    	return file;
     }
 }
