@@ -1,13 +1,30 @@
 package fi.iki.elonen;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.TimeZone;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A simple, tiny, nicely embeddable HTTP server in Java
@@ -68,8 +85,9 @@ public abstract class NanoHTTPD {
     public static final String MIME_DEFAULT_BINARY = "application/octet-stream";
     private final String hostname;
     private final int myPort;
-    private ServerSocket myServerSocket;
+    private ServerSocketChannel myServerSocket;
     private Thread myThread;
+    private final AsyncRunner asyncRunner;
     /**
      * Pseudo-Parameter to use to store the actual query string in the parameters map for later re-processing.
      */
@@ -79,17 +97,40 @@ public abstract class NanoHTTPD {
      * Constructs an HTTP server on given port.
      */
     public NanoHTTPD(int port) {
-        this(null, port);
+        this(null, port, new PooledAsyncRunner());
     }
-
+    
+    
+    /**
+     * Constructs an HTTP server on given port.
+     */
+    public NanoHTTPD(String host, int port) {
+        this(host, port, new PooledAsyncRunner());
+    }
+    
+    /**
+     * Constructs an HTTP server on given port and specifies parameters for the default threading system.
+     * @param port - port to run on
+     * @param maxThreads - Max amount of threads open
+     * @param minThreads - Min amount of threads open
+     * @param maxIdleThreads - Max idle threads
+     */
+    public NanoHTTPD(int port, int maxThreads, int minThreads, int maxIdleThreads) {
+    	this(null, port, new PooledAsyncRunner(maxThreads, minThreads, maxIdleThreads));
+    }
+    
+    
     /**
      * Constructs an HTTP server on given hostname andport.
      */
-    public NanoHTTPD(String hostname, int port) {
+    public NanoHTTPD(String hostname, int port, AsyncRunner asyncRunner) {
+    	
         this.hostname = hostname;
+        
         this.myPort = port;
-        setTempFileManagerFactory(new DefaultTempFileManagerFactory());
-        setAsyncRunner(new DefaultAsyncRunner());
+        
+        this.asyncRunner = asyncRunner;
+		this.tempFileManagerFactory = new DefaultTempFileManagerFactory();
     }
 
     /**
@@ -97,20 +138,28 @@ public abstract class NanoHTTPD {
      * @throws IOException if the socket is in use.
      */
     public void start() throws IOException {
-        myServerSocket = new ServerSocket();
-        myServerSocket.bind((hostname != null) ? new InetSocketAddress(hostname, myPort) : new InetSocketAddress(myPort));
+    	
+        myServerSocket = ServerSocketChannel.open();
+		
+        myServerSocket.configureBlocking(false);
+ 		
+        myServerSocket.bind(new InetSocketAddress(hostname, myPort));
 
         myThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 do {
                     try {
-                        final Socket finalAccept = myServerSocket.accept();
-                        InputStream inputStream = finalAccept.getInputStream();
-                        OutputStream outputStream = finalAccept.getOutputStream();
-                        TempFileManager tempFileManager = tempFileManagerFactory.create();
-                        final HTTPSession session = new HTTPSession(tempFileManager, inputStream, outputStream);
-                        asyncRunner.exec(new Runnable() {
+                        
+                    	final SocketChannel finalAccept = myServerSocket.accept();
+                    	
+                    	if (finalAccept == null) {
+                    		continue;
+                    	}
+                    	TempFileManager tempFileManager = tempFileManagerFactory.create();
+                    	
+                        final HTTPSession session = new HTTPSession(finalAccept, tempFileManager);
+                        asyncRunner.execute(new Runnable() {
                             @Override
                             public void run() {
                                 session.run();
@@ -122,7 +171,7 @@ public abstract class NanoHTTPD {
                         });
                     } catch (IOException e) {
                     }
-                } while (!myServerSocket.isClosed());
+                } while (myServerSocket.isOpen());
             }
         });
         myThread.setDaemon(true);
@@ -141,7 +190,153 @@ public abstract class NanoHTTPD {
             e.printStackTrace();
         }
     }
+    
+    // ------------------------------------------------------------------------------- //
+    //
+    // Temp file handling strategy.
+    //
+    // ------------------------------------------------------------------------------- //
 
+    /**
+     * Pluggable strategy for creating and cleaning up temporary files.
+     */
+    private TempFileManagerFactory tempFileManagerFactory;
+
+    /**
+     * Pluggable strategy for creating and cleaning up temporary files.
+     * @param tempFileManagerFactory new strategy for handling temp files.
+     */
+    public void setTempFileManagerFactory(TempFileManagerFactory tempFileManagerFactory) {
+        this.tempFileManagerFactory = tempFileManagerFactory;
+    }
+
+    /**
+     * Factory to create temp file managers.
+     */
+    public interface TempFileManagerFactory {
+        TempFileManager create();
+    }
+
+    /**
+     * Temp file manager.
+     *
+     * <p>Temp file managers are created 1-to-1 with incoming requests, to create and cleanup
+     * temporary files created as a result of handling the request.</p>
+     */
+    public interface TempFileManager {
+        TempFile createTempFile() throws Exception;
+
+        void clear();
+    }
+
+    /**
+     * A temp file.
+     *
+     * <p>Temp files are responsible for managing the actual temporary storage and cleaning
+     * themselves up when no longer needed.</p>
+     */
+    public interface TempFile {
+    	
+    	File getFile();
+    	
+        FileChannel open() throws Exception;
+
+        void delete() throws Exception;
+
+        String getName();
+
+		RandomAccessFile getRandomAccess();
+    }
+
+    /**
+     * Default strategy for creating and cleaning up temporary files.
+     */
+    private class DefaultTempFileManagerFactory implements TempFileManagerFactory {
+        @Override
+        public TempFileManager create() {
+            return new DefaultTempFileManager();
+        }
+    }
+
+    /**
+     * Default strategy for creating and cleaning up temporary files.
+     *
+     * <p></p>This class stores its files in the standard location (that is,
+     * wherever <code>java.io.tmpdir</code> points to).  Files are added
+     * to an internal list, and deleted when no longer needed (that is,
+     * when <code>clear()</code> is invoked at the end of processing a
+     * request).</p>
+     */
+    public static class DefaultTempFileManager implements TempFileManager {
+        private final String tmpdir;
+        private final List<TempFile> tempFiles;
+
+        public DefaultTempFileManager() {
+            tmpdir = System.getProperty("java.io.tmpdir");
+            tempFiles = new ArrayList<TempFile>();
+        }
+
+        @Override
+        public TempFile createTempFile() throws Exception {
+            DefaultTempFile tempFile = new DefaultTempFile(tmpdir);
+            tempFiles.add(tempFile);
+            return tempFile;
+        }
+
+        @Override
+        public void clear() {
+            for (TempFile file : tempFiles) {
+                try {
+                    file.delete();
+                } catch (Exception ignored) {
+                }
+            }
+            tempFiles.clear();
+        }
+    }
+
+    /**
+     * Default strategy for creating and cleaning up temporary files.
+     *
+     * <p></p></[>By default, files are created by <code>File.createTempFile()</code> in
+     * the directory specified.</p>
+     */
+    public static class DefaultTempFile implements TempFile {
+        private File file;
+        private RandomAccessFile randomAccessFile;
+
+        public DefaultTempFile(String tempdir) throws IOException {
+            file = File.createTempFile("NanoHTTPD-", "", new File(tempdir));
+            randomAccessFile = new RandomAccessFile(file, "rw");
+        }
+
+        @Override
+        public File getFile() {
+            return file;
+        }
+        
+        @Override
+        public FileChannel open() throws Exception {
+            return randomAccessFile.getChannel();
+        }
+
+        @Override
+        public void delete() throws Exception {
+            file.delete();
+        }
+
+        @Override
+        public String getName() {
+            return file.getAbsolutePath();
+        }
+
+		@Override
+        public RandomAccessFile getRandomAccess() {
+        
+	        return randomAccessFile;
+        }
+    }
+    
     /**
      * Override this to customize the server.
      * <p/>
@@ -229,191 +424,10 @@ public abstract class NanoHTTPD {
         GET, PUT, POST, DELETE, HEAD;
 
         static Method lookup(String method) {
-            for (Method m : Method.values()) {
-                if (m.toString().equalsIgnoreCase(method)) {
-                    return m;
-                }
-            }
-            return null;
+            return valueOf(method.toUpperCase(Locale.ENGLISH));
         }
     }
 
-    // ------------------------------------------------------------------------------- //
-    //
-    // Threading Strategy.
-    //
-    // ------------------------------------------------------------------------------- //
-
-    /**
-     * Pluggable strategy for asynchronously executing requests.
-     */
-    private AsyncRunner asyncRunner;
-
-    /**
-     * Pluggable strategy for asynchronously executing requests.
-     * @param asyncRunner new strategy for handling threads.
-     */
-    public void setAsyncRunner(AsyncRunner asyncRunner) {
-        this.asyncRunner = asyncRunner;
-    }
-
-    /**
-     * Pluggable strategy for asynchronously executing requests.
-     */
-    public interface AsyncRunner {
-        void exec(Runnable code);
-    }
-
-    /**
-     * Default threading strategy for NanoHttpd.
-     *
-     * <p>By default, the server spawns a new Thread for every incoming request.  These are set
-     * to <i>daemon</i> status, and named according to the request number.  The name is
-     * useful when profiling the application.</p>
-     */
-    public static class DefaultAsyncRunner implements AsyncRunner {
-        private long requestCount;
-        @Override
-        public void exec(Runnable code) {
-            ++requestCount;
-            Thread t = new Thread(code);
-            t.setDaemon(true);
-            t.setName("NanoHttpd Request Processor (#" + requestCount + ")");
-            t.start();
-        }
-    }
-
-    // ------------------------------------------------------------------------------- //
-    //
-    // Temp file handling strategy.
-    //
-    // ------------------------------------------------------------------------------- //
-
-    /**
-     * Pluggable strategy for creating and cleaning up temporary files.
-     */
-    private TempFileManagerFactory tempFileManagerFactory;
-
-    /**
-     * Pluggable strategy for creating and cleaning up temporary files.
-     * @param tempFileManagerFactory new strategy for handling temp files.
-     */
-    public void setTempFileManagerFactory(TempFileManagerFactory tempFileManagerFactory) {
-        this.tempFileManagerFactory = tempFileManagerFactory;
-    }
-
-    /**
-     * Factory to create temp file managers.
-     */
-    public interface TempFileManagerFactory {
-        TempFileManager create();
-    }
-
-    /**
-     * Temp file manager.
-     *
-     * <p>Temp file managers are created 1-to-1 with incoming requests, to create and cleanup
-     * temporary files created as a result of handling the request.</p>
-     */
-    public interface TempFileManager {
-        TempFile createTempFile() throws Exception;
-
-        void clear();
-    }
-
-    /**
-     * A temp file.
-     *
-     * <p>Temp files are responsible for managing the actual temporary storage and cleaning
-     * themselves up when no longer needed.</p>
-     */
-    public interface TempFile {
-        OutputStream open() throws Exception;
-
-        void delete() throws Exception;
-
-        String getName();
-    }
-
-    /**
-     * Default strategy for creating and cleaning up temporary files.
-     */
-    private class DefaultTempFileManagerFactory implements TempFileManagerFactory {
-        @Override
-        public TempFileManager create() {
-            return new DefaultTempFileManager();
-        }
-    }
-
-    /**
-     * Default strategy for creating and cleaning up temporary files.
-     *
-     * <p></p>This class stores its files in the standard location (that is,
-     * wherever <code>java.io.tmpdir</code> points to).  Files are added
-     * to an internal list, and deleted when no longer needed (that is,
-     * when <code>clear()</code> is invoked at the end of processing a
-     * request).</p>
-     */
-    public static class DefaultTempFileManager implements TempFileManager {
-        private final String tmpdir;
-        private final List<TempFile> tempFiles;
-
-        public DefaultTempFileManager() {
-            tmpdir = System.getProperty("java.io.tmpdir");
-            tempFiles = new ArrayList<TempFile>();
-        }
-
-        @Override
-        public TempFile createTempFile() throws Exception {
-            DefaultTempFile tempFile = new DefaultTempFile(tmpdir);
-            tempFiles.add(tempFile);
-            return tempFile;
-        }
-
-        @Override
-        public void clear() {
-            for (TempFile file : tempFiles) {
-                try {
-                    file.delete();
-                } catch (Exception ignored) {
-                }
-            }
-            tempFiles.clear();
-        }
-    }
-
-    /**
-     * Default strategy for creating and cleaning up temporary files.
-     *
-     * <p></p></[>By default, files are created by <code>File.createTempFile()</code> in
-     * the directory specified.</p>
-     */
-    public static class DefaultTempFile implements TempFile {
-        private File file;
-        private OutputStream fstream;
-
-        public DefaultTempFile(String tempdir) throws IOException {
-            file = File.createTempFile("NanoHTTPD-", "", new File(tempdir));
-            fstream = new FileOutputStream(file);
-        }
-
-        @Override
-        public OutputStream open() throws Exception {
-            return fstream;
-        }
-
-        @Override
-        public void delete() throws Exception {
-            file.delete();
-        }
-
-        @Override
-        public String getName() {
-            return file.getAbsolutePath();
-        }
-    }
-
-    // ------------------------------------------------------------------------------- //
 
     /**
      * HTTP response. Return one of these from serve().
@@ -468,8 +482,8 @@ public abstract class NanoHTTPD {
             }
         }
 
-        public static void error(OutputStream outputStream, Status error, String message) {
-            new Response(error, MIME_PLAINTEXT, message).send(outputStream);
+        public static void error(SocketChannel channel, Status error, String message) {
+            new Response(error, MIME_PLAINTEXT, message).send(channel);
         }
 
         /**
@@ -482,7 +496,7 @@ public abstract class NanoHTTPD {
         /**
          * Sends given response to the socket.
          */
-        private void send(OutputStream outputStream) {
+        private void send(SocketChannel channel) {
             String mime = mimeType;
             SimpleDateFormat gmtFrmt = new SimpleDateFormat("E, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
             gmtFrmt.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -491,27 +505,29 @@ public abstract class NanoHTTPD {
                 if (status == null) {
                     throw new Error("sendResponse(): Status can't be null.");
                 }
-                PrintWriter pw = new PrintWriter(outputStream);
-                pw.print("HTTP/1.0 " + status.getDescription() + " \r\n");
+                StringBuilder headerString = new StringBuilder("HTTP/1.0 " + status.getDescription() + " \r\n");
 
                 if (mime != null) {
-                    pw.print("Content-Type: " + mime + "\r\n");
+                	headerString.append("Content-Type: " + mime + "\r\n");
                 }
 
                 if (header == null || header.get("Date") == null) {
-                    pw.print("Date: " + gmtFrmt.format(new Date()) + "\r\n");
+                	headerString.append("Date: " + gmtFrmt.format(new Date()) + "\r\n");
                 }
 
                 if (header != null) {
                     for (String key : header.keySet()) {
                         String value = header.get(key);
-                        pw.print(key + ": " + value + "\r\n");
+                        headerString.append(key + ": " + value + "\r\n");
                     }
                 }
 
-                pw.print("\r\n");
-                pw.flush();
-
+                headerString.append("\r\n");
+                {
+                	ByteBuffer data = ByteBuffer.wrap(headerString.toString().getBytes());
+                	data.flip();
+                	channel.write(data);
+                }
                 if (requestMethod != Method.HEAD && data != null) {
                     int pending = data.available(); // This is to support partial sends, see serveFile()
                     int BUFFER_SIZE = 16 * 1024;
@@ -521,13 +537,14 @@ public abstract class NanoHTTPD {
                         if (read <= 0) {
                             break;
                         }
-                        outputStream.write(buff, 0, read);
+                        
+                        ByteBuffer writeData = ByteBuffer.wrap(buff, 0, ((pending > BUFFER_SIZE) ? BUFFER_SIZE : pending));
+                        channel.write(writeData);
 
                         pending -= read;
                     }
                 }
-                outputStream.flush();
-                outputStream.close();
+                channel.close();
                 if (data != null)
                     data.close();
             } catch (IOException ioe) {
@@ -598,41 +615,51 @@ public abstract class NanoHTTPD {
      */
     protected class HTTPSession implements Runnable {
         public static final int BUFSIZE = 8192;
-        private final TempFileManager tempFileManager;
-        private final InputStream inputStream;
-        private final OutputStream outputStream;
-
-        public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
-            this.tempFileManager = tempFileManager;
-            this.inputStream = inputStream;
-            this.outputStream = outputStream;
+        private final SocketChannel channel;
+        
+        private final TempFileManager manager;
+        /**
+         * Create a new HTTPSession lined to the given {@link SocketChannel} and using the specified {@link TempfileSystem}
+         * @param channel - SocketChannel to listen to
+         * @param tempFileSystem - The {@link TempfileSystem}
+         * @param sessionI 
+         */
+        public HTTPSession(SocketChannel channel, TempFileManager manager) {
+            this.channel = channel;
+            this.manager = manager;
         }
 
         @Override
         public void run() {
             try {
-                if (inputStream == null) {
-                    return;
-                }
 
                 // Read the first 8192 bytes.
                 // The full header should fit in here.
                 // Apache's default header limit is 8KB.
                 // Do NOT assume that a single read will get the entire header at once!
-                byte[] buf = new byte[BUFSIZE];
+                ByteBuffer buffer = ByteBuffer.allocate(BUFSIZE);
+                
                 int splitbyte = 0;
+                
                 int rlen = 0;
+                
                 {
-                    int read = inputStream.read(buf, 0, BUFSIZE);
-                    while (read > 0) {
-                        rlen += read;
-                        splitbyte = findHeaderEnd(buf, rlen);
-                        if (splitbyte > 0)
-                            break;
-                        read = inputStream.read(buf, rlen, BUFSIZE - rlen);
-                    }
+                	int read = channel.read(buffer);
+                
+                	while (read != -1 || read != 0) {
+                		rlen += read;
+                		splitbyte = findHeaderEnd(buffer, rlen);
+                		if (splitbyte > 0)
+                			break;
+                		read = channel.read(buffer);
+                		
+                	}
                 }
-
+                
+                buffer.flip();
+                
+                byte[] buf = buffer.array();
+                
                 // Create a BufferedReader for parsing the header.
                 BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, rlen)));
                 Map<String, String> pre = new HashMap<String, String>();
@@ -644,14 +671,14 @@ public abstract class NanoHTTPD {
                 decodeHeader(hin, pre, parms, header);
                 Method method = Method.lookup(pre.get("method"));
                 if (method == null) {
-                    Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error.");
+                    Response.error(channel, Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error.");
                     throw new InterruptedException();
                 }
                 String uri = pre.get("uri");
                 long size = extractContentLength(header);
 
                 // Write the part of body already read to ByteArrayOutputStream f
-                RandomAccessFile f = getTmpBucket();
+                RandomAccessFile f = getTmpBucket(manager);
                 if (splitbyte < rlen) {
                     f.write(buf, splitbyte, rlen - splitbyte);
                 }
@@ -669,22 +696,22 @@ public abstract class NanoHTTPD {
                 }
 
                 // Now read all the body and write it to f
-                buf = new byte[512];
+                buffer = ByteBuffer.allocate(512);
                 while (rlen >= 0 && size > 0) {
-                    rlen = inputStream.read(buf, 0, 512);
+                    rlen = channel.read(buffer);
                     size -= rlen;
+                    buffer.flip();
                     if (rlen > 0) {
-                        f.write(buf, 0, rlen);
+                        f.write(buffer.array(), 0, rlen);
                     }
                 }
 
                 // Get the raw body as a byte []
-                ByteBuffer fbuf = f.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, f.length());
+                buffer = f.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, f.length());
                 f.seek(0);
 
                 // Create a BufferedReader for easily reading it as string.
-                InputStream bin = new FileInputStream(f.getFD());
-                BufferedReader in = new BufferedReader(new InputStreamReader(bin));
+                BufferedReader in = new BufferedReader(Channels.newReader(f.getChannel(), "ISO-8859-1"));
 
                 // If the method is POST, there may be parameters
                 // in data section, too, read it:
@@ -703,7 +730,7 @@ public abstract class NanoHTTPD {
                     if ("multipart/form-data".equalsIgnoreCase(contentType)) {
                         // Handle multipart/form-data
                         if (!st.hasMoreTokens()) {
-                            Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
+                            Response.error(channel, Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
                             throw new InterruptedException();
                         }
 
@@ -714,7 +741,7 @@ public abstract class NanoHTTPD {
                             boundary = boundary.substring(1, boundary.length() - 1);
                         }
 
-                        decodeMultipartData(boundary, fbuf, in, parms, files);
+                        decodeMultipartData(boundary, buffer, in, parms, files);
                     } else {
                         // Handle application/x-www-form-urlencoded
                         String postLine = "";
@@ -728,31 +755,31 @@ public abstract class NanoHTTPD {
                         decodeParms(postLine, parms);
                     }
                 } else if (Method.PUT.equals(method)) {
-                    files.put("content", saveTmpFile(fbuf, 0, fbuf.limit()));
+                    files.put("content", saveTmpFile(manager, buffer, 0, buffer.limit()));
                 }
 
                 // Ok, now do the serve()
                 Response r = serve(uri, method, header, parms, files);
                 if (r == null) {
-                    Response.error(outputStream, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
+                    Response.error(channel, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
                     throw new InterruptedException();
                 } else {
                     r.setRequestMethod(method);
-                    r.send(outputStream);
+                    r.send(channel);
                 }
 
                 in.close();
-                inputStream.close();
+                channel.close();
             } catch (IOException ioe) {
                 try {
-                    Response.error(outputStream, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+                    Response.error(channel, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
                     throw new InterruptedException();
                 } catch (Throwable ignored) {
                 }
             } catch (InterruptedException ie) {
                 // Thrown by sendError, ignore and exit the thread.
             } finally {
-                tempFileManager.clear();
+            	manager.clear(); // Remove all temp files
             }
         }
 
@@ -783,14 +810,14 @@ public abstract class NanoHTTPD {
 
                 StringTokenizer st = new StringTokenizer(inLine);
                 if (!st.hasMoreTokens()) {
-                    Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error. Usage: GET /example/file.html");
+                    Response.error(channel, Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error. Usage: GET /example/file.html");
                     throw new InterruptedException();
                 }
 
                 pre.put("method", st.nextToken());
 
                 if (!st.hasMoreTokens()) {
-                    Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Missing URI. Usage: GET /example/file.html");
+                    Response.error(channel, Response.Status.BAD_REQUEST, "BAD REQUEST: Missing URI. Usage: GET /example/file.html");
                     throw new InterruptedException();
                 }
 
@@ -821,7 +848,7 @@ public abstract class NanoHTTPD {
 
                 pre.put("uri", uri);
             } catch (IOException ioe) {
-                Response.error(outputStream, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+                Response.error(channel, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
                 throw new InterruptedException();
             }
         }
@@ -837,7 +864,7 @@ public abstract class NanoHTTPD {
                 String mpline = in.readLine();
                 while (mpline != null) {
                     if (!mpline.contains(boundary)) {
-                        Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but next chunk does not start with boundary. Usage: GET /example/file.html");
+                        Response.error(channel, Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but next chunk does not start with boundary. Usage: GET /example/file.html");
                         throw new InterruptedException();
                     }
                     boundarycount++;
@@ -853,7 +880,7 @@ public abstract class NanoHTTPD {
                     if (mpline != null) {
                         String contentDisposition = item.get("content-disposition");
                         if (contentDisposition == null) {
-                            Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but no content-disposition info found. Usage: GET /example/file.html");
+                            Response.error(channel, Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but no content-disposition info found. Usage: GET /example/file.html");
                             throw new InterruptedException();
                         }
                         StringTokenizer st = new StringTokenizer(contentDisposition, "; ");
@@ -883,11 +910,11 @@ public abstract class NanoHTTPD {
                             }
                         } else {
                             if (boundarycount > bpositions.length) {
-                                Response.error(outputStream, Response.Status.INTERNAL_ERROR, "Error processing request");
+                                Response.error(channel, Response.Status.INTERNAL_ERROR, "Error processing request");
                                 throw new InterruptedException();
                             }
                             int offset = stripMultipartHeaders(fbuf, bpositions[boundarycount - 2]);
-                            String path = saveTmpFile(fbuf, offset, bpositions[boundarycount - 1] - offset - 4);
+                            String path = saveTmpFile(manager, fbuf, offset, bpositions[boundarycount - 1] - offset - 4);
                             files.put(pname, path);
                             value = disposition.get("filename");
                             value = value.substring(1, value.length() - 1);
@@ -899,14 +926,22 @@ public abstract class NanoHTTPD {
                     }
                 }
             } catch (IOException ioe) {
-                Response.error(outputStream, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+                Response.error(channel, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
                 throw new InterruptedException();
             }
         }
 
         /**
          * Find byte index separating header from body. It must be the last byte of the first two sequential new lines.
+         * @param rlen 
+         * @param rlen 
          */
+        private int findHeaderEnd(ByteBuffer buffer, int rlen) {
+        	ByteBuffer examin = buffer.duplicate();
+        	examin.flip();
+            return findHeaderEnd(buffer.array(), rlen);
+        }
+        
         private int findHeaderEnd(final byte[] buf, int rlen) {
             int splitbyte = 0;
             while (splitbyte + 3 < rlen) {
@@ -951,13 +986,13 @@ public abstract class NanoHTTPD {
         /**
          * Retrieves the content of a sent file and saves it to a temporary file. The full path to the saved file is returned.
          */
-        private String saveTmpFile(ByteBuffer  b, int offset, int len) {
+        private String saveTmpFile(TempFileManager fileGenerator, ByteBuffer b, int offset, int len) {
             String path = "";
             if (len > 0) {
                 try {
-                    TempFile tempFile = tempFileManager.createTempFile();
+                	TempFile tempFile = manager.createTempFile();
                     ByteBuffer src = b.duplicate();
-                    FileChannel dest = new FileOutputStream(tempFile.getName()).getChannel();
+                    FileChannel dest = tempFile.open();
                     src.position(offset).limit(offset + len);
                     dest.write(src.slice());
                     path = tempFile.getName();
@@ -968,10 +1003,10 @@ public abstract class NanoHTTPD {
             return path;
         }
 
-        private RandomAccessFile getTmpBucket() {
+        private RandomAccessFile getTmpBucket(TempFileManager fileGenerator) {
             try {
-                TempFile tempFile = tempFileManager.createTempFile();
-                return new RandomAccessFile(tempFile.getName(), "rw");
+                TempFile tempFile = fileGenerator.createTempFile();
+                return tempFile.getRandomAccess();
             } catch (Exception e) {
                 System.err.println("Error: " + e.getMessage());
             }
@@ -1015,4 +1050,56 @@ public abstract class NanoHTTPD {
             }
         }
     }
+    
+}
+
+/**
+ * Pluggable strategy for asynchronously executing requests
+ */
+interface AsyncRunner {
+	
+	/**
+	 * Execute a task using the specified threading model
+	 * @param run - Task called by to run NanoHTTPD
+	 */
+	public void execute(Runnable run);
+	
+}
+
+/**
+ * Default threading system used in NanoHTTPD
+ *
+ */
+class PooledAsyncRunner implements AsyncRunner {
+	
+	private final ThreadPoolExecutor theadPool;
+	
+	/**
+	 * Spawn a thread pool with a max of 100 threads open.
+	 */
+	public PooledAsyncRunner() {
+		this(100, 5, 100);
+		
+	}
+	
+	/**
+	 * Spawn a thread pool with a specified max thread count.
+	 * @param maxThreads - Max amount of threads that can be open
+	 * @param minThreads - Minimum amount of threads to keep open (and ready for requests)
+	 * @param keepIdleThreads - Max amount of threads that can be idle
+	 */
+    public PooledAsyncRunner(int maxThreads, int minThreads, int keepIdleThreads) {
+    	
+		final TimeUnit timeUnit = TimeUnit.MICROSECONDS;
+		
+		final ArrayBlockingQueue<Runnable> threadQueue = new ArrayBlockingQueue<Runnable>(100);
+		
+		theadPool = new ThreadPoolExecutor(minThreads, maxThreads, keepIdleThreads, timeUnit, threadQueue);
+    }
+	
+	@Override
+	public void execute(Runnable run) {
+		theadPool.execute(run);
+	}
+	
 }
