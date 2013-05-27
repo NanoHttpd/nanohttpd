@@ -8,7 +8,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -241,11 +240,13 @@ public abstract class NanoHTTPD {
     	
     	File getFile();
     	
-        OutputStream open() throws Exception;
+        FileChannel open() throws Exception;
 
         void delete() throws Exception;
 
         String getName();
+
+		RandomAccessFile getRandomAccess();
     }
 
     /**
@@ -303,22 +304,21 @@ public abstract class NanoHTTPD {
      */
     public static class DefaultTempFile implements TempFile {
         private File file;
-        private OutputStream fstream;
+        private RandomAccessFile randomAccessFile;
 
         public DefaultTempFile(String tempdir) throws IOException {
             file = File.createTempFile("NanoHTTPD-", "", new File(tempdir));
-            fstream = new FileOutputStream(file);
+            randomAccessFile = new RandomAccessFile(file, "rw");
         }
 
         @Override
         public File getFile() {
-        
             return file;
         }
         
         @Override
-        public OutputStream open() throws Exception {
-            return fstream;
+        public FileChannel open() throws Exception {
+            return randomAccessFile.getChannel();
         }
 
         @Override
@@ -329,6 +329,12 @@ public abstract class NanoHTTPD {
         @Override
         public String getName() {
             return file.getAbsolutePath();
+        }
+
+		@Override
+        public RandomAccessFile getRandomAccess() {
+        
+	        return randomAccessFile;
         }
     }
     
@@ -1002,7 +1008,7 @@ public abstract class NanoHTTPD {
         private RandomAccessFile getTmpBucket(TempFileManager fileGenerator) {
             try {
                 TempFile tempFile = fileGenerator.createTempFile();
-                return new RandomAccessFile(tempFile.getFile(), "rw");
+                return tempFile.getRandomAccess();
             } catch (Exception e) {
                 System.err.println("Error: " + e.getMessage());
             }
