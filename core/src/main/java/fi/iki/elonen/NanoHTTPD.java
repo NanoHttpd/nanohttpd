@@ -3,14 +3,13 @@ package fi.iki.elonen;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
@@ -712,8 +711,7 @@ public abstract class NanoHTTPD {
                 f.seek(0);
 
                 // Create a BufferedReader for easily reading it as string.
-                InputStream bin = new FileInputStream(f.getFD());
-                BufferedReader in = new BufferedReader(new InputStreamReader(bin));
+                BufferedReader in = new BufferedReader(Channels.newReader(f.getChannel(), "ISO-8859-1"));
 
                 // If the method is POST, there may be parameters
                 // in data section, too, read it:
@@ -994,7 +992,7 @@ public abstract class NanoHTTPD {
                 try {
                 	TempFile tempFile = manager.createTempFile();
                     ByteBuffer src = b.duplicate();
-                    FileChannel dest = new FileOutputStream(tempFile.getFile()).getChannel();
+                    FileChannel dest = tempFile.open();
                     src.position(offset).limit(offset + len);
                     dest.write(src.slice());
                     path = tempFile.getName();
