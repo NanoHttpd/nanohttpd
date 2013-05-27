@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
@@ -163,23 +164,12 @@ public abstract class NanoHTTPD {
      * @return expanded form of the input, for example "foo%20bar" becomes "foo bar"
      */
     protected String decodePercent(String str) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < str.length(); i++) {
-            char c = str.charAt(i);
-            switch (c) {
-                case '+':
-                    sb.append(' ');
-                    break;
-                case '%':
-                    sb.append((char) Integer.parseInt(str.substring(i + 1, i + 3), 16));
-                    i += 2;
-                    break;
-                default:
-                    sb.append(c);
-                    break;
-            }
+        String decoded = null;
+        try {
+            decoded = URLDecoder.decode(str, "UTF8");
+        } catch (UnsupportedEncodingException ignored) {
         }
-        return sb.toString();
+        return decoded;
     }
 
     /**
