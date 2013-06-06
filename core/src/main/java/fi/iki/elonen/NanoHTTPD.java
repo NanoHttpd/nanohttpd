@@ -394,6 +394,9 @@ public abstract class NanoHTTPD {
 
         @Override
         public void delete() throws Exception {
+            if (fstream != null) {
+                fstream.close();
+            }
             file.delete();
         }
 
@@ -600,6 +603,7 @@ public abstract class NanoHTTPD {
 
         @Override
         public void run() {
+            RandomAccessFile randomAccessFile = null;
             try {
                 if (inputStream == null) {
                     return;
@@ -641,9 +645,9 @@ public abstract class NanoHTTPD {
                 long size = extractContentLength(header);
 
                 // Write the part of body already read to ByteArrayOutputStream f
-                RandomAccessFile f = getTmpBucket();
+                randomAccessFile = getTmpBucket();
                 if (splitbyte < rlen) {
-                    f.write(buf, splitbyte, rlen - splitbyte);
+                    randomAccessFile.write(buf, splitbyte, rlen - splitbyte);
                 }
 
                 // While Firefox sends on the first read all the data fitting
@@ -664,16 +668,16 @@ public abstract class NanoHTTPD {
                     rlen = inputStream.read(buf, 0, 512);
                     size -= rlen;
                     if (rlen > 0) {
-                        f.write(buf, 0, rlen);
+                        randomAccessFile.write(buf, 0, rlen);
                     }
                 }
 
                 // Get the raw body as a byte []
-                ByteBuffer fbuf = f.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, f.length());
-                f.seek(0);
+                ByteBuffer fbuf = randomAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, randomAccessFile.length());
+                randomAccessFile.seek(0);
 
                 // Create a BufferedReader for easily reading it as string.
-                InputStream bin = new FileInputStream(f.getFD());
+                InputStream bin = new FileInputStream(randomAccessFile.getFD());
                 BufferedReader in = new BufferedReader(new InputStreamReader(bin));
 
                 // If the method is POST, there may be parameters
@@ -742,6 +746,12 @@ public abstract class NanoHTTPD {
             } catch (InterruptedException ie) {
                 // Thrown by sendError, ignore and exit the thread.
             } finally {
+                if (randomAccessFile != null) {
+                    try {
+                        randomAccessFile.close();
+                    } catch (IOException e) {
+                    }
+                }
                 tempFileManager.clear();
             }
         }
