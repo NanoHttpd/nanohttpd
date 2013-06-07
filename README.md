@@ -104,6 +104,7 @@ The two projects pooled resources in early 2013, merging code-bases, to better s
 user base and reduce confusion over why _two_ NanoHttpd projects existed.
 
 ## Version History (Java 6+ version)
+* 2.0.2 (2013-06-06) : Polish for the webserver, and fixed a bug causing stack-traces on Samsung Phones.
 * 2.0.1 (2013-05-27) : Non-English UTF-8 decoding support for URLS/Filenames
 * 2.0.0 (2013-05-21) : Released - announced on FreeCode.com
 * (2013-05-20) : Test suite looks complete.
