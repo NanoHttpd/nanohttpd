@@ -1,14 +1,8 @@
 package fi.iki.elonen;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class SimpleWebServer extends NanoHTTPD {
     /**
@@ -19,6 +13,7 @@ public class SimpleWebServer extends NanoHTTPD {
         put("htm", "text/html");
         put("html", "text/html");
         put("xml", "text/xml");
+        put("java", "text/x-java-source, text/java");
         put("txt", "text/plain");
         put("asc", "text/plain");
         put("gif", "image/gif");
@@ -70,14 +65,16 @@ public class SimpleWebServer extends NanoHTTPD {
                     + "(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n"
                     + "OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.";
 
-    private File rootDir;
+    private final File rootDir;
+    private final boolean quiet;
 
-    public SimpleWebServer(String host, int port, File wwwroot) {
+    public SimpleWebServer(String host, int port, File wwwroot, boolean quiet) {
         super(host, port);
         this.rootDir = wwwroot;
+        this.quiet = quiet;
     }
 
-    public File getRootDir() {
+    File getRootDir() {
         return rootDir;
     }
 
@@ -106,12 +103,13 @@ public class SimpleWebServer extends NanoHTTPD {
     /**
      * Serves file from homeDir and its' subdirectories (only). Uses only URI, ignores all headers and HTTP parameters.
      */
-    public Response serveFile(String uri, Map<String, String> header, File homeDir) {
+    Response serveFile(String uri, Map<String, String> header, File homeDir) {
         Response res = null;
 
         // Make sure we won't die of an exception later
-        if (!homeDir.isDirectory())
+        if (!homeDir.isDirectory()) {
             res = new Response(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "INTERNAL ERRROR: serveFile(): given homeDir is not a directory.");
+        }
 
         if (res == null) {
             // Remove URL arguments
@@ -125,8 +123,9 @@ public class SimpleWebServer extends NanoHTTPD {
         }
 
         File f = new File(homeDir, uri);
-        if (res == null && !f.exists())
+        if (res == null && !f.exists()) {
             res = new Response(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Error 404, file not found.");
+        }
 
         // List the directory, if necessary
         if (res == null && f.isDirectory()) {
@@ -141,53 +140,13 @@ public class SimpleWebServer extends NanoHTTPD {
 
             if (res == null) {
                 // First try index.html and index.htm
-                if (new File(f, "index.html").exists())
+                if (new File(f, "index.html").exists()) {
                     f = new File(homeDir, uri + "/index.html");
-                else if (new File(f, "index.htm").exists())
+                } else if (new File(f, "index.htm").exists()) {
                     f = new File(homeDir, uri + "/index.htm");
+                } else if (f.canRead()) {
                     // No index file, list the directory if it is readable
-                else if (f.canRead()) {
-                    String[] files = f.list();
-                    String msg = "<html><body><h1>Directory " + uri + "</h1><br/>";
-
-                    if (uri.length() > 1) {
-                        String u = uri.substring(0, uri.length() - 1);
-                        int slash = u.lastIndexOf('/');
-                        if (slash >= 0 && slash < u.length())
-                            msg += "<b><a href=\"" + uri.substring(0, slash + 1) + "\">..</a></b><br/>";
-                    }
-
-                    if (files != null) {
-                        for (int i = 0; i < files.length; ++i) {
-                            File curFile = new File(f, files[i]);
-                            boolean dir = curFile.isDirectory();
-                            if (dir) {
-                                msg += "<b>";
-                                files[i] += "/";
-                            }
-
-                            msg += "<a href=\"" + encodeUri(uri + files[i]) + "\">" + files[i] + "</a>";
-
-                            // Show file size
-                            if (curFile.isFile()) {
-                                long len = curFile.length();
-                                msg += " &nbsp;<font size=2>(";
-                                if (len < 1024)
-                                    msg += len + " bytes";
-                                else if (len < 1024 * 1024)
-                                    msg += len / 1024 + "." + (len % 1024 / 10 % 100) + " KB";
-                                else
-                                    msg += len / (1024 * 1024) + "." + len % (1024 * 1024) / 10 % 100 + " MB";
-
-                                msg += ")</font>";
-                            }
-                            msg += "<br/>";
-                            if (dir)
-                                msg += "</b>";
-                        }
-                    }
-                    msg += "</body></html>";
-                    res = new Response(msg);
+                    res = new Response(listDirectory(uri, f));
                 } else {
                     res = new Response(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: No directory listing.");
                 }
@@ -271,26 +230,97 @@ public class SimpleWebServer extends NanoHTTPD {
         return res;
     }
 
+    private String listDirectory(String uri, File f) {
+        String heading = "Directory " + uri;
+        String msg = "<html><head><title>" + heading + "</title><style><!--\n"+
+                "span.dirname { font-weight: bold; }\n"+
+                "span.filesize { font-size: 75%; }\n"+
+                "// -->\n"+
+                "</style>"+
+                "</head><body><h1>" + heading + "</h1>";
+
+        String up = null;
+        if (uri.length() > 1) {
+            String u = uri.substring(0, uri.length() - 1);
+            int slash = u.lastIndexOf('/');
+            if (slash >= 0 && slash < u.length()) {
+                up = uri.substring(0, slash + 1);
+            }
+        }
+
+        List<String> files = Arrays.asList(f.list(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return new File(dir, name).isFile();
+            }
+        }));
+        Collections.sort(files);
+        List<String> directories = Arrays.asList(f.list(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return new File (dir, name).isDirectory();
+            }
+        }));
+        Collections.sort(directories);
+        if (up != null || directories.size() + files.size() > 0) {
+            msg += "<ul>";
+            if (up != null || directories.size() > 0) {
+                msg += "<section class=\"directories\">";
+                if (up != null) {
+                    msg += "<li><a rel=\"directory\" href=\"" + up + "\"><span class=\"dirname\">..</span></a></b></li>";
+                }
+                for (int i = 0; i < directories.size(); i++) {
+                    String dir = directories.get(i) + "/";
+                    msg += "<li><a rel=\"directory\" href=\"" + encodeUri(uri + dir) + "\"><span class=\"dirname\">" + dir + "</span></a></b></li>";
+                }
+                msg += "</section>";
+            }
+            if (files.size() > 0) {
+                msg += "<section class=\"files\">";
+                for (int i = 0; i < files.size(); i++) {
+                    String file = files.get(i);
+
+                    msg += "<li><a href=\"" + encodeUri(uri + file) + "\"><span class=\"filename\">" + file + "</span></a>";
+                    File curFile = new File(f, file);
+                    long len = curFile.length();
+                    msg += "&nbsp;<span class=\"filesize\">(";
+                    if (len < 1024)
+                        msg += len + " bytes";
+                    else if (len < 1024 * 1024)
+                        msg += len / 1024 + "." + (len % 1024 / 10 % 100) + " KB";
+                    else
+                        msg += len / (1024 * 1024) + "." + len % (1024 * 1024) / 10 % 100 + " MB";
+                    msg += ")</span></li>";
+                }
+                msg += "</section>";
+            }
+            msg += "</ul>";
+        }
+        msg += "</body></html>";
+        return msg;
+    }
+
     @Override
     public Response serve(String uri, Method method, Map<String, String> header, Map<String, String> parms, Map<String, String> files) {
-        System.out.println(method + " '" + uri + "' ");
+        if (!quiet) {
+            System.out.println(method + " '" + uri + "' ");
 
-        Iterator<String> e = header.keySet().iterator();
-        while (e.hasNext()) {
-            String value = e.next();
-            System.out.println("  HDR: '" + value + "' = '" + header.get(value) + "'");
+            Iterator<String> e = header.keySet().iterator();
+            while (e.hasNext()) {
+                String value = e.next();
+                System.out.println("  HDR: '" + value + "' = '" + header.get(value) + "'");
+            }
+            e = parms.keySet().iterator();
+            while (e.hasNext()) {
+                String value = e.next();
+                System.out.println("  PRM: '" + value + "' = '" + parms.get(value) + "'");
+            }
+            e = files.keySet().iterator();
+            while (e.hasNext()) {
+                String value = e.next();
+                System.out.println("  UPLOADED: '" + value + "' = '" + files.get(value) + "'");
+            }
         }
-        e = parms.keySet().iterator();
-        while (e.hasNext()) {
-            String value = e.next();
-            System.out.println("  PRM: '" + value + "' = '" + parms.get(value) + "'");
-        }
-        e = files.keySet().iterator();
-        while (e.hasNext()) {
-            String value = e.next();
-            System.out.println("  UPLOADED: '" + value + "' = '" + files.get(value) + "'");
-        }
-
         return serveFile(uri, header, getRootDir());
     }
 
@@ -298,30 +328,28 @@ public class SimpleWebServer extends NanoHTTPD {
      * Starts as a standalone file server and waits for Enter.
      */
     public static void main(String[] args) {
-        System.out.println(
-                "NanoHttpd 2.0: Command line options: [-h hostname] [-p port] [-d root-dir] [--licence]\n" +
-                        "(C) 2001,2005-2011 Jarno Elonen \n" +
-                        "(C) 2010 Konstantinos Togias\n" +
-                        "(C) 2012- Paul S. Hawke\n");
-
         // Defaults
         int port = 8080;
         String host = "127.0.0.1";
         File wwwroot = new File(".").getAbsoluteFile();
+        boolean quiet = false;
 
-        // Show licence if requested
-        for (int i = 0; i < args.length; ++i)
-            if (args[i].equalsIgnoreCase("-h"))
+        // Parse command-line, with short and long versions of the options.
+        for (int i = 0; i < args.length; ++i) {
+            if (args[i].equalsIgnoreCase("-h") || args[i].equalsIgnoreCase("--host")) {
                 host = args[i + 1];
-            else if (args[i].equalsIgnoreCase("-p"))
+            } else if (args[i].equalsIgnoreCase("-p") || args[i].equalsIgnoreCase("--port")) {
                 port = Integer.parseInt(args[i + 1]);
-            else if (args[i].equalsIgnoreCase("-d"))
+            } else if (args[i].equalsIgnoreCase("-q") || args[i].equalsIgnoreCase("--quiet")) {
+                quiet = true;
+            } else if (args[i].equalsIgnoreCase("-d") || args[i].equalsIgnoreCase("--dir")) {
                 wwwroot = new File(args[i + 1]).getAbsoluteFile();
-            else if (args[i].toLowerCase().endsWith("licence")) {
+            } else if (args[i].equalsIgnoreCase("--licence")) {
                 System.out.println(LICENCE + "\n");
                 break;
             }
+        }
 
-        ServerRunner.executeInstance(new SimpleWebServer(host, port, wwwroot));
+        ServerRunner.executeInstance(new SimpleWebServer(host, port, wwwroot, quiet));
     }
 }
