@@ -1062,6 +1062,10 @@ public abstract class NanoHTTPD {
         public final Method getMethod() {
             return method;
         }
+
+        public final InputStream getInputStream() {
+            return inputStream;
+        }
     }
 
     private static final class ResponseException extends Exception {
