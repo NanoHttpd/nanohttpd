@@ -1015,4 +1015,16 @@ public abstract class NanoHTTPD {
             }
         }
     }
+
+    public final int getListeningPort() {
+        return myServerSocket == null ? -1 : myServerSocket.getLocalPort();
+    }
+
+    public final boolean wasStarted() {
+        return myServerSocket != null && myThread != null;
+    }
+
+    public final boolean isAlive() {
+        return wasStarted() && !myServerSocket.isClosed() && myThread.isAlive();
+    }
 }
