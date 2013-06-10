@@ -115,10 +115,7 @@ public abstract class NanoHTTPD {
                             @Override
                             public void run() {
                                 session.run();
-                                try {
-                                    finalAccept.close();
-                                } catch (IOException ignored) {
-                                }
+                                safeClose(finalAccept);
                             }
                         });
                     } catch (IOException e) {
@@ -136,7 +133,7 @@ public abstract class NanoHTTPD {
      */
     public void stop() {
         try {
-            myServerSocket.close();
+            safeClose(myServerSocket);
             myThread.join();
         } catch (Exception e) {
             e.printStackTrace();
@@ -394,9 +391,7 @@ public abstract class NanoHTTPD {
 
         @Override
         public void delete() throws Exception {
-            if (fstream != null) {
-                fstream.close();
-            }
+            safeClose(fstream);
             file.delete();
         }
 
@@ -520,9 +515,8 @@ public abstract class NanoHTTPD {
                     }
                 }
                 outputStream.flush();
-                outputStream.close();
-                if (data != null)
-                    data.close();
+                safeClose(outputStream);
+                safeClose(data);
             } catch (IOException ioe) {
                 // Couldn't write? No can do.
             }
@@ -735,8 +729,8 @@ public abstract class NanoHTTPD {
                     r.send(outputStream);
                 }
 
-                in.close();
-                inputStream.close();
+                safeClose(in);
+                safeClose(inputStream);
             } catch (IOException ioe) {
                 try {
                     Response.error(outputStream, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
@@ -746,12 +740,7 @@ public abstract class NanoHTTPD {
             } catch (InterruptedException ie) {
                 // Thrown by sendError, ignore and exit the thread.
             } finally {
-                if (randomAccessFile != null) {
-                    try {
-                        randomAccessFile.close();
-                    } catch (IOException e) {
-                    }
-                }
+                safeClose(randomAccessFile);
                 tempFileManager.clear();
             }
         }
@@ -1012,6 +1001,36 @@ public abstract class NanoHTTPD {
                 } else {
                     p.put(decodePercent(e).trim(), "");
                 }
+            }
+        }
+    }
+
+    private static final void safeClose(ServerSocket serverSocket) {
+        if (serverSocket != null) {
+            try {
+                serverSocket.close();
+            }
+            catch(IOException e) {
+            }
+        }
+    }
+
+    private static final void safeClose(Socket socket) {
+        if (socket != null) {
+            try {
+                socket.close();
+            }
+            catch(IOException e) {
+            }
+        }
+    }
+
+    private static final void safeClose(Closeable closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            }
+            catch(IOException e) {
             }
         }
     }
