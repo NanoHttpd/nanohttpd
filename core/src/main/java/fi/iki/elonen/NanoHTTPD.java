@@ -160,10 +160,10 @@ public abstract class NanoHTTPD {
      * @param uri    Percent-decoded URI without parameters, for example "/index.cgi"
      * @param method "GET", "POST" etc.
      * @param parms  Parsed, percent decoded parameters from URI and, in case of POST, data.
-     * @param header Header entries, percent decoded
+     * @param headers Header entries, percent decoded
      * @return HTTP response, see class Response for details
      */
-    public abstract Response serve(String uri, Method method, Map<String, String> header, Map<String, String> parms,
+    public abstract Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms,
                                    Map<String, String> files);
 
     /**
@@ -627,17 +627,17 @@ public abstract class NanoHTTPD {
                 BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, rlen)));
                 Map<String, String> pre = new HashMap<String, String>();
                 Map<String, String> parms = new HashMap<String, String>();
-                Map<String, String> header = new HashMap<String, String>();
+                Map<String, String> headers = new HashMap<String, String>();
                 Map<String, String> files = new HashMap<String, String>();
 
                 // Decode the header into parms and header java properties
-                decodeHeader(hin, pre, parms, header);
+                decodeHeader(hin, pre, parms, headers);
                 Method method = Method.lookup(pre.get("method"));
                 if (method == null) {
                     throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error.");
                 }
                 String uri = pre.get("uri");
-                long size = extractContentLength(header);
+                long size = extractContentLength(headers);
 
                 // Write the part of body already read to ByteArrayOutputStream f
                 randomAccessFile = getTmpBucket();
@@ -679,7 +679,7 @@ public abstract class NanoHTTPD {
                 // in data section, too, read it:
                 if (Method.POST.equals(method)) {
                     String contentType = "";
-                    String contentTypeHeader = header.get("content-type");
+                    String contentTypeHeader = headers.get("content-type");
 
                     StringTokenizer st = null;
                     if (contentTypeHeader != null) {
@@ -720,7 +720,7 @@ public abstract class NanoHTTPD {
                 }
 
                 // Ok, now do the serve()
-                Response r = serve(uri, method, header, parms, files);
+                Response r = serve(uri, method, headers, parms, files);
                 if (r == null) {
                     throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
                 } else {
@@ -741,9 +741,9 @@ public abstract class NanoHTTPD {
             }
         }
 
-        private long extractContentLength(Map<String, String> header) {
+        private long extractContentLength(Map<String, String> headers) {
             long size = 0x7FFFFFFFFFFFFFFFl;
-            String contentLength = header.get("content-length");
+            String contentLength = headers.get("content-length");
             if (contentLength != null) {
                 try {
                     size = Integer.parseInt(contentLength);
@@ -757,7 +757,7 @@ public abstract class NanoHTTPD {
         /**
          * Decodes the sent headers and loads the data into Key/value pairs
          */
-        private void decodeHeader(BufferedReader in, Map<String, String> pre, Map<String, String> parms, Map<String, String> header)
+        private void decodeHeader(BufferedReader in, Map<String, String> pre, Map<String, String> parms, Map<String, String> headers)
                 throws ResponseException {
             try {
                 // Read the request line
@@ -797,7 +797,7 @@ public abstract class NanoHTTPD {
                     while (line != null && line.trim().length() > 0) {
                         int p = line.indexOf(':');
                         if (p >= 0)
-                            header.put(line.substring(0, p).trim().toLowerCase(), line.substring(p + 1).trim());
+                            headers.put(line.substring(0, p).trim().toLowerCase(), line.substring(p + 1).trim());
                         line = in.readLine();
                     }
                 }
