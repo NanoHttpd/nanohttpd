@@ -688,6 +688,8 @@ public abstract class NanoHTTPD {
             } catch (ResponseException re) {
                 Response r = new Response(re.getStatus(), MIME_PLAINTEXT, re.getMessage());
                 r.send(outputStream);
+            } finally {
+                tempFileManager.clear();
             }
         }
 
@@ -782,7 +784,6 @@ public abstract class NanoHTTPD {
                 }
             } finally {
                 safeClose(randomAccessFile);
-                tempFileManager.clear();
                 safeClose(in);
             }
         }
