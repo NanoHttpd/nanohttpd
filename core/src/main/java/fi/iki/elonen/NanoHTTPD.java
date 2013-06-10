@@ -84,7 +84,7 @@ public abstract class NanoHTTPD {
     }
 
     /**
-     * Constructs an HTTP server on given hostname andport.
+     * Constructs an HTTP server on given hostname and port.
      */
     public NanoHTTPD(String hostname, int port) {
         this.hostname = hostname;
@@ -107,17 +107,28 @@ public abstract class NanoHTTPD {
                 do {
                     try {
                         final Socket finalAccept = myServerSocket.accept();
-                        InputStream inputStream = finalAccept.getInputStream();
-                        OutputStream outputStream = finalAccept.getOutputStream();
-                        TempFileManager tempFileManager = tempFileManagerFactory.create();
-                        final HTTPSession session = new HTTPSession(tempFileManager, inputStream, outputStream);
-                        asyncRunner.exec(new Runnable() {
-                            @Override
-                            public void run() {
-                                session.run();
-                                safeClose(finalAccept);
-                            }
-                        });
+                        final InputStream inputStream = finalAccept.getInputStream();
+                        if (inputStream == null) {
+                            safeClose(finalAccept);
+                        } else {
+                            asyncRunner.exec(new Runnable() {
+                                @Override
+                                public void run() {
+                                    OutputStream outputStream = null;
+                                    try {
+                                        outputStream = finalAccept.getOutputStream();
+                                        TempFileManager tempFileManager = tempFileManagerFactory.create();
+                                        HTTPSession session = new HTTPSession(tempFileManager, inputStream, outputStream);
+                                        session.execute();
+                                    } catch (IOException e) {
+                                    } finally {
+                                        safeClose(outputStream);
+                                        safeClose(inputStream);
+                                        safeClose(finalAccept);
+                                    }
+                                }
+                            });
+                        }
                     } catch (IOException e) {
                     }
                 } while (!myServerSocket.isClosed());
@@ -583,7 +594,7 @@ public abstract class NanoHTTPD {
     /**
      * Handles one session, i.e. parses the HTTP request and returns the response.
      */
-    protected class HTTPSession implements Runnable {
+    protected class HTTPSession {
         public static final int BUFSIZE = 8192;
         private final TempFileManager tempFileManager;
         private final InputStream inputStream;
@@ -595,14 +606,9 @@ public abstract class NanoHTTPD {
             this.outputStream = outputStream;
         }
 
-        @Override
-        public void run() {
+        public void execute() {
             RandomAccessFile randomAccessFile = null;
             try {
-                if (inputStream == null) {
-                    return;
-                }
-
                 // Read the first 8192 bytes.
                 // The full header should fit in here.
                 // Apache's default header limit is 8KB.
@@ -730,7 +736,6 @@ public abstract class NanoHTTPD {
                 }
 
                 safeClose(in);
-                safeClose(inputStream);
             } catch (IOException ioe) {
                 try {
                     Response.error(outputStream, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
