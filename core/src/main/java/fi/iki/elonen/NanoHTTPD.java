@@ -167,6 +167,33 @@ public abstract class NanoHTTPD {
                                    Map<String, String> files);
 
     /**
+     * Override this to customize the server.
+     * <p/>
+     * <p/>
+     * (By default, this delegates to serveFile() and allows directory listing.)
+     *
+     * @param session The HTTP session
+     * @return HTTP response, see class Response for details
+     */
+    protected Response serve(HTTPSession session) {
+        Map<String, String> files = new HashMap<String, String>();
+
+        try {
+            session.parseBody(files);
+        } catch (IOException ioe) {
+            return new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+        } catch (ResponseException re) {
+            return new Response(re.getStatus(), MIME_PLAINTEXT, re.getMessage());
+        }
+
+        String uri = session.getUri();
+        Method method = session.getMethod();
+        Map<String, String> parms = session.getParms();
+        Map<String, String> headers = session.getHeaders();
+        return serve(uri, method, headers, parms, files);
+    }
+
+    /**
      * Decode percent encoded <code>String</code> values.
      * @param str the percent encoded <code>String</code>
      * @return expanded form of the input, for example "foo%20bar" becomes "foo bar"
@@ -592,9 +619,19 @@ public abstract class NanoHTTPD {
      */
     protected class HTTPSession {
         public static final int BUFSIZE = 8192;
+
         private final TempFileManager tempFileManager;
         private final InputStream inputStream;
         private final OutputStream outputStream;
+
+        private byte[] buf;
+        private int splitbyte;
+        private int rlen;
+
+        private String uri;
+        private Method method;
+        private Map<String, String> parms;
+        private Map<String, String> headers;
 
         public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
             this.tempFileManager = tempFileManager;
@@ -603,15 +640,12 @@ public abstract class NanoHTTPD {
         }
 
         public void execute() {
-            RandomAccessFile randomAccessFile = null;
             try {
                 // Read the first 8192 bytes.
                 // The full header should fit in here.
                 // Apache's default header limit is 8KB.
                 // Do NOT assume that a single read will get the entire header at once!
-                byte[] buf = new byte[BUFSIZE];
-                int splitbyte = 0;
-                int rlen = 0;
+                buf = new byte[BUFSIZE];
                 {
                     int read = inputStream.read(buf, 0, BUFSIZE);
                     while (read > 0) {
@@ -623,20 +657,46 @@ public abstract class NanoHTTPD {
                     }
                 }
 
+                parms = new HashMap<String, String>();
+                headers = new HashMap<String, String>();
+
                 // Create a BufferedReader for parsing the header.
                 BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, rlen)));
-                Map<String, String> pre = new HashMap<String, String>();
-                Map<String, String> parms = new HashMap<String, String>();
-                Map<String, String> headers = new HashMap<String, String>();
-                Map<String, String> files = new HashMap<String, String>();
 
                 // Decode the header into parms and header java properties
+                Map<String, String> pre = new HashMap<String, String>();
                 decodeHeader(hin, pre, parms, headers);
-                Method method = Method.lookup(pre.get("method"));
+
+                method = Method.lookup(pre.get("method"));
                 if (method == null) {
                     throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error.");
                 }
-                String uri = pre.get("uri");
+
+                uri = pre.get("uri");
+
+                // Ok, now do the serve()
+                Response r = serve(this);
+                if (r == null) {
+                    throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
+                } else {
+                    r.setRequestMethod(method);
+                    r.send(outputStream);
+                }
+            } catch (IOException ioe) {
+                Response r = new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+                r.send(outputStream);
+            } catch (ResponseException re) {
+                Response r = new Response(re.getStatus(), MIME_PLAINTEXT, re.getMessage());
+                r.send(outputStream);
+            }
+        }
+
+        private void parseBody(Map<String, String> files) throws IOException, ResponseException {
+
+            RandomAccessFile randomAccessFile = null;
+            BufferedReader in = null;
+            try {
+
                 long size = extractContentLength(headers);
 
                 // Write the part of body already read to ByteArrayOutputStream f
@@ -659,6 +719,8 @@ public abstract class NanoHTTPD {
 
                 // Now read all the body and write it to f
                 buf = new byte[512];
+                splitbyte = 0;
+                rlen = 0;
                 while (rlen >= 0 && size > 0) {
                     rlen = inputStream.read(buf, 0, 512);
                     size -= rlen;
@@ -673,7 +735,7 @@ public abstract class NanoHTTPD {
 
                 // Create a BufferedReader for easily reading it as string.
                 InputStream bin = new FileInputStream(randomAccessFile.getFD());
-                BufferedReader in = new BufferedReader(new InputStreamReader(bin));
+                in = new BufferedReader(new InputStreamReader(bin));
 
                 // If the method is POST, there may be parameters
                 // in data section, too, read it:
@@ -718,26 +780,10 @@ public abstract class NanoHTTPD {
                 } else if (Method.PUT.equals(method)) {
                     files.put("content", saveTmpFile(fbuf, 0, fbuf.limit()));
                 }
-
-                // Ok, now do the serve()
-                Response r = serve(uri, method, headers, parms, files);
-                if (r == null) {
-                    throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
-                } else {
-                    r.setRequestMethod(method);
-                    r.send(outputStream);
-                }
-
-                safeClose(in);
-            } catch (IOException ioe) {
-                Response r = new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
-                r.send(outputStream);
-            } catch (ResponseException re) {
-                Response r = new Response(re.getStatus(), MIME_PLAINTEXT, re.getMessage());
-                r.send(outputStream);
             } finally {
                 safeClose(randomAccessFile);
                 tempFileManager.clear();
+                safeClose(in);
             }
         }
 
@@ -752,6 +798,10 @@ public abstract class NanoHTTPD {
                 }
             }
             return size;
+        }
+
+        public String getHeader(String key) {
+            return headers.get(key.toLowerCase());
         }
 
         /**
@@ -899,7 +949,7 @@ public abstract class NanoHTTPD {
         /**
          * Find the byte positions where multipart boundaries start.
          */
-        public int[] getBoundaryPositions(ByteBuffer b, byte[] boundary) {
+        private int[] getBoundaryPositions(ByteBuffer b, byte[] boundary) {
             int matchcount = 0;
             int matchbyte = -1;
             List<Integer> matchbytes = new ArrayList<Integer>();
@@ -995,6 +1045,22 @@ public abstract class NanoHTTPD {
                     p.put(decodePercent(e).trim(), "");
                 }
             }
+        }
+
+        public final Map<String, String> getParms() {
+            return parms;
+        }
+
+        public final Map<String, String> getHeaders() {
+            return headers;
+        }
+
+        public final String getUri() {
+            return uri;
+        }
+
+        public final Method getMethod() {
+            return method;
         }
     }
 
