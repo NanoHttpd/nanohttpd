@@ -467,10 +467,6 @@ public abstract class NanoHTTPD {
             }
         }
 
-        public static void error(OutputStream outputStream, Status error, String message) {
-            new Response(error, MIME_PLAINTEXT, message).send(outputStream);
-        }
-
         /**
          * Adds given line to the header.
          */
@@ -638,8 +634,7 @@ public abstract class NanoHTTPD {
                 decodeHeader(hin, pre, parms, header);
                 Method method = Method.lookup(pre.get("method"));
                 if (method == null) {
-                    Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error.");
-                    throw new InterruptedException();
+                    throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error.");
                 }
                 String uri = pre.get("uri");
                 long size = extractContentLength(header);
@@ -697,8 +692,7 @@ public abstract class NanoHTTPD {
                     if ("multipart/form-data".equalsIgnoreCase(contentType)) {
                         // Handle multipart/form-data
                         if (!st.hasMoreTokens()) {
-                            Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
-                            throw new InterruptedException();
+                            throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
                         }
 
                         String boundaryStartString = "boundary=";
@@ -728,8 +722,7 @@ public abstract class NanoHTTPD {
                 // Ok, now do the serve()
                 Response r = serve(uri, method, header, parms, files);
                 if (r == null) {
-                    Response.error(outputStream, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
-                    throw new InterruptedException();
+                    throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
                 } else {
                     r.setRequestMethod(method);
                     r.send(outputStream);
@@ -737,13 +730,11 @@ public abstract class NanoHTTPD {
 
                 safeClose(in);
             } catch (IOException ioe) {
-                try {
-                    Response.error(outputStream, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
-                    throw new InterruptedException();
-                } catch (Throwable ignored) {
-                }
-            } catch (InterruptedException ie) {
-                // Thrown by sendError, ignore and exit the thread.
+                Response r = new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+                r.send(outputStream);
+            } catch (ResponseException re) {
+                Response r = new Response(re.getStatus(), MIME_PLAINTEXT, re.getMessage());
+                r.send(outputStream);
             } finally {
                 safeClose(randomAccessFile);
                 tempFileManager.clear();
@@ -767,7 +758,7 @@ public abstract class NanoHTTPD {
          * Decodes the sent headers and loads the data into Key/value pairs
          */
         private void decodeHeader(BufferedReader in, Map<String, String> pre, Map<String, String> parms, Map<String, String> header)
-                throws InterruptedException {
+                throws ResponseException {
             try {
                 // Read the request line
                 String inLine = in.readLine();
@@ -777,15 +768,13 @@ public abstract class NanoHTTPD {
 
                 StringTokenizer st = new StringTokenizer(inLine);
                 if (!st.hasMoreTokens()) {
-                    Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error. Usage: GET /example/file.html");
-                    throw new InterruptedException();
+                    throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error. Usage: GET /example/file.html");
                 }
 
                 pre.put("method", st.nextToken());
 
                 if (!st.hasMoreTokens()) {
-                    Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Missing URI. Usage: GET /example/file.html");
-                    throw new InterruptedException();
+                    throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Missing URI. Usage: GET /example/file.html");
                 }
 
                 String uri = st.nextToken();
@@ -815,8 +804,7 @@ public abstract class NanoHTTPD {
 
                 pre.put("uri", uri);
             } catch (IOException ioe) {
-                Response.error(outputStream, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
-                throw new InterruptedException();
+                throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage(), ioe);
             }
         }
 
@@ -824,15 +812,14 @@ public abstract class NanoHTTPD {
          * Decodes the Multipart Body data and put it into Key/Value pairs.
          */
         private void decodeMultipartData(String boundary, ByteBuffer fbuf, BufferedReader in, Map<String, String> parms,
-                                         Map<String, String> files) throws InterruptedException {
+                                         Map<String, String> files) throws ResponseException {
             try {
                 int[] bpositions = getBoundaryPositions(fbuf, boundary.getBytes());
                 int boundarycount = 1;
                 String mpline = in.readLine();
                 while (mpline != null) {
                     if (!mpline.contains(boundary)) {
-                        Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but next chunk does not start with boundary. Usage: GET /example/file.html");
-                        throw new InterruptedException();
+                        throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but next chunk does not start with boundary. Usage: GET /example/file.html");
                     }
                     boundarycount++;
                     Map<String, String> item = new HashMap<String, String>();
@@ -847,8 +834,7 @@ public abstract class NanoHTTPD {
                     if (mpline != null) {
                         String contentDisposition = item.get("content-disposition");
                         if (contentDisposition == null) {
-                            Response.error(outputStream, Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but no content-disposition info found. Usage: GET /example/file.html");
-                            throw new InterruptedException();
+                            throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but no content-disposition info found. Usage: GET /example/file.html");
                         }
                         StringTokenizer st = new StringTokenizer(contentDisposition, "; ");
                         Map<String, String> disposition = new HashMap<String, String>();
@@ -877,8 +863,7 @@ public abstract class NanoHTTPD {
                             }
                         } else {
                             if (boundarycount > bpositions.length) {
-                                Response.error(outputStream, Response.Status.INTERNAL_ERROR, "Error processing request");
-                                throw new InterruptedException();
+                                throw new ResponseException(Response.Status.INTERNAL_ERROR, "Error processing request");
                             }
                             int offset = stripMultipartHeaders(fbuf, bpositions[boundarycount - 2]);
                             String path = saveTmpFile(fbuf, offset, bpositions[boundarycount - 1] - offset - 4);
@@ -893,8 +878,7 @@ public abstract class NanoHTTPD {
                     }
                 }
             } catch (IOException ioe) {
-                Response.error(outputStream, Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
-                throw new InterruptedException();
+                throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage(), ioe);
             }
         }
 
@@ -1007,6 +991,25 @@ public abstract class NanoHTTPD {
                     p.put(decodePercent(e).trim(), "");
                 }
             }
+        }
+    }
+
+    private static final class ResponseException extends Exception {
+
+        private final Response.Status status;
+
+        public ResponseException(Response.Status status, String message) {
+            super(message);
+            this.status = status;
+        }
+
+        public ResponseException(Response.Status status, String message, Exception e) {
+            super(message, e);
+            this.status = status;
+        }
+
+        public Response.Status getStatus() {
+            return status;
         }
     }
 
