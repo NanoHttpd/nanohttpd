@@ -1,5 +1,6 @@
 package fi.iki.elonen;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,10 +20,17 @@ import static junit.framework.Assert.assertTrue;
 public class HttpServerTest {
     public static final String URI = "http://www.myserver.org/pub/WWW/someFile.html";
     protected TestServer testServer;
+    private TestTempFileManager tempFileManager;
 
     @Before
     public void setUp() {
         testServer = new TestServer();
+        tempFileManager = new TestTempFileManager();
+    }
+
+    @After
+    public void tearDown() {
+        tempFileManager._clear();
     }
 
     @Test
@@ -48,8 +56,8 @@ public class HttpServerTest {
     protected ByteArrayOutputStream invokeServer(String request) {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        NanoHTTPD.HTTPSession session = testServer.createSession(new NanoHTTPD.DefaultTempFileManager(), inputStream, outputStream);
-        session.run();
+        NanoHTTPD.HTTPSession session = testServer.createSession(tempFileManager, inputStream, outputStream);
+        session.execute();
         return outputStream;
     }
 
@@ -68,6 +76,17 @@ public class HttpServerTest {
             }
         }
         return lines;
+    }
+
+    public static class TestTempFileManager extends NanoHTTPD.DefaultTempFileManager {
+        public void _clear() {
+            super.clear();
+        }
+
+        @Override
+        public void clear() {
+            // ignore
+        }
     }
 
     public static class TestServer extends NanoHTTPD {
