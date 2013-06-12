@@ -621,10 +621,9 @@ public abstract class NanoHTTPD {
         public static final int BUFSIZE = 8192;
 
         private final TempFileManager tempFileManager;
-        private final InputStream inputStream;
+        private InputStream inputStream;
         private final OutputStream outputStream;
 
-        private byte[] buf;
         private int splitbyte;
         private int rlen;
 
@@ -645,7 +644,9 @@ public abstract class NanoHTTPD {
                 // The full header should fit in here.
                 // Apache's default header limit is 8KB.
                 // Do NOT assume that a single read will get the entire header at once!
-                buf = new byte[BUFSIZE];
+                byte[] buf = new byte[BUFSIZE];
+                splitbyte = 0;
+                rlen = 0;
                 {
                     int read = inputStream.read(buf, 0, BUFSIZE);
                     while (read > 0) {
@@ -655,6 +656,12 @@ public abstract class NanoHTTPD {
                             break;
                         read = inputStream.read(buf, rlen, BUFSIZE - rlen);
                     }
+                }
+
+                if (splitbyte < rlen) {
+                    ByteArrayInputStream splitInputStream = new ByteArrayInputStream(buf, splitbyte, rlen - splitbyte);
+                    SequenceInputStream sequenceInputStream = new SequenceInputStream(splitInputStream, inputStream);
+                    inputStream = sequenceInputStream;
                 }
 
                 parms = new HashMap<String, String>();
@@ -699,30 +706,19 @@ public abstract class NanoHTTPD {
             BufferedReader in = null;
             try {
 
-                long size = extractContentLength(headers);
-
-                // Write the part of body already read to ByteArrayOutputStream f
                 randomAccessFile = getTmpBucket();
-                if (splitbyte < rlen) {
-                    randomAccessFile.write(buf, splitbyte, rlen - splitbyte);
-                }
 
-                // While Firefox sends on the first read all the data fitting
-                // our buffer, Chrome and Opera send only the headers even if
-                // there is data for the body. We do some magic here to find
-                // out whether we have already consumed part of body, if we
-                // have reached the end of the data to be sent or we should
-                // expect the first byte of the body at the next read.
-                if (splitbyte < rlen) {
-                    size -= rlen - splitbyte + 1;
-                } else if (splitbyte == 0 || size == 0x7FFFFFFFFFFFFFFFl) {
+                long size;
+                if (headers.containsKey("content-length")) {
+                    size = Integer.parseInt(headers.get("content-length"));
+                } else if (splitbyte < rlen) {
+                    size = rlen - splitbyte;
+                } else {
                     size = 0;
                 }
 
                 // Now read all the body and write it to f
-                buf = new byte[512];
-                splitbyte = 0;
-                rlen = 0;
+                byte[] buf = new byte[512];
                 while (rlen >= 0 && size > 0) {
                     rlen = inputStream.read(buf, 0, 512);
                     size -= rlen;
@@ -786,23 +782,6 @@ public abstract class NanoHTTPD {
                 safeClose(randomAccessFile);
                 safeClose(in);
             }
-        }
-
-        private long extractContentLength(Map<String, String> headers) {
-            long size = 0x7FFFFFFFFFFFFFFFl;
-            String contentLength = headers.get("content-length");
-            if (contentLength != null) {
-                try {
-                    size = Integer.parseInt(contentLength);
-                } catch (NumberFormatException ex) {
-                    ex.printStackTrace();
-                }
-            }
-            return size;
-        }
-
-        public String getHeader(String key) {
-            return headers.get(key.toLowerCase());
         }
 
         /**
