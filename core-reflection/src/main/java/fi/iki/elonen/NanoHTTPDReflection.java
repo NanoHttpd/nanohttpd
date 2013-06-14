@@ -11,10 +11,10 @@ import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
 
 /**
- * A simple, tiny, nicely embeddable HTTP server in Java
+ * An extension to NanoHTTPD that allows for binding a method to a URI through reflection.
  * <p/>
  * <p/>
- * NanoHTTPD
+ * NanoHTTPDReflection
  * <p></p>Copyright (c) 2013 by Martin M Reed</p>
  * <p/>
  * <p/>
