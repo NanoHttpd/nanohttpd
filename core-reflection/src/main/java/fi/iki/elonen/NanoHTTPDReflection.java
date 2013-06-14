@@ -91,7 +91,7 @@ public abstract class NanoHTTPDReflection extends NanoHTTPD {
 
     protected Response error(String uri, Method method, Map<String, String> headers, Map<String, String> parms, Exception exception) {
         String stacktrace = exception.toString();
-        //String stacktrace = Log.getStackTraceString(exception);
+        //String stacktrace = android.util.Log.getStackTraceString(exception);
         //stacktrace = "<pre>" + stacktrace + "</pre>";
 
         Response response = new Response(stacktrace);
