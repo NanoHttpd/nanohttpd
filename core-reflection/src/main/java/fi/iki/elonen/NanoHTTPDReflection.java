@@ -7,7 +7,6 @@ import java.lang.annotation.Target;
 import java.util.Arrays;
 import java.util.Map;
 
-import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
 
 /**
@@ -192,6 +191,8 @@ public abstract class NanoHTTPDReflection extends NanoHTTPD {
 
     /**
      * Path matching the expected URI
+     * <p/>
+     * Example: @Path("/file/upload")
      */
     @Target({ ElementType.TYPE, ElementType.METHOD })
     @Retention(RetentionPolicy.RUNTIME)
@@ -210,6 +211,9 @@ public abstract class NanoHTTPDReflection extends NanoHTTPD {
 
     /**
      * Assert that a given header is expected
+     * <p/>
+     * Example: @ExpectHeader("content-length")<br/>
+     * Example: @ExpectHeader({"content-length", "session-id"})
      */
     @Target({ ElementType.TYPE, ElementType.METHOD })
     @Retention(RetentionPolicy.RUNTIME)
@@ -219,6 +223,9 @@ public abstract class NanoHTTPDReflection extends NanoHTTPD {
 
     /**
      * Assert that a given parameter is expected
+     * <p/>
+     * Example: @ExpectParam("key")<br/>
+     * Example: @ExpectParam({"key", "value"})
      */
     @Target({ ElementType.TYPE, ElementType.METHOD })
     @Retention(RetentionPolicy.RUNTIME)
