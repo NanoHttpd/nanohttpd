@@ -1,20 +1,38 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fi.iki.elonen</groupId>
-    <artifactId>nanohttpd-project</artifactId>
+    <artifactId>nanohttpd-reflection</artifactId>
     <version>2.0.2</version>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
-    <name>NanoHttpd-Project</name>
+    <name>NanoHttpd-Reflection</name>
     <url>https://github.com/NanoHttpd/nanohttpd</url>
 
-    <modules>
-        <module>core</module>
-        <module>core-reflection</module>
-        <module>samples</module>
-        <module>webserver</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>fi.iki.elonen</groupId>
+            <artifactId>nanohttpd</artifactId>
+            <version>2.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <version>4.2.5</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <extensions>
