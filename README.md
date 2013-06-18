@@ -19,6 +19,7 @@
 * All header names are converted lowercase so they don't vary between browsers/clients.
 * Very low memory overhead when processing even the largest of requests.
 * Temp file usage and threading model are easily cutomized.
+* Persistent connections (Connection "keep-alive") support allowing multiple requests to be served over a single socket connection.
 
 ## Webserver Features
 * Supports both dynamic content and file serving.
