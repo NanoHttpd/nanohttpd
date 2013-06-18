@@ -35,7 +35,7 @@
 
 The project is managed with a "fork and pull-request" pattern.
 
-If you want to contribute, fork this repo and submit a pull-request of your changes when you're ready.  
+If you want to contribute, fork this repo and submit a pull-request of your changes when you're ready.
 
 Anyone can create Issues, and pull requests should be tied back to an issue describing the purpose of the submitted code.
 
@@ -116,6 +116,7 @@ The two projects pooled resources in early 2013, merging code-bases, to better s
 user base and reduce confusion over why _two_ NanoHttpd projects existed.
 
 ## Version History (Java 6+ version)
+* 2.0.3 (2013-06-17) : Implemented 'Connection: keep-alive', (tested against latest Mozilla Firefox).
 * 2.0.2 (2013-06-06) : Polish for the webserver, and fixed a bug causing stack-traces on Samsung Phones.
 * 2.0.1 (2013-05-27) : Non-English UTF-8 decoding support for URLS/Filenames
 * 2.0.0 (2013-05-21) : Released - announced on FreeCode.com
