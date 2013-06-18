@@ -55,7 +55,7 @@ public class GetAndPostIntegrationTest {
     public void testSimpleGetRequest() throws Exception {
         testServer.response = "testSimpleGetRequest";
 
-        HttpGet httpget = new HttpGet("http://localhost:8080/");
+        HttpGet httpget = new HttpGet("http://localhost:8192/");
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         String responseBody = httpclient.execute(httpget, responseHandler);
 
@@ -66,7 +66,7 @@ public class GetAndPostIntegrationTest {
     public void testGetRequestWithParameters() throws Exception {
         testServer.response = "testGetRequestWithParameters";
 
-        HttpGet httpget = new HttpGet("http://localhost:8080/?age=120&gender=Male");
+        HttpGet httpget = new HttpGet("http://localhost:8192/?age=120&gender=Male");
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         String responseBody = httpclient.execute(httpget, responseHandler);
 
@@ -77,7 +77,7 @@ public class GetAndPostIntegrationTest {
     public void testPostWithNoParameters() throws Exception {
         testServer.response = "testPostWithNoParameters";
 
-        HttpPost httppost = new HttpPost("http://localhost:8080/");
+        HttpPost httppost = new HttpPost("http://localhost:8192/");
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         String responseBody = httpclient.execute(httppost, responseHandler);
 
@@ -88,7 +88,7 @@ public class GetAndPostIntegrationTest {
     public void testPostRequestWithFormEncodedParameters() throws Exception {
         testServer.response = "testPostRequestWithFormEncodedParameters";
 
-        HttpPost httppost = new HttpPost("http://localhost:8080/");
+        HttpPost httppost = new HttpPost("http://localhost:8192/");
         List<NameValuePair> postParameters = new ArrayList<NameValuePair>();
         postParameters.add(new BasicNameValuePair("age", "120"));
         postParameters.add(new BasicNameValuePair("gender", "Male"));
@@ -104,7 +104,7 @@ public class GetAndPostIntegrationTest {
     public void testPostRequestWithMultipartEncodedParameters() throws Exception {
         testServer.response = "testPostRequestWithMultipartEncodedParameters";
 
-        HttpPost httppost = new HttpPost("http://localhost:8080/");
+        HttpPost httppost = new HttpPost("http://localhost:8192/");
         MultipartEntity reqEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
         reqEntity.addPart("age", new StringBody("120"));
         reqEntity.addPart("gender", new StringBody("Male"));
@@ -120,7 +120,7 @@ public class GetAndPostIntegrationTest {
         public String response;
 
         public TestServer() {
-            super(8080);
+            super(8192);
         }
 
         @Override

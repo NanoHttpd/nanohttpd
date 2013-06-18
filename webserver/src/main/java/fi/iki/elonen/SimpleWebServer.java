@@ -158,10 +158,12 @@ public class SimpleWebServer extends NanoHTTPD {
                 // Get MIME type from file name extension, if possible
                 String mime = null;
                 int dot = f.getCanonicalPath().lastIndexOf('.');
-                if (dot >= 0)
+                if (dot >= 0) {
                     mime = MIME_TYPES.get(f.getCanonicalPath().substring(dot + 1).toLowerCase());
-                if (mime == null)
+                }
+                if (mime == null) {
                     mime = NanoHTTPD.MIME_DEFAULT_BINARY;
+                }
 
                 // Calculate etag
                 String etag = Integer.toHexString((f.getAbsolutePath() + f.lastModified() + "" + f.length()).hashCode());
@@ -192,11 +194,13 @@ public class SimpleWebServer extends NanoHTTPD {
                         res.addHeader("Content-Range", "bytes 0-0/" + fileLen);
                         res.addHeader("ETag", etag);
                     } else {
-                        if (endAt < 0)
+                        if (endAt < 0) {
                             endAt = fileLen - 1;
+                        }
                         long newLen = endAt - startFrom + 1;
-                        if (newLen < 0)
+                        if (newLen < 0) {
                             newLen = 0;
+                        }
 
                         final long dataLen = newLen;
                         FileInputStream fis = new FileInputStream(f) {
@@ -330,6 +334,7 @@ public class SimpleWebServer extends NanoHTTPD {
     public static void main(String[] args) {
         // Defaults
         int port = 8080;
+
         String host = "127.0.0.1";
         File wwwroot = new File(".").getAbsoluteFile();
         boolean quiet = false;

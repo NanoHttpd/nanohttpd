@@ -16,7 +16,7 @@ public class HttpPutRequestTest extends HttpServerTest {
         ByteArrayOutputStream outputStream = invokeServer("PUT " + URI + " HTTP/1.1\r\n\r\nBodyData 1\nLine 2");
 
         String[] expectedOutput = {
-                "HTTP/1.0 200 OK",
+                "HTTP/1.1 200 OK",
                 "Content-Type: text/html",
                 "Date: .*",
                 ""

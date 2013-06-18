@@ -44,7 +44,7 @@ public class PutStreamIntegrationTest {
     public void testSimplePutRequest() throws Exception {
         String expected = "This HttpPut request has a content-length of 48.";
 
-        HttpPut httpput = new HttpPut("http://localhost:8080/");
+        HttpPut httpput = new HttpPut("http://localhost:8192/");
         httpput.setEntity(new ByteArrayEntity(expected.getBytes()));
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         String responseBody = httpclient.execute(httpput, responseHandler);
@@ -54,7 +54,7 @@ public class PutStreamIntegrationTest {
 
     public static class TestServer extends NanoHTTPD {
         public TestServer() {
-            super(8080);
+            super(8192);
         }
 
         @Override
@@ -78,7 +78,7 @@ public class PutStreamIntegrationTest {
             catch(IOException e) {
                 return new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, e.getMessage());
             }
-            
+
             String response = String.valueOf(method) + ':' + new String(body);
             return new Response(response);
         }
