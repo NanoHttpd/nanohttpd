@@ -20,9 +20,11 @@ public class HttpHeadRequestTest extends HttpServerTest {
         ByteArrayOutputStream outputStream = invokeServer("HEAD " + URI + " HTTP/1.1");
 
         String[] expected = {
-                "HTTP/1.0 200 OK",
+                "HTTP/1.1 200 OK",
                 "Content-Type: text/html",
                 "Date: .*",
+                "Connection: keep-alive",
+                "Content-Length: 8",
                 ""
         };
 

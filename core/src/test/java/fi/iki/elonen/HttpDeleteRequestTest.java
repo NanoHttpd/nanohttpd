@@ -17,7 +17,7 @@ public class HttpDeleteRequestTest extends HttpServerTest {
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + URI + " HTTP/1.1");
 
         String[] expected = {
-                "HTTP/1.0 204 No Content",
+                "HTTP/1.1 204 No Content",
                 "Content-Type: text/html",
                 "Date: .*",
                 ""
@@ -33,7 +33,7 @@ public class HttpDeleteRequestTest extends HttpServerTest {
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + URI + " HTTP/1.1");
 
         String[] expected = {
-                "HTTP/1.0 204 No Content",
+                "HTTP/1.1 204 No Content",
                 "Content-Type: text/html",
                 "Date: .*",
                 ""
@@ -49,7 +49,7 @@ public class HttpDeleteRequestTest extends HttpServerTest {
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + URI + " HTTP/1.1");
 
         String[] expected = {
-                "HTTP/1.0 204 No Content",
+                "HTTP/1.1 204 No Content",
                 "Content-Type: text/html",
                 "Date: .*",
                 ""
@@ -65,9 +65,11 @@ public class HttpDeleteRequestTest extends HttpServerTest {
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + URI + " HTTP/1.1");
 
         String[] expected = {
-                "HTTP/1.0 200 OK",
+                "HTTP/1.1 200 OK",
                 "Content-Type: application/xml",
                 "Date: .*",
+                "Connection: keep-alive",
+                "Content-Length: 8",
                 "",
                 "<body />"
         };
@@ -82,9 +84,11 @@ public class HttpDeleteRequestTest extends HttpServerTest {
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + URI + " HTTP/1.1");
 
         String[] expected = {
-                "HTTP/1.0 202 Accepted",
+                "HTTP/1.1 202 Accepted",
                 "Content-Type: application/xml",
                 "Date: .*",
+                "Connection: keep-alive",
+                "Content-Length: 8",
                 "",
                 "<body />"
         };
