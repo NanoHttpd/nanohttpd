@@ -119,8 +119,11 @@ public abstract class NanoHTTPD {
                                         outputStream = finalAccept.getOutputStream();
                                         TempFileManager tempFileManager = tempFileManagerFactory.create();
                                         HTTPSession session = new HTTPSession(tempFileManager, inputStream, outputStream);
-                                        session.execute();
+                                        while (!finalAccept.isClosed()) {
+                                            session.execute();
+                                        }
                                     } catch (IOException e) {
+                                        e.printStackTrace();
                                     } finally {
                                         safeClose(outputStream);
                                         safeClose(inputStream);
@@ -514,7 +517,7 @@ public abstract class NanoHTTPD {
                     throw new Error("sendResponse(): Status can't be null.");
                 }
                 PrintWriter pw = new PrintWriter(outputStream);
-                pw.print("HTTP/1.0 " + status.getDescription() + " \r\n");
+                pw.print("HTTP/1.1 " + status.getDescription() + " \r\n");
 
                 if (mime != null) {
                     pw.print("Content-Type: " + mime + "\r\n");
@@ -531,11 +534,16 @@ public abstract class NanoHTTPD {
                     }
                 }
 
+                int pending = data != null ? data.available() : -1; // This is to support partial sends, see serveFile()
+                if (pending > 0) {
+                    pw.print("Connection: keep-alive\r\n");
+                    pw.print("Content-Length: "+pending+"\r\n");
+                }
+
                 pw.print("\r\n");
                 pw.flush();
 
                 if (requestMethod != Method.HEAD && data != null) {
-                    int pending = data.available(); // This is to support partial sends, see serveFile()
                     int BUFFER_SIZE = 16 * 1024;
                     byte[] buff = new byte[BUFFER_SIZE];
                     while (pending > 0) {
@@ -549,7 +557,6 @@ public abstract class NanoHTTPD {
                     }
                 }
                 outputStream.flush();
-                safeClose(outputStream);
                 safeClose(data);
             } catch (IOException ioe) {
                 // Couldn't write? No can do.
@@ -692,16 +699,17 @@ public abstract class NanoHTTPD {
             } catch (IOException ioe) {
                 Response r = new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
                 r.send(outputStream);
+                safeClose(outputStream);
             } catch (ResponseException re) {
                 Response r = new Response(re.getStatus(), MIME_PLAINTEXT, re.getMessage());
                 r.send(outputStream);
+                safeClose(outputStream);
             } finally {
                 tempFileManager.clear();
             }
         }
 
         private void parseBody(Map<String, String> files) throws IOException, ResponseException {
-
             RandomAccessFile randomAccessFile = null;
             BufferedReader in = null;
             try {
@@ -962,19 +970,19 @@ public abstract class NanoHTTPD {
         private String saveTmpFile(ByteBuffer  b, int offset, int len) {
             String path = "";
             if (len > 0) {
-                FileOutputStream outputStream = null;
+                FileOutputStream fileOutputStream = null;
                 try {
                     TempFile tempFile = tempFileManager.createTempFile();
                     ByteBuffer src = b.duplicate();
-                    outputStream = new FileOutputStream(tempFile.getName());
-                    FileChannel dest = outputStream.getChannel();
+                    fileOutputStream = new FileOutputStream(tempFile.getName());
+                    FileChannel dest = fileOutputStream.getChannel();
                     src.position(offset).limit(offset + len);
                     dest.write(src.slice());
                     path = tempFile.getName();
                 } catch (Exception e) { // Catch exception if any
                     System.err.println("Error: " + e.getMessage());
                 } finally {
-                    safeClose(outputStream);
+                    safeClose(fileOutputStream);
                 }
             }
             return path;
