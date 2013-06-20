@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -645,7 +646,7 @@ public abstract class NanoHTTPD {
             this.outputStream = outputStream;
         }
 
-        public void execute() {
+        public void execute() throws IOException {
             try {
                 // Read the first 8192 bytes.
                 // The full header should fit in here.
@@ -656,6 +657,10 @@ public abstract class NanoHTTPD {
                 rlen = 0;
                 {
                     int read = inputStream.read(buf, 0, BUFSIZE);
+                    if(read == -1){
+                        // socket was been closed
+                        throw new SocketException();
+                    }
                     while (read > 0) {
                         rlen += read;
                         splitbyte = findHeaderEnd(buf, rlen);
@@ -696,6 +701,9 @@ public abstract class NanoHTTPD {
                     r.setRequestMethod(method);
                     r.send(outputStream);
                 }
+            } catch(SocketException e) {
+                // throw it out to close socket object (finalAccept)
+                throw e;
             } catch (IOException ioe) {
                 Response r = new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
                 r.send(outputStream);
