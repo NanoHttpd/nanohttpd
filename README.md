@@ -116,6 +116,8 @@ the samples from the runtime JAR to further slim it down.
 The two projects pooled resources in early 2013, merging code-bases, to better support the
 user base and reduce confusion over why _two_ NanoHttpd projects existed.
 
+http://nanohttpd.com - went live July 1st, 2013.
+
 ## Version History (Java 6+ version)
 * 2.0.3 (2013-06-17) : Implemented 'Connection: keep-alive', (tested against latest Mozilla Firefox).
 * 2.0.2 (2013-06-06) : Polish for the webserver, and fixed a bug causing stack-traces on Samsung Phones.
