@@ -5,7 +5,7 @@
 *NanoHttpd* has been released under a Modified BSD licence.
 
 ## Core Features
-* Only one Java file.
+* Only one Java file, providing HTTP 1.1 support.
 * 2 "flavors" - one at "current" standards and one strictly Java 1.1 compatible.
 * Released as open source, free software, under a Modified BSD licence.
 * No fixed config files, logging, authorization etc. (Implement by yourself if you need them.)
