@@ -7,6 +7,10 @@ import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+
+import java.security.KeyStore;
+import javax.net.ssl.*;
+
 /**
  * A simple, tiny, nicely embeddable HTTP server in Java
  * <p/>
@@ -74,6 +78,7 @@ public abstract class NanoHTTPD {
     private final int myPort;
     private ServerSocket myServerSocket;
     private Set<Socket> openConnections = new HashSet<Socket>();
+    private SSLServerSocketFactory sslServerSocketFactory;
     private Thread myThread;
     /**
      * Pluggable strategy for asynchronously executing requests.
@@ -128,15 +133,51 @@ public abstract class NanoHTTPD {
         }
     }
 
+   /**
+    * Creates an SSLSocketFactory for HTTPS.
+    * 
+    * Pass a .jks resource with your certificate and passphrase
+    */
+   public static SSLServerSocketFactory makeSSLSocketFactory(String keyAndTrustStoreClasspathPath, char[] passphrase) throws IOException {
+      SSLServerSocketFactory res = null;
+      try {
+         KeyStore keystore = KeyStore.getInstance("JKS");
+         InputStream keystoreStream = NanoHTTPD.class.getResourceAsStream(keyAndTrustStoreClasspathPath);
+         keystore.load(keystoreStream, passphrase);
+         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+         trustManagerFactory.init(keystore);
+         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+         keyManagerFactory.init(keystore, passphrase);
+         SSLContext ctx = SSLContext.getInstance("TLS");
+         ctx.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+         res = ctx.getServerSocketFactory();
+      } catch (Exception e) {
+         throw new IOException(e);
+      }
+      return res;
+   }
+
+  /**
+   * Call before start() to serve over HTTPS instead of HTTP
+   */
+   public void makeSecure(SSLServerSocketFactory sslServerSocketFactory) {
+      this.sslServerSocketFactory = sslServerSocketFactory;
+   }
+
     /**
      * Start the server.
      *
      * @throws IOException if the socket is in use.
      */
     public void start() throws IOException {
-        myServerSocket = new ServerSocket();
-        myServerSocket.bind((hostname != null) ? new InetSocketAddress(hostname, myPort) : new InetSocketAddress(myPort));
-
+         if (sslServerSocketFactory != null) {
+            SSLServerSocket ss = (SSLServerSocket) sslServerSocketFactory.createServerSocket(myPort);
+            ss.setNeedClientAuth(false);
+            myServerSocket = ss;
+        } else {
+            myServerSocket = new ServerSocket();
+            myServerSocket.bind((hostname != null) ? new InetSocketAddress(hostname, myPort) : new InetSocketAddress(myPort));
+        }
         myThread = new Thread(new Runnable() {
             @Override
             public void run() {
