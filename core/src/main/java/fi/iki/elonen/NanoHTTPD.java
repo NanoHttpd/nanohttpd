@@ -171,13 +171,15 @@ public abstract class NanoHTTPD {
      */
     public void start() throws IOException {
          if (sslServerSocketFactory != null) {
-            SSLServerSocket ss = (SSLServerSocket) sslServerSocketFactory.createServerSocket(myPort);
+            SSLServerSocket ss = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
             ss.setNeedClientAuth(false);
             myServerSocket = ss;
         } else {
             myServerSocket = new ServerSocket();
-            myServerSocket.bind((hostname != null) ? new InetSocketAddress(hostname, myPort) : new InetSocketAddress(myPort));
         }
+        
+        myServerSocket.bind((hostname != null) ? new InetSocketAddress(hostname, myPort) : new InetSocketAddress(myPort));
+
         myThread = new Thread(new Runnable() {
             @Override
             public void run() {
