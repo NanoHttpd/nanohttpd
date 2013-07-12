@@ -123,8 +123,12 @@ public abstract class NanoHTTPD {
                                         while (!finalAccept.isClosed()) {
                                             session.execute();
                                         }
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
+                                    } catch (Exception e) {
+                                        // When the socket is closed by the client, we throw our own SocketException
+                                        // to break the  "keep alive" loop above.
+                                        if (!(e instanceof SocketException && "NanoHttpd Shutdown".equals(e.getMessage()))) {
+                                            e.printStackTrace();
+                                        }
                                     } finally {
                                         safeClose(outputStream);
                                         safeClose(inputStream);
@@ -659,7 +663,7 @@ public abstract class NanoHTTPD {
                     int read = inputStream.read(buf, 0, BUFSIZE);
                     if(read == -1){
                         // socket was been closed
-                        throw new SocketException();
+                        throw new SocketException("NanoHttpd Shutdown");
                     }
                     while (read > 0) {
                         rlen += read;

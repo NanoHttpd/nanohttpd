@@ -9,9 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.*;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com)
@@ -57,7 +55,12 @@ public class HttpServerTest {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         NanoHTTPD.HTTPSession session = testServer.createSession(tempFileManager, inputStream, outputStream);
-        session.execute();
+        try {
+            session.execute();
+        } catch (IOException e) {
+            fail(""+e);
+            e.printStackTrace();
+        }
         return outputStream;
     }
 
