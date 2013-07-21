@@ -643,7 +643,92 @@ public abstract class NanoHTTPD {
         private Method method;
         private Map<String, String> parms;
         private Map<String, String> headers;
-
+        private CookieHandler cookies;
+        
+        /**
+         * Provides rudimentary support for cookies.
+         * Doesn't support 'path', 'secure' nor 'httpOnly'.
+         * Feel free to improve it and/or add unsupported features.
+         * @author LordFokas
+         */
+        public class CookieHandler {
+        	private class Cookie{
+        		private String n, v, e;
+        		
+        		public Cookie(String name, String value, String expires){
+        			n = name;
+        			v = value;
+        			e = expires;
+        		}
+        		
+        		public String getHTTPHeader(){
+        			String fmt = "%s=%s; expires=%s";
+        			return String.format(fmt, n, v, e);
+        		}
+        	}
+        	
+        	private HashMap<String, String> cookies = new HashMap<String, String>();
+        	private ArrayList<Cookie> queue = new ArrayList<Cookie>();
+        	
+        	public CookieHandler(Map<String, String> httpHeaders){
+        		String raw = httpHeaders.get("cookie");
+        		if(raw != null){
+        			String[] tokens = raw.split(";");
+        			for(String token : tokens){
+        				String[] data = token.trim().split("=");
+        				if(data.length == 2){
+        					cookies.put(data[0], data[1]);
+        				}
+        			}
+        		}
+        	}
+        	
+        	/**
+        	 * Read a cookie from the HTTP Headers.
+        	 * @param name The cookie's name.
+        	 * @return The cookie's value if it exists, null otherwise.
+        	 */
+        	public String read(String name){
+        		return cookies.get(name);
+        	}
+        	
+        	/**
+        	 * Sets a cookie.
+        	 * @param name The cookie's name.
+        	 * @param value The cookie's value.
+        	 * @param expires How many days until the cookie expires.
+        	 */
+        	public void set(String name, String value, int expires){
+        		queue.add(new Cookie(name, value, getHTTPTime(expires)));
+        	}
+        	
+        	/**
+        	 * Set a cookie with an expiration date from a month ago, effectively deleting it on the client side.
+        	 * @param name The cookie name.
+        	 */
+        	public void delete(String name){
+        		set(name, "-delete-", -30);
+        	}
+        	
+        	/**
+        	 * Internally used by the webserver to add all queued cookies into the Response's HTTP Headers.
+        	 * @param response The Response object to which headers the queued cookies will be added.
+        	 */
+        	public void unloadQueue(Response response){
+        		for(Cookie cookie : queue){
+        			response.addHeader("Set-Cookie", cookie.getHTTPHeader());
+        		}
+        	}
+        	
+        	private String getHTTPTime(int days){
+        		Calendar calendar = Calendar.getInstance();
+        		SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+        		dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        		calendar.add(Calendar.DAY_OF_MONTH, days);
+        		return dateFormat.format(calendar.getTime());
+        	}
+        }
+        
         public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
             this.tempFileManager = tempFileManager;
             this.inputStream = inputStream;
@@ -696,12 +781,15 @@ public abstract class NanoHTTPD {
                 }
 
                 uri = pre.get("uri");
+                
+                cookies = new CookieHandler(headers);
 
                 // Ok, now do the serve()
                 Response r = serve(this);
                 if (r == null) {
                     throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
                 } else {
+                	cookies.unloadQueue(r);
                     r.setRequestMethod(method);
                     r.send(outputStream);
                 }
