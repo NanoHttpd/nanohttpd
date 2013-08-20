@@ -539,11 +539,9 @@ public abstract class NanoHTTPD {
                     }
                 }
 
-                int pending = data != null ? data.available() : -1; // This is to support partial sends, see serveFile()
-                if (pending > 0) {
-                    pw.print("Connection: keep-alive\r\n");
-                    pw.print("Content-Length: "+pending+"\r\n");
-                }
+                int pending = data != null ? data.available() : 0; // This is to support partial sends, see serveFile()
+                pw.print("Connection: keep-alive\r\n");
+                pw.print("Content-Length: "+pending+"\r\n");
 
                 pw.print("\r\n");
                 pw.flush();
