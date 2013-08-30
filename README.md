@@ -4,6 +4,12 @@
 
 *NanoHttpd* has been released under a Modified BSD licence.
 
+## Current major development efforts
+
+Please take a look at the new "ssl-support" branch containing submitted code adding SSL 
+support to NanoHttpd.  It's a great new feature that needs all eyes to polish in preparation
+for a release, making sure it works on all platforms.
+
 ## Core Features
 * Only one Java file, providing HTTP 1.1 support.
 * 2 "flavors" - one at "current" standards and one strictly Java 1.1 compatible.
