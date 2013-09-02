@@ -15,6 +15,8 @@ for a release, making sure it works on all platforms.
 * 2 "flavors" - one at "current" standards and one strictly Java 1.1 compatible.
 * Released as open source, free software, under a Modified BSD licence.
 * No fixed config files, logging, authorization etc. (Implement by yourself if you need them.)
+* Experimental support for SSL (see the 'ssl-support' branch in git)
+* Basic support for cookies
 * Supports parameter parsing of GET and POST methods.
 * Rudimentary PUT support (added in 1.25).
 * Support for HEAD and DELETE requests.
@@ -66,7 +68,7 @@ Firstly take a look at the "samples" sub-module.  The sample code illustrates us
 
 Secondly, you can run the standalone *NanoHttpd Webserver*.
 
-Or, create your own class that extends `NanoHTTPD` and overrides the `serve()` method.  For example:
+Or, create your own class that extends `NanoHTTPD` and overrides one of the two flavors of the `serve()` method.  For example:
 
 ```java
 public class DebugServer extends NanoHTTPD {
