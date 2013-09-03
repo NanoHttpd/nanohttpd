@@ -4,7 +4,12 @@ target
 *.iml
 *.class
 
-.swp
 .idea
 .classpath
 .project
+
+# Vim Backup/Swap Files
+*~
+.swp
+.*.swp
+
