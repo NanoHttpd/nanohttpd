@@ -1133,6 +1133,39 @@ public abstract class NanoHTTPD {
         }
     }
 
+    public static class Cookie {
+        private String n, v, e;
+
+        public Cookie(String name, String value, String expires) {
+            n = name;
+            v = value;
+            e = expires;
+        }
+
+        public Cookie(String name, String value) {
+            this(name, value, 30);
+        }
+
+        public Cookie(String name, String value, int numDays) {
+            n = name;
+            v = value;
+            e = getHTTPTime(numDays);
+        }
+
+        public String getHTTPHeader() {
+            String fmt = "%s=%s; expires=%s";
+            return String.format(fmt, n, v, e);
+        }
+
+        public static String getHTTPTime(int days) {
+            Calendar calendar = Calendar.getInstance();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+            dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+            calendar.add(Calendar.DAY_OF_MONTH, days);
+            return dateFormat.format(calendar.getTime());
+        }
+    }
+
     /**
      * Provides rudimentary support for cookies.
      * Doesn't support 'path', 'secure' nor 'httpOnly'.
@@ -1140,7 +1173,7 @@ public abstract class NanoHTTPD {
      *
      * @author LordFokas
      */
-    public class CookieHandler {
+    public class CookieHandler implements Iterable<String> {
         private HashMap<String, String> cookies = new HashMap<String, String>();
         private ArrayList<Cookie> queue = new ArrayList<Cookie>();
 
@@ -1155,6 +1188,10 @@ public abstract class NanoHTTPD {
                     }
                 }
             }
+        }
+
+        @Override public Iterator<String> iterator() {
+            return cookies.keySet().iterator();
         }
 
         /**
@@ -1175,7 +1212,11 @@ public abstract class NanoHTTPD {
          * @param expires How many days until the cookie expires.
          */
         public void set(String name, String value, int expires) {
-            queue.add(new Cookie(name, value, getHTTPTime(expires)));
+            queue.add(new Cookie(name, value, Cookie.getHTTPTime(expires)));
+        }
+
+        public void set(Cookie cookie) {
+            queue.add(cookie);
         }
 
         /**
@@ -1195,29 +1236,6 @@ public abstract class NanoHTTPD {
         public void unloadQueue(Response response) {
             for (Cookie cookie : queue) {
                 response.addHeader("Set-Cookie", cookie.getHTTPHeader());
-            }
-        }
-
-        private String getHTTPTime(int days) {
-            Calendar calendar = Calendar.getInstance();
-            SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
-            dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-            calendar.add(Calendar.DAY_OF_MONTH, days);
-            return dateFormat.format(calendar.getTime());
-        }
-
-        private class Cookie {
-            private String n, v, e;
-
-            public Cookie(String name, String value, String expires) {
-                n = name;
-                v = value;
-                e = expires;
-            }
-
-            public String getHTTPHeader() {
-                String fmt = "%s=%s; expires=%s";
-                return String.format(fmt, n, v, e);
             }
         }
     }

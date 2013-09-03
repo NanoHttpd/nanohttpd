@@ -18,27 +18,7 @@ import org.junit.Test;
 
 import fi.iki.elonen.NanoHTTPD;
 
-public class PutStreamIntegrationTest {
-
-    private HttpClient httpclient;
-    private TestServer testServer;
-
-    @Before
-    public void setUp() {
-        testServer = new TestServer();
-        httpclient = new DefaultHttpClient();
-        try {
-            testServer.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @After
-    public void tearDown() {
-        httpclient.getConnectionManager().shutdown();
-        testServer.stop();
-    }
+public class PutStreamIntegrationTest extends IntegrationTestBase<PutStreamIntegrationTest.TestServer> {
 
     @Test
     public void testSimplePutRequest() throws Exception {
@@ -50,6 +30,10 @@ public class PutStreamIntegrationTest {
         String responseBody = httpclient.execute(httpput, responseHandler);
 
         assertEquals("PUT:" + expected, responseBody);
+    }
+
+    @Override public TestServer createTestServer() {
+        return new TestServer();
     }
 
     public static class TestServer extends NanoHTTPD {

@@ -29,27 +29,7 @@ import static org.junit.Assert.assertEquals;
  * @author Paul S. Hawke (paul.hawke@gmail.com)
  *         On: 5/19/13 at 5:36 PM
  */
-public class GetAndPostIntegrationTest {
-
-    private HttpClient httpclient;
-    private TestServer testServer;
-
-    @Before
-    public void setUp() {
-        testServer = new TestServer();
-        httpclient = new DefaultHttpClient();
-        try {
-            testServer.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @After
-    public void tearDown() {
-        httpclient.getConnectionManager().shutdown();
-        testServer.stop();
-    }
+public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostIntegrationTest.TestServer> {
 
     @Test
     public void testSimpleGetRequest() throws Exception {
@@ -114,6 +94,10 @@ public class GetAndPostIntegrationTest {
         String responseBody = httpclient.execute(httppost, responseHandler);
 
         assertEquals("POST:testPostRequestWithMultipartEncodedParameters-params=2;age=120;gender=Male", responseBody);
+    }
+
+    @Override public TestServer createTestServer() {
+        return new TestServer();
     }
 
     public static class TestServer extends NanoHTTPD {
