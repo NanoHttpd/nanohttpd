@@ -17,6 +17,8 @@ public class HttpGetRequestTest extends HttpServerTest {
                 "HTTP/1.1 200 OK",
                 "Content-Type: text/html",
                 "Date: .*",
+                "Connection: keep-alive",
+                "Content-Length: 0",
                 ""
         };
 

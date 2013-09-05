@@ -20,6 +20,8 @@ public class HttpDeleteRequestTest extends HttpServerTest {
                 "HTTP/1.1 204 No Content",
                 "Content-Type: text/html",
                 "Date: .*",
+                "Connection: keep-alive",
+                "Content-Length: 0",
                 ""
         };
 
@@ -36,6 +38,8 @@ public class HttpDeleteRequestTest extends HttpServerTest {
                 "HTTP/1.1 204 No Content",
                 "Content-Type: text/html",
                 "Date: .*",
+                "Connection: keep-alive",
+                "Content-Length: 0",
                 ""
         };
 
@@ -52,6 +56,8 @@ public class HttpDeleteRequestTest extends HttpServerTest {
                 "HTTP/1.1 204 No Content",
                 "Content-Type: text/html",
                 "Date: .*",
+                "Connection: keep-alive",
+                "Content-Length: 0",
                 ""
         };
 
