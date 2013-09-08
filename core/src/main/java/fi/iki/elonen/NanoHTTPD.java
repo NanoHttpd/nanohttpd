@@ -61,10 +61,6 @@ public abstract class NanoHTTPD {
      */
     public static final String MIME_HTML = "text/html";
     /**
-     * Common mime type for dynamic content: binary
-     */
-    public static final String MIME_DEFAULT_BINARY = "application/octet-stream";
-    /**
      * Pseudo-Parameter to use to store the actual query string in the parameters map for later re-processing.
      */
     private static final String QUERY_STRING_PARAMETER = "NanoHttpd.QUERY_STRING";
