@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/NanoHttpd/nanohttpd.png?label=ready)](https://waffle.io/NanoHttpd/nanohttpd)  
 ## What is "nanohttpd"?
 
 *NanoHttpd* is a light-weight HTTP server designed for embedding in other applications.
