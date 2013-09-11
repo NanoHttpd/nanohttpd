@@ -1,4 +1,3 @@
-[![Stories in Ready](https://badge.waffle.io/NanoHttpd/nanohttpd.png?label=ready)](https://waffle.io/NanoHttpd/nanohttpd)  
 ## What is "nanohttpd"?
 
 *NanoHttpd* is a light-weight HTTP server designed for embedding in other applications.
@@ -6,6 +5,8 @@
 *NanoHttpd* has been released under a Modified BSD licence.
 
 ## Current major development efforts
+
+Waffle.io Issue Tracking: [![Stories in Ready](https://badge.waffle.io/NanoHttpd/nanohttpd.png?label=ready)](https://waffle.io/NanoHttpd/nanohttpd)  
 
 Please take a look at the new "ssl-support" branch containing submitted code adding SSL 
 support to NanoHttpd.  It's a great new feature that needs all eyes to polish in preparation
