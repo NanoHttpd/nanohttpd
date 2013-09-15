@@ -8,9 +8,12 @@
 
 Waffle.io Issue Tracking: [![Stories in Ready](https://badge.waffle.io/NanoHttpd/nanohttpd.png?label=ready)](https://waffle.io/NanoHttpd/nanohttpd)  
 
-Please take a look at the new "ssl-support" branch containing submitted code adding SSL 
-support to NanoHttpd.  It's a great new feature that needs all eyes to polish in preparation
-for a release, making sure it works on all platforms.
+*Core*
+* Please take a look at the new "ssl-support" branch containing submitted code adding SSL support to NanoHttpd.  It's a great new feature that needs all eyes to polish in preparation for a release, making sure it works on all platforms.
+
+*Webserver*
+* Internal architecture support URL rewriting.  Serving "index.*" files now utilizes the feature.  Capability needs to be extended to read and apply rewrite rules at runtime.
+* Plugin support - plugins that transform the source (eg PHP, Markdown) can now support caching generate files.  Add caching to the markdown plugin as an example.
 
 ## Core Features
 * Only one Java file, providing HTTP 1.1 support.
@@ -41,6 +44,7 @@ for a release, making sure it works on all platforms.
 * File server supports simple skipping for files (continue download).
 * File server serves also very long files without memory overhead.
 * Contains a built-in list of most common mime types.
+* Runtime extension support (extensions that serve particular mime types) - example extension that serves Markdown formatted files. Simply including an extension JAR in the webserver classpath is enough for the extension to be loaded.
 
 ## How is the project managed?
 
@@ -129,6 +133,7 @@ user base and reduce confusion over why _two_ NanoHttpd projects existed.
 http://nanohttpd.com - went live July 1st, 2013.
 
 ## Version History (Java 6+ version)
+* 2.0.4 (2013-09-15) : Added basic cookie support, experimental SSL support and runtime extensions.
 * 2.0.3 (2013-06-17) : Implemented 'Connection: keep-alive', (tested against latest Mozilla Firefox).
 * 2.0.2 (2013-06-06) : Polish for the webserver, and fixed a bug causing stack-traces on Samsung Phones.
 * 2.0.1 (2013-05-27) : Non-English UTF-8 decoding support for URLS/Filenames
