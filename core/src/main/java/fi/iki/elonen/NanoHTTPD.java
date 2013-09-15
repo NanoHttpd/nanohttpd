@@ -833,7 +833,7 @@ public abstract class NanoHTTPD {
                         String boundaryStartString = "boundary=";
                         int boundaryContentStart = contentTypeHeader.indexOf(boundaryStartString) + boundaryStartString.length();
                         String boundary = contentTypeHeader.substring(boundaryContentStart, contentTypeHeader.length());
-                        if (boundary.startsWith("\"") && boundary.startsWith("\"")) {
+                        if (boundary.startsWith("\"") && boundary.endsWith("\"")) {
                             boundary = boundary.substring(1, boundary.length() - 1);
                         }
 
