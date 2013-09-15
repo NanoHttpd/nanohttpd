@@ -20,6 +20,9 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
         processor = new PegDownProcessor();
     }
 
+    @Override public void initialize(Map<String, String> commandLineOptions) {
+    }
+
     @Override public boolean canServeUri(String uri, File rootDir) {
         File f = new File(rootDir, uri);
         return f.exists();
