@@ -1,8 +1,12 @@
 package fi.iki.elonen;
 
 import java.io.*;
+import java.net.JarURLConnection;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 public class SimpleWebServer extends NanoHTTPD {
     /**
@@ -12,7 +16,10 @@ public class SimpleWebServer extends NanoHTTPD {
     /**
      * Default Index file names.
      */
-    public static final String[] INDEX_FILE_NAMES = {"index.html", "index.htm"};
+    public static final List<String> INDEX_FILE_NAMES = new ArrayList<String>() {{
+        add("index.html");
+        add("index.htm");
+    }};
     /**
      * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
      */
@@ -22,6 +29,7 @@ public class SimpleWebServer extends NanoHTTPD {
         put("html", "text/html");
         put("xml", "text/xml");
         put("java", "text/x-java-source, text/java");
+        put("md", "text/plain");
         put("txt", "text/plain");
         put("asc", "text/plain");
         put("gif", "image/gif");
@@ -71,13 +79,21 @@ public class SimpleWebServer extends NanoHTTPD {
             + "THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n"
             + "(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n"
             + "OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.";
-    private final File rootDir;
+    private static Map<String, WebServerPlugin> mimeTypeHandlers = new HashMap<String, WebServerPlugin>();
+    private final List<File> rootDirs;
     private final boolean quiet;
 
     public SimpleWebServer(String host, int port, File wwwroot, boolean quiet) {
         super(host, port);
-        this.rootDir = wwwroot;
         this.quiet = quiet;
+        this.rootDirs = new ArrayList<File>();
+        this.rootDirs.add(wwwroot);
+    }
+
+    public SimpleWebServer(String host, int port, List<File> wwwroots, boolean quiet) {
+        super(host, port);
+        this.quiet = quiet;
+        this.rootDirs = new ArrayList<File>(wwwroots);
     }
 
     /**
@@ -88,7 +104,7 @@ public class SimpleWebServer extends NanoHTTPD {
         int port = 8080;
 
         String host = "127.0.0.1";
-        File wwwroot = new File(".").getAbsoluteFile();
+        List<File> rootDirs = new ArrayList<File>();
         boolean quiet = false;
 
         // Parse command-line, with short and long versions of the options.
@@ -100,18 +116,67 @@ public class SimpleWebServer extends NanoHTTPD {
             } else if (args[i].equalsIgnoreCase("-q") || args[i].equalsIgnoreCase("--quiet")) {
                 quiet = true;
             } else if (args[i].equalsIgnoreCase("-d") || args[i].equalsIgnoreCase("--dir")) {
-                wwwroot = new File(args[i + 1]).getAbsoluteFile();
+                rootDirs.add(new File(args[i + 1]).getAbsoluteFile());
             } else if (args[i].equalsIgnoreCase("--licence")) {
                 System.out.println(LICENCE + "\n");
                 break;
             }
         }
 
-        ServerRunner.executeInstance(new SimpleWebServer(host, port, wwwroot, quiet));
+        if (rootDirs.isEmpty()) {
+            rootDirs.add(new File(".").getAbsoluteFile());
+        }
+
+        ServiceLoader<WebServerPluginInfo> serviceLoader = ServiceLoader.load(WebServerPluginInfo.class);
+        for (WebServerPluginInfo info : serviceLoader) {
+            String[] mimeTypes = info.getMimeTypes();
+            for (String mime : mimeTypes) {
+                String[] indexFiles = info.getIndexFilesForMimeType(mime);
+                if (!quiet) {
+                    System.out.print("# Found plugin for Mime type: \"" + mime + "\"");
+                    if (indexFiles != null) {
+                        System.out.print(" (serving index files: ");
+                        for (String indexFile : indexFiles) {
+                            System.out.print(indexFile + " ");
+                        }
+                    }
+                    System.out.println(").");
+                }
+                registerPluginForMimeType(indexFiles, mime, info.getWebServerPlugin(mime));
+            }
+        }
+
+        ServerRunner.executeInstance(new SimpleWebServer(host, port, rootDirs, quiet));
+    }
+
+    private static void registerPluginForMimeType(String[] indexFiles, String mimeType, WebServerPlugin plugin) {
+        if (mimeType == null || plugin == null) {
+            return;
+        }
+
+        if (indexFiles != null) {
+            for (String filename : indexFiles) {
+                int dot = filename.lastIndexOf('.');
+                if (dot >= 0) {
+                    String extension = filename.substring(dot + 1).toLowerCase();
+                    MIME_TYPES.put(extension, mimeType);
+                }
+            }
+            INDEX_FILE_NAMES.addAll(Arrays.asList(indexFiles));
+        }
+        mimeTypeHandlers.put(mimeType, plugin);
     }
 
     private File getRootDir() {
-        return rootDir;
+        return rootDirs.get(0);
+    }
+
+    private List<File> getRootDirs() {
+        return rootDirs;
+    }
+
+    private void addWwwRootDir(File wwwroot) {
+        rootDirs.add(wwwroot);
     }
 
     /**
@@ -156,11 +221,14 @@ public class SimpleWebServer extends NanoHTTPD {
             }
         }
 
-        File homeDir = getRootDir();
+        List<File> homeDirs = getRootDirs();
 
-        // Make sure we won't die of an exception later
-        if (!homeDir.isDirectory()) {
-            return createResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "INTERNAL ERRROR: serveFile(): given homeDir is not a directory.");
+        for (File homeDir : homeDirs) {
+            // Make sure we won't die of an exception later
+            if (!homeDir.isDirectory()) {
+                return createResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+                    "INTERNAL ERRROR: given path is not a directory (" + homeDir + ").");
+            }
         }
 
         // Remove URL arguments
@@ -174,49 +242,75 @@ public class SimpleWebServer extends NanoHTTPD {
             return createResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: Won't serve ../ for security reasons.");
         }
 
-        File f = new File(homeDir, uri);
-        if (!f.exists()) {
+        boolean canServeUri = false;
+        File homeDir = null;
+        for (int i = 0; !canServeUri && i < homeDirs.size(); i++) {
+            homeDir = homeDirs.get(i);
+            canServeUri = canServeUri(uri, homeDir);
+        }
+        if (!canServeUri) {
             return createResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Error 404, file not found.");
         }
 
-        return serveFile(uri, header, f);
-    }
+        // Browsers get confused without '/' after the directory, send a redirect.
+        File f = new File(homeDir, uri);
+        if (f.isDirectory() && !uri.endsWith("/")) {
+            uri += "/";
+            Response res = createResponse(Response.Status.REDIRECT, NanoHTTPD.MIME_HTML, "<html><body>Redirected: <a href=\"" +
+                uri + "\">" + uri + "</a></body></html>");
+            res.addHeader("Location", uri);
+            return res;
+        }
 
-    /**
-     * Serves file from homeDir and its' subdirectories (only). Uses only URI, ignores all headers and HTTP parameters.
-     */
-    Response serveFile(String uri, Map<String, String> header, File file) {
-        // List the directory, if necessary
-        if (file.isDirectory()) {
-            // Browsers get confused without '/' after the
-            // directory, send a redirect.
-            if (!uri.endsWith("/")) {
-                uri += "/";
-                Response res = createResponse(Response.Status.REDIRECT, NanoHTTPD.MIME_HTML, "<html><body>Redirected: <a href=\"" + uri + "\">" +
-                    uri + "</a></body></html>");
-                res.addHeader("Location", uri);
-                return res;
-            }
-
+        if (f.isDirectory()) {
             // First look for index files (index.html, index.htm, etc) and if none found, list the directory if readable.
-            File indexFile = findIndexFileInDirectory(file);
+            String indexFile = findIndexFileInDirectory(f);
             if (indexFile == null) {
-                if (file.canRead()) {
+                if (f.canRead()) {
                     // No index file, list the directory if it is readable
-                    return createResponse(Response.Status.OK, NanoHTTPD.MIME_HTML, listDirectory(uri, file));
+                    return createResponse(Response.Status.OK, NanoHTTPD.MIME_HTML, listDirectory(uri, f));
                 } else {
                     return createResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: No directory listing.");
                 }
             } else {
                 // Index file was found, so serve it.
-                file = indexFile;
+                uri += indexFile;
+                f = new File(f, indexFile);
             }
         }
 
+        String mimeTypeForFile = getMimeTypeForFile(uri);
+        WebServerPlugin plugin = mimeTypeHandlers.get(mimeTypeForFile);
+        Response response = null;
+        if (plugin != null) {
+            response = plugin.serveFile(uri, header, f, mimeTypeForFile);
+        } else {
+            response = serveFile(uri, header, f, mimeTypeForFile);
+        }
+        return response != null ? response :
+            createResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Error 404, file not found.");
+    }
+
+    private boolean canServeUri(String uri, File homeDir) {
+        boolean canServeUri;
+        File f = new File(homeDir, uri);
+        canServeUri = f.exists();
+        if (!canServeUri) {
+            String mimeTypeForFile = getMimeTypeForFile(uri);
+            WebServerPlugin plugin = mimeTypeHandlers.get(mimeTypeForFile);
+            if (plugin != null) {
+                canServeUri = plugin.canServeUri(uri, homeDir);
+            }
+        }
+        return canServeUri;
+    }
+
+    /**
+     * Serves file from homeDir and its' subdirectories (only). Uses only URI, ignores all headers and HTTP parameters.
+     */
+    Response serveFile(String uri, Map<String, String> header, File file, String mime) {
         Response res;
         try {
-            String mime = getMimeTypeForFile(file);
-
             // Calculate etag
             String etag = Integer.toHexString((file.getAbsolutePath() + file.lastModified() + "" + file.length()).hashCode());
 
@@ -285,11 +379,11 @@ public class SimpleWebServer extends NanoHTTPD {
     }
 
     // Get MIME type from file name extension, if possible
-    private String getMimeTypeForFile(File f) throws IOException {
+    private String getMimeTypeForFile(String uri) {
+        int dot = uri.lastIndexOf('.');
         String mime = null;
-        int dot = f.getCanonicalPath().lastIndexOf('.');
         if (dot >= 0) {
-            mime = MIME_TYPES.get(f.getCanonicalPath().substring(dot + 1).toLowerCase());
+            mime = MIME_TYPES.get(uri.substring(dot + 1).toLowerCase());
         }
         return mime == null ? MIME_DEFAULT_BINARY : mime;
     }
@@ -308,11 +402,11 @@ public class SimpleWebServer extends NanoHTTPD {
         return res;
     }
 
-    private File findIndexFileInDirectory(File directory) {
+    private String findIndexFileInDirectory(File directory) {
         for (String fileName : INDEX_FILE_NAMES) {
             File indexFile = new File(directory, fileName);
             if (indexFile.exists()) {
-                return indexFile;
+                return fileName;
             }
         }
         return null;
