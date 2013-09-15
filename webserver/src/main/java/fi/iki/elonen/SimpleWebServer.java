@@ -1,10 +1,25 @@
 package fi.iki.elonen;
 
 import java.io.*;
+import java.net.JarURLConnection;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 public class SimpleWebServer extends NanoHTTPD {
+    /**
+     * Common mime type for dynamic content: binary
+     */
+    public static final String MIME_DEFAULT_BINARY = "application/octet-stream";
+    /**
+     * Default Index file names.
+     */
+    public static final List<String> INDEX_FILE_NAMES = new ArrayList<String>() {{
+        add("index.html");
+        add("index.htm");
+    }};
     /**
      * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
      */
@@ -14,6 +29,7 @@ public class SimpleWebServer extends NanoHTTPD {
         put("html", "text/html");
         put("xml", "text/xml");
         put("java", "text/x-java-source, text/java");
+        put("md", "text/plain");
         put("txt", "text/plain");
         put("asc", "text/plain");
         put("gif", "image/gif");
@@ -35,47 +51,132 @@ public class SimpleWebServer extends NanoHTTPD {
         put("exe", "application/octet-stream");
         put("class", "application/octet-stream");
     }};
-
     /**
      * The distribution licence
      */
     private static final String LICENCE =
-            "Copyright (c) 2012-2013 by Paul S. Hawke, 2001,2005-2013 by Jarno Elonen, 2010 by Konstantinos Togias\n"
-                    + "\n"
-                    + "Redistribution and use in source and binary forms, with or without\n"
-                    + "modification, are permitted provided that the following conditions\n"
-                    + "are met:\n"
-                    + "\n"
-                    + "Redistributions of source code must retain the above copyright notice,\n"
-                    + "this list of conditions and the following disclaimer. Redistributions in\n"
-                    + "binary form must reproduce the above copyright notice, this list of\n"
-                    + "conditions and the following disclaimer in the documentation and/or other\n"
-                    + "materials provided with the distribution. The name of the author may not\n"
-                    + "be used to endorse or promote products derived from this software without\n"
-                    + "specific prior written permission. \n"
-                    + " \n"
-                    + "THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR\n"
-                    + "IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES\n"
-                    + "OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.\n"
-                    + "IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,\n"
-                    + "INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT\n"
-                    + "NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\n"
-                    + "DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\n"
-                    + "THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n"
-                    + "(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n"
-                    + "OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.";
-
-    private final File rootDir;
+        "Copyright (c) 2012-2013 by Paul S. Hawke, 2001,2005-2013 by Jarno Elonen, 2010 by Konstantinos Togias\n"
+            + "\n"
+            + "Redistribution and use in source and binary forms, with or without\n"
+            + "modification, are permitted provided that the following conditions\n"
+            + "are met:\n"
+            + "\n"
+            + "Redistributions of source code must retain the above copyright notice,\n"
+            + "this list of conditions and the following disclaimer. Redistributions in\n"
+            + "binary form must reproduce the above copyright notice, this list of\n"
+            + "conditions and the following disclaimer in the documentation and/or other\n"
+            + "materials provided with the distribution. The name of the author may not\n"
+            + "be used to endorse or promote products derived from this software without\n"
+            + "specific prior written permission. \n"
+            + " \n"
+            + "THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR\n"
+            + "IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES\n"
+            + "OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.\n"
+            + "IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,\n"
+            + "INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT\n"
+            + "NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\n"
+            + "DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\n"
+            + "THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n"
+            + "(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n"
+            + "OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.";
+    private static Map<String, WebServerPlugin> mimeTypeHandlers = new HashMap<String, WebServerPlugin>();
+    private final List<File> rootDirs;
     private final boolean quiet;
 
     public SimpleWebServer(String host, int port, File wwwroot, boolean quiet) {
         super(host, port);
-        this.rootDir = wwwroot;
         this.quiet = quiet;
+        this.rootDirs = new ArrayList<File>();
+        this.rootDirs.add(wwwroot);
     }
 
-    File getRootDir() {
-        return rootDir;
+    public SimpleWebServer(String host, int port, List<File> wwwroots, boolean quiet) {
+        super(host, port);
+        this.quiet = quiet;
+        this.rootDirs = new ArrayList<File>(wwwroots);
+    }
+
+    /**
+     * Starts as a standalone file server and waits for Enter.
+     */
+    public static void main(String[] args) {
+        // Defaults
+        int port = 8080;
+
+        String host = "127.0.0.1";
+        List<File> rootDirs = new ArrayList<File>();
+        boolean quiet = false;
+
+        // Parse command-line, with short and long versions of the options.
+        for (int i = 0; i < args.length; ++i) {
+            if (args[i].equalsIgnoreCase("-h") || args[i].equalsIgnoreCase("--host")) {
+                host = args[i + 1];
+            } else if (args[i].equalsIgnoreCase("-p") || args[i].equalsIgnoreCase("--port")) {
+                port = Integer.parseInt(args[i + 1]);
+            } else if (args[i].equalsIgnoreCase("-q") || args[i].equalsIgnoreCase("--quiet")) {
+                quiet = true;
+            } else if (args[i].equalsIgnoreCase("-d") || args[i].equalsIgnoreCase("--dir")) {
+                rootDirs.add(new File(args[i + 1]).getAbsoluteFile());
+            } else if (args[i].equalsIgnoreCase("--licence")) {
+                System.out.println(LICENCE + "\n");
+                break;
+            }
+        }
+
+        if (rootDirs.isEmpty()) {
+            rootDirs.add(new File(".").getAbsoluteFile());
+        }
+
+        ServiceLoader<WebServerPluginInfo> serviceLoader = ServiceLoader.load(WebServerPluginInfo.class);
+        for (WebServerPluginInfo info : serviceLoader) {
+            String[] mimeTypes = info.getMimeTypes();
+            for (String mime : mimeTypes) {
+                String[] indexFiles = info.getIndexFilesForMimeType(mime);
+                if (!quiet) {
+                    System.out.print("# Found plugin for Mime type: \"" + mime + "\"");
+                    if (indexFiles != null) {
+                        System.out.print(" (serving index files: ");
+                        for (String indexFile : indexFiles) {
+                            System.out.print(indexFile + " ");
+                        }
+                    }
+                    System.out.println(").");
+                }
+                registerPluginForMimeType(indexFiles, mime, info.getWebServerPlugin(mime));
+            }
+        }
+
+        ServerRunner.executeInstance(new SimpleWebServer(host, port, rootDirs, quiet));
+    }
+
+    private static void registerPluginForMimeType(String[] indexFiles, String mimeType, WebServerPlugin plugin) {
+        if (mimeType == null || plugin == null) {
+            return;
+        }
+
+        if (indexFiles != null) {
+            for (String filename : indexFiles) {
+                int dot = filename.lastIndexOf('.');
+                if (dot >= 0) {
+                    String extension = filename.substring(dot + 1).toLowerCase();
+                    MIME_TYPES.put(extension, mimeType);
+                }
+            }
+            INDEX_FILE_NAMES.addAll(Arrays.asList(indexFiles));
+        }
+        mimeTypeHandlers.put(mimeType, plugin);
+    }
+
+    private File getRootDir() {
+        return rootDirs.get(0);
+    }
+
+    private List<File> getRootDirs() {
+        return rootDirs;
+    }
+
+    private void addWwwRootDir(File wwwroot) {
+        rootDirs.add(wwwroot);
     }
 
     /**
@@ -100,148 +201,225 @@ public class SimpleWebServer extends NanoHTTPD {
         return newUri;
     }
 
+    public Response serve(HTTPSession session) {
+        Map<String, String> header = session.getHeaders();
+        Map<String, String> parms = session.getParms();
+        String uri = session.getUri();
+
+        if (!quiet) {
+            System.out.println(session.getMethod() + " '" + uri + "' ");
+
+            Iterator<String> e = header.keySet().iterator();
+            while (e.hasNext()) {
+                String value = e.next();
+                System.out.println("  HDR: '" + value + "' = '" + header.get(value) + "'");
+            }
+            e = parms.keySet().iterator();
+            while (e.hasNext()) {
+                String value = e.next();
+                System.out.println("  PRM: '" + value + "' = '" + parms.get(value) + "'");
+            }
+        }
+
+        List<File> homeDirs = getRootDirs();
+
+        for (File homeDir : homeDirs) {
+            // Make sure we won't die of an exception later
+            if (!homeDir.isDirectory()) {
+                return createResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+                    "INTERNAL ERRROR: given path is not a directory (" + homeDir + ").");
+            }
+        }
+
+        // Remove URL arguments
+        uri = uri.trim().replace(File.separatorChar, '/');
+        if (uri.indexOf('?') >= 0) {
+            uri = uri.substring(0, uri.indexOf('?'));
+        }
+
+        // Prohibit getting out of current directory
+        if (uri.startsWith("src/main") || uri.endsWith("src/main") || uri.contains("../")) {
+            return createResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: Won't serve ../ for security reasons.");
+        }
+
+        boolean canServeUri = false;
+        File homeDir = null;
+        for (int i = 0; !canServeUri && i < homeDirs.size(); i++) {
+            homeDir = homeDirs.get(i);
+            canServeUri = canServeUri(uri, homeDir);
+        }
+        if (!canServeUri) {
+            return createResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Error 404, file not found.");
+        }
+
+        // Browsers get confused without '/' after the directory, send a redirect.
+        File f = new File(homeDir, uri);
+        if (f.isDirectory() && !uri.endsWith("/")) {
+            uri += "/";
+            Response res = createResponse(Response.Status.REDIRECT, NanoHTTPD.MIME_HTML, "<html><body>Redirected: <a href=\"" +
+                uri + "\">" + uri + "</a></body></html>");
+            res.addHeader("Location", uri);
+            return res;
+        }
+
+        if (f.isDirectory()) {
+            // First look for index files (index.html, index.htm, etc) and if none found, list the directory if readable.
+            String indexFile = findIndexFileInDirectory(f);
+            if (indexFile == null) {
+                if (f.canRead()) {
+                    // No index file, list the directory if it is readable
+                    return createResponse(Response.Status.OK, NanoHTTPD.MIME_HTML, listDirectory(uri, f));
+                } else {
+                    return createResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: No directory listing.");
+                }
+            } else {
+                // Index file was found, so serve it.
+                uri += indexFile;
+                f = new File(f, indexFile);
+            }
+        }
+
+        String mimeTypeForFile = getMimeTypeForFile(uri);
+        WebServerPlugin plugin = mimeTypeHandlers.get(mimeTypeForFile);
+        Response response = null;
+        if (plugin != null) {
+            response = plugin.serveFile(uri, header, f, mimeTypeForFile);
+        } else {
+            response = serveFile(uri, header, f, mimeTypeForFile);
+        }
+        return response != null ? response :
+            createResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Error 404, file not found.");
+    }
+
+    private boolean canServeUri(String uri, File homeDir) {
+        boolean canServeUri;
+        File f = new File(homeDir, uri);
+        canServeUri = f.exists();
+        if (!canServeUri) {
+            String mimeTypeForFile = getMimeTypeForFile(uri);
+            WebServerPlugin plugin = mimeTypeHandlers.get(mimeTypeForFile);
+            if (plugin != null) {
+                canServeUri = plugin.canServeUri(uri, homeDir);
+            }
+        }
+        return canServeUri;
+    }
+
     /**
      * Serves file from homeDir and its' subdirectories (only). Uses only URI, ignores all headers and HTTP parameters.
      */
-    Response serveFile(String uri, Map<String, String> header, File homeDir) {
-        Response res = null;
-
-        // Make sure we won't die of an exception later
-        if (!homeDir.isDirectory()) {
-            res = new Response(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "INTERNAL ERRROR: serveFile(): given homeDir is not a directory.");
-        }
-
-        if (res == null) {
-            // Remove URL arguments
-            uri = uri.trim().replace(File.separatorChar, '/');
-            if (uri.indexOf('?') >= 0)
-                uri = uri.substring(0, uri.indexOf('?'));
-
-            // Prohibit getting out of current directory
-            if (uri.startsWith("src/main") || uri.endsWith("src/main") || uri.contains("../"))
-                res = new Response(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: Won't serve ../ for security reasons.");
-        }
-
-        File f = new File(homeDir, uri);
-        if (res == null && !f.exists()) {
-            res = new Response(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Error 404, file not found.");
-        }
-
-        // List the directory, if necessary
-        if (res == null && f.isDirectory()) {
-            // Browsers get confused without '/' after the
-            // directory, send a redirect.
-            if (!uri.endsWith("/")) {
-                uri += "/";
-                res = new Response(Response.Status.REDIRECT, NanoHTTPD.MIME_HTML, "<html><body>Redirected: <a href=\"" + uri + "\">" + uri
-                        + "</a></body></html>");
-                res.addHeader("Location", uri);
-            }
-
-            if (res == null) {
-                // First try index.html and index.htm
-                if (new File(f, "index.html").exists()) {
-                    f = new File(homeDir, uri + "/index.html");
-                } else if (new File(f, "index.htm").exists()) {
-                    f = new File(homeDir, uri + "/index.htm");
-                } else if (f.canRead()) {
-                    // No index file, list the directory if it is readable
-                    res = new Response(listDirectory(uri, f));
-                } else {
-                    res = new Response(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: No directory listing.");
-                }
-            }
-        }
-
+    Response serveFile(String uri, Map<String, String> header, File file, String mime) {
+        Response res;
         try {
-            if (res == null) {
-                // Get MIME type from file name extension, if possible
-                String mime = null;
-                int dot = f.getCanonicalPath().lastIndexOf('.');
-                if (dot >= 0) {
-                    mime = MIME_TYPES.get(f.getCanonicalPath().substring(dot + 1).toLowerCase());
-                }
-                if (mime == null) {
-                    mime = NanoHTTPD.MIME_DEFAULT_BINARY;
-                }
+            // Calculate etag
+            String etag = Integer.toHexString((file.getAbsolutePath() + file.lastModified() + "" + file.length()).hashCode());
 
-                // Calculate etag
-                String etag = Integer.toHexString((f.getAbsolutePath() + f.lastModified() + "" + f.length()).hashCode());
-
-                // Support (simple) skipping:
-                long startFrom = 0;
-                long endAt = -1;
-                String range = header.get("range");
-                if (range != null) {
-                    if (range.startsWith("bytes=")) {
-                        range = range.substring("bytes=".length());
-                        int minus = range.indexOf('-');
-                        try {
-                            if (minus > 0) {
-                                startFrom = Long.parseLong(range.substring(0, minus));
-                                endAt = Long.parseLong(range.substring(minus + 1));
-                            }
-                        } catch (NumberFormatException ignored) {
+            // Support (simple) skipping:
+            long startFrom = 0;
+            long endAt = -1;
+            String range = header.get("range");
+            if (range != null) {
+                if (range.startsWith("bytes=")) {
+                    range = range.substring("bytes=".length());
+                    int minus = range.indexOf('-');
+                    try {
+                        if (minus > 0) {
+                            startFrom = Long.parseLong(range.substring(0, minus));
+                            endAt = Long.parseLong(range.substring(minus + 1));
                         }
+                    } catch (NumberFormatException ignored) {
                     }
                 }
+            }
 
-                // Change return code and add Content-Range header when skipping is requested
-                long fileLen = f.length();
-                if (range != null && startFrom >= 0) {
-                    if (startFrom >= fileLen) {
-                        res = new Response(Response.Status.RANGE_NOT_SATISFIABLE, NanoHTTPD.MIME_PLAINTEXT, "");
-                        res.addHeader("Content-Range", "bytes 0-0/" + fileLen);
-                        res.addHeader("ETag", etag);
-                    } else {
-                        if (endAt < 0) {
-                            endAt = fileLen - 1;
-                        }
-                        long newLen = endAt - startFrom + 1;
-                        if (newLen < 0) {
-                            newLen = 0;
-                        }
-
-                        final long dataLen = newLen;
-                        FileInputStream fis = new FileInputStream(f) {
-                            @Override
-                            public int available() throws IOException {
-                                return (int) dataLen;
-                            }
-                        };
-                        fis.skip(startFrom);
-
-                        res = new Response(Response.Status.PARTIAL_CONTENT, mime, fis);
-                        res.addHeader("Content-Length", "" + dataLen);
-                        res.addHeader("Content-Range", "bytes " + startFrom + "-" + endAt + "/" + fileLen);
-                        res.addHeader("ETag", etag);
-                    }
+            // Change return code and add Content-Range header when skipping is requested
+            long fileLen = file.length();
+            if (range != null && startFrom >= 0) {
+                if (startFrom >= fileLen) {
+                    res = createResponse(Response.Status.RANGE_NOT_SATISFIABLE, NanoHTTPD.MIME_PLAINTEXT, "");
+                    res.addHeader("Content-Range", "bytes 0-0/" + fileLen);
+                    res.addHeader("ETag", etag);
                 } else {
-                    if (etag.equals(header.get("if-none-match")))
-                        res = new Response(Response.Status.NOT_MODIFIED, mime, "");
-                    else {
-                        res = new Response(Response.Status.OK, mime, new FileInputStream(f));
-                        res.addHeader("Content-Length", "" + fileLen);
-                        res.addHeader("ETag", etag);
+                    if (endAt < 0) {
+                        endAt = fileLen - 1;
                     }
+                    long newLen = endAt - startFrom + 1;
+                    if (newLen < 0) {
+                        newLen = 0;
+                    }
+
+                    final long dataLen = newLen;
+                    FileInputStream fis = new FileInputStream(file) {
+                        @Override
+                        public int available() throws IOException {
+                            return (int) dataLen;
+                        }
+                    };
+                    fis.skip(startFrom);
+
+                    res = createResponse(Response.Status.PARTIAL_CONTENT, mime, fis);
+                    res.addHeader("Content-Length", "" + dataLen);
+                    res.addHeader("Content-Range", "bytes " + startFrom + "-" + endAt + "/" + fileLen);
+                    res.addHeader("ETag", etag);
+                }
+            } else {
+                if (etag.equals(header.get("if-none-match")))
+                    res = createResponse(Response.Status.NOT_MODIFIED, mime, "");
+                else {
+                    res = createResponse(Response.Status.OK, mime, new FileInputStream(file));
+                    res.addHeader("Content-Length", "" + fileLen);
+                    res.addHeader("ETag", etag);
                 }
             }
         } catch (IOException ioe) {
-            res = new Response(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: Reading file failed.");
+            res = createResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: Reading file failed.");
         }
 
-        res.addHeader("Accept-Ranges", "bytes"); // Announce that the file server accepts partial content requestes
         return res;
+    }
+
+    // Get MIME type from file name extension, if possible
+    private String getMimeTypeForFile(String uri) {
+        int dot = uri.lastIndexOf('.');
+        String mime = null;
+        if (dot >= 0) {
+            mime = MIME_TYPES.get(uri.substring(dot + 1).toLowerCase());
+        }
+        return mime == null ? MIME_DEFAULT_BINARY : mime;
+    }
+
+    // Announce that the file server accepts partial content requests
+    private Response createResponse(Response.Status status, String mimeType, InputStream message) {
+        Response res = new Response(status, mimeType, message);
+        res.addHeader("Accept-Ranges", "bytes");
+        return res;
+    }
+
+    // Announce that the file server accepts partial content requests
+    private Response createResponse(Response.Status status, String mimeType, String message) {
+        Response res = new Response(status, mimeType, message);
+        res.addHeader("Accept-Ranges", "bytes");
+        return res;
+    }
+
+    private String findIndexFileInDirectory(File directory) {
+        for (String fileName : INDEX_FILE_NAMES) {
+            File indexFile = new File(directory, fileName);
+            if (indexFile.exists()) {
+                return fileName;
+            }
+        }
+        return null;
     }
 
     private String listDirectory(String uri, File f) {
         String heading = "Directory " + uri;
-        String msg = "<html><head><title>" + heading + "</title><style><!--\n"+
-                "span.dirname { font-weight: bold; }\n"+
-                "span.filesize { font-size: 75%; }\n"+
-                "// -->\n"+
-                "</style>"+
-                "</head><body><h1>" + heading + "</h1>";
+        StringBuilder msg = new StringBuilder("<html><head><title>" + heading + "</title><style><!--\n" +
+            "span.dirname { font-weight: bold; }\n" +
+            "span.filesize { font-size: 75%; }\n" +
+            "// -->\n" +
+            "</style>" +
+            "</head><body><h1>" + heading + "</h1>");
 
         String up = null;
         if (uri.length() > 1) {
@@ -262,99 +440,44 @@ public class SimpleWebServer extends NanoHTTPD {
         List<String> directories = Arrays.asList(f.list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return new File (dir, name).isDirectory();
+                return new File(dir, name).isDirectory();
             }
         }));
         Collections.sort(directories);
         if (up != null || directories.size() + files.size() > 0) {
-            msg += "<ul>";
+            msg.append("<ul>");
             if (up != null || directories.size() > 0) {
-                msg += "<section class=\"directories\">";
+                msg.append("<section class=\"directories\">");
                 if (up != null) {
-                    msg += "<li><a rel=\"directory\" href=\"" + up + "\"><span class=\"dirname\">..</span></a></b></li>";
+                    msg.append("<li><a rel=\"directory\" href=\"").append(up).append("\"><span class=\"dirname\">..</span></a></b></li>");
                 }
-                for (int i = 0; i < directories.size(); i++) {
-                    String dir = directories.get(i) + "/";
-                    msg += "<li><a rel=\"directory\" href=\"" + encodeUri(uri + dir) + "\"><span class=\"dirname\">" + dir + "</span></a></b></li>";
+                for (String directory : directories) {
+                    String dir = directory + "/";
+                    msg.append("<li><a rel=\"directory\" href=\"").append(encodeUri(uri + dir)).append("\"><span class=\"dirname\">").append(dir).append("</span></a></b></li>");
                 }
-                msg += "</section>";
+                msg.append("</section>");
             }
             if (files.size() > 0) {
-                msg += "<section class=\"files\">";
-                for (int i = 0; i < files.size(); i++) {
-                    String file = files.get(i);
-
-                    msg += "<li><a href=\"" + encodeUri(uri + file) + "\"><span class=\"filename\">" + file + "</span></a>";
+                msg.append("<section class=\"files\">");
+                for (String file : files) {
+                    msg.append("<li><a href=\"").append(encodeUri(uri + file)).append("\"><span class=\"filename\">").append(file).append("</span></a>");
                     File curFile = new File(f, file);
                     long len = curFile.length();
-                    msg += "&nbsp;<span class=\"filesize\">(";
-                    if (len < 1024)
-                        msg += len + " bytes";
-                    else if (len < 1024 * 1024)
-                        msg += len / 1024 + "." + (len % 1024 / 10 % 100) + " KB";
-                    else
-                        msg += len / (1024 * 1024) + "." + len % (1024 * 1024) / 10 % 100 + " MB";
-                    msg += ")</span></li>";
+                    msg.append("&nbsp;<span class=\"filesize\">(");
+                    if (len < 1024) {
+                        msg.append(len).append(" bytes");
+                    } else if (len < 1024 * 1024) {
+                        msg.append(len / 1024).append(".").append(len % 1024 / 10 % 100).append(" KB");
+                    } else {
+                        msg.append(len / (1024 * 1024)).append(".").append(len % (1024 * 1024) / 10 % 100).append(" MB");
+                    }
+                    msg.append(")</span></li>");
                 }
-                msg += "</section>";
+                msg.append("</section>");
             }
-            msg += "</ul>";
+            msg.append("</ul>");
         }
-        msg += "</body></html>";
-        return msg;
-    }
-
-    @Override
-    public Response serve(String uri, Method method, Map<String, String> header, Map<String, String> parms, Map<String, String> files) {
-        if (!quiet) {
-            System.out.println(method + " '" + uri + "' ");
-
-            Iterator<String> e = header.keySet().iterator();
-            while (e.hasNext()) {
-                String value = e.next();
-                System.out.println("  HDR: '" + value + "' = '" + header.get(value) + "'");
-            }
-            e = parms.keySet().iterator();
-            while (e.hasNext()) {
-                String value = e.next();
-                System.out.println("  PRM: '" + value + "' = '" + parms.get(value) + "'");
-            }
-            e = files.keySet().iterator();
-            while (e.hasNext()) {
-                String value = e.next();
-                System.out.println("  UPLOADED: '" + value + "' = '" + files.get(value) + "'");
-            }
-        }
-        return serveFile(uri, header, getRootDir());
-    }
-
-    /**
-     * Starts as a standalone file server and waits for Enter.
-     */
-    public static void main(String[] args) {
-        // Defaults
-        int port = 8080;
-
-        String host = "127.0.0.1";
-        File wwwroot = new File(".").getAbsoluteFile();
-        boolean quiet = false;
-
-        // Parse command-line, with short and long versions of the options.
-        for (int i = 0; i < args.length; ++i) {
-            if (args[i].equalsIgnoreCase("-h") || args[i].equalsIgnoreCase("--host")) {
-                host = args[i + 1];
-            } else if (args[i].equalsIgnoreCase("-p") || args[i].equalsIgnoreCase("--port")) {
-                port = Integer.parseInt(args[i + 1]);
-            } else if (args[i].equalsIgnoreCase("-q") || args[i].equalsIgnoreCase("--quiet")) {
-                quiet = true;
-            } else if (args[i].equalsIgnoreCase("-d") || args[i].equalsIgnoreCase("--dir")) {
-                wwwroot = new File(args[i + 1]).getAbsoluteFile();
-            } else if (args[i].equalsIgnoreCase("--licence")) {
-                System.out.println(LICENCE + "\n");
-                break;
-            }
-        }
-
-        ServerRunner.executeInstance(new SimpleWebServer(host, port, wwwroot, quiet));
+        msg.append("</body></html>");
+        return msg.toString();
     }
 }
