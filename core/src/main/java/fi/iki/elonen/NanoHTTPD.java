@@ -503,6 +503,10 @@ public abstract class NanoHTTPD {
          * The request method that spawned this response.
          */
         private Method requestMethod;
+        /**
+         * Use chunkedTransfer
+         */
+        private boolean chunkedTransfer;
 
         /**
          * Default constructor: response = HTTP_OK, mime = MIME_HTML and your supplied message
@@ -572,7 +576,7 @@ public abstract class NanoHTTPD {
 
                 pw.print("Connection: keep-alive\r\n");
 
-                if (requestMethod != Method.HEAD && data instanceof PipedInputStream) {
+                if (requestMethod != Method.HEAD && chunkedTransfer) {
                     sendAsChunked(outputStream, pw);
                 } else {
                     sendAsFixedLength(outputStream, pw);
@@ -652,6 +656,10 @@ public abstract class NanoHTTPD {
 
         public void setRequestMethod(Method requestMethod) {
             this.requestMethod = requestMethod;
+        }
+
+        public void setChunkedTransfer(boolean chunkedTransfer) {
+            this.chunkedTransfer = chunkedTransfer;
         }
 
         /**

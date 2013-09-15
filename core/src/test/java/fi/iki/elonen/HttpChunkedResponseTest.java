@@ -32,6 +32,7 @@ public class HttpChunkedResponseTest extends HttpServerTest {
                 ""
         };
         testServer.response = new NanoHTTPD.Response(OK, "what/ever", pipedInputStream);
+        testServer.response.setChunkedTransfer(true);
 
         ByteArrayOutputStream byteArrayOutputStream = invokeServer("GET / HTTP/1.0");
 
