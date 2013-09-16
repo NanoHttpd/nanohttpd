@@ -499,6 +499,10 @@ public abstract class NanoHTTPD {
          * The request method that spawned this response.
          */
         private Method requestMethod;
+        /**
+         * Use chunkedTransfer
+         */
+        private boolean chunkedTransfer;
 
         /**
          * Default constructor: response = HTTP_OK, mime = MIME_HTML and your supplied message
@@ -566,30 +570,55 @@ public abstract class NanoHTTPD {
                     }
                 }
 
-                int pending = data != null ? data.available() : 0; // This is to support partial sends, see serveFile()
                 pw.print("Connection: keep-alive\r\n");
-                pw.print("Content-Length: "+pending+"\r\n");
 
-                pw.print("\r\n");
-                pw.flush();
-
-                if (requestMethod != Method.HEAD && data != null) {
-                    int BUFFER_SIZE = 16 * 1024;
-                    byte[] buff = new byte[BUFFER_SIZE];
-                    while (pending > 0) {
-                        int read = data.read(buff, 0, ((pending > BUFFER_SIZE) ? BUFFER_SIZE : pending));
-                        if (read <= 0) {
-                            break;
-                        }
-                        outputStream.write(buff, 0, read);
-
-                        pending -= read;
-                    }
+                if (requestMethod != Method.HEAD && chunkedTransfer) {
+                    sendAsChunked(outputStream, pw);
+                } else {
+                    sendAsFixedLength(outputStream, pw);
                 }
                 outputStream.flush();
                 safeClose(data);
             } catch (IOException ioe) {
                 // Couldn't write? No can do.
+            }
+        }
+
+        private void sendAsChunked(OutputStream outputStream, PrintWriter pw) throws IOException {
+            pw.print("Transfer-Encoding: chunked\r\n");
+            pw.print("\r\n");
+            pw.flush();
+            int BUFFER_SIZE = 16 * 1024;
+            byte[] CRLF = "\r\n".getBytes();
+            byte[] buff = new byte[BUFFER_SIZE];
+            int read;
+            while ((read = data.read(buff)) > 0) {
+                outputStream.write(String.format("%x\r\n", read).getBytes());
+                outputStream.write(buff, 0, read);
+                outputStream.write(CRLF);
+            }
+            outputStream.write(String.format("0\r\n\r\n").getBytes());
+        }
+
+        private void sendAsFixedLength(OutputStream outputStream, PrintWriter pw) throws IOException {
+            int pending = data != null ? data.available() : 0; // This is to support partial sends, see serveFile()
+            pw.print("Content-Length: "+pending+"\r\n");
+
+            pw.print("\r\n");
+            pw.flush();
+
+            if (requestMethod != Method.HEAD && data != null) {
+                int BUFFER_SIZE = 16 * 1024;
+                byte[] buff = new byte[BUFFER_SIZE];
+                while (pending > 0) {
+                    int read = data.read(buff, 0, ((pending > BUFFER_SIZE) ? BUFFER_SIZE : pending));
+                    if (read <= 0) {
+                        break;
+                    }
+                    outputStream.write(buff, 0, read);
+
+                    pending -= read;
+                }
             }
         }
 
@@ -623,6 +652,10 @@ public abstract class NanoHTTPD {
 
         public void setRequestMethod(Method requestMethod) {
             this.requestMethod = requestMethod;
+        }
+
+        public void setChunkedTransfer(boolean chunkedTransfer) {
+            this.chunkedTransfer = chunkedTransfer;
         }
 
         /**
