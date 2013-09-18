@@ -6,14 +6,10 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import fi.iki.elonen.NanoHTTPD;
