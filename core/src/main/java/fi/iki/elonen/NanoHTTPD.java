@@ -227,7 +227,7 @@ public abstract class NanoHTTPD {
      * @param session The HTTP session
      * @return HTTP response, see class Response for details
      */
-    public Response serve(HTTPSession session) {
+    public Response serve(IHTTPSession session) {
         Map<String, String> files = new HashMap<String, String>();
         Method method = session.getMethod();
         if (Method.PUT.equals(method) || Method.POST.equals(method)) {
@@ -716,7 +716,32 @@ public abstract class NanoHTTPD {
     /**
      * Handles one session, i.e. parses the HTTP request and returns the response.
      */
-    protected class HTTPSession {
+    public interface IHTTPSession {
+        void execute() throws IOException;
+
+        Map<String, String> getParms();
+
+        Map<String, String> getHeaders();
+
+        /**
+         * @return the path part of the URL.
+         */
+        String getUri();
+
+        Method getMethod();
+
+        InputStream getInputStream();
+
+        CookieHandler getCookies();
+
+        /**
+         * Adds the files in the request body to the files map.
+         * @arg files - map to modify
+         */
+        void parseBody(Map<String, String> files) throws IOException, ResponseException;
+    }
+
+    protected class HTTPSession implements IHTTPSession {
         public static final int BUFSIZE = 8192;
         private final TempFileManager tempFileManager;
         private final OutputStream outputStream;
@@ -735,6 +760,7 @@ public abstract class NanoHTTPD {
             this.outputStream = outputStream;
         }
 
+        @Override
         public void execute() throws IOException {
             try {
                 // Read the first 8192 bytes.
@@ -809,7 +835,8 @@ public abstract class NanoHTTPD {
             }
         }
 
-        protected void parseBody(Map<String, String> files) throws IOException, ResponseException {
+        @Override
+        public void parseBody(Map<String, String> files) throws IOException, ResponseException {
             RandomAccessFile randomAccessFile = null;
             BufferedReader in = null;
             try {
@@ -1135,26 +1162,32 @@ public abstract class NanoHTTPD {
             }
         }
 
+        @Override
         public final Map<String, String> getParms() {
             return parms;
         }
 
+        @Override
         public final Map<String, String> getHeaders() {
             return headers;
         }
 
+        @Override
         public final String getUri() {
             return uri;
         }
 
+        @Override
         public final Method getMethod() {
             return method;
         }
 
+        @Override
         public final InputStream getInputStream() {
             return inputStream;
         }
 
+        @Override
         public CookieHandler getCookies() {
             return cookies;
         }
