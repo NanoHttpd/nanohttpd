@@ -71,7 +71,7 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
             super(8192);
         }
 
-        @Override public Response serve(HTTPSession session) {
+        @Override public Response serve(IHTTPSession session) {
             CookieHandler cookies = session.getCookies();
             for (String cookieName : cookies) {
                 cookiesReceived.add(new Cookie(cookieName, cookies.read(cookieName)));

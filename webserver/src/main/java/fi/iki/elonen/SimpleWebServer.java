@@ -219,7 +219,7 @@ public class SimpleWebServer extends NanoHTTPD {
         return newUri;
     }
 
-    public Response serve(HTTPSession session) {
+    public Response serve(IHTTPSession session) {
         Map<String, String> header = session.getHeaders();
         Map<String, String> parms = session.getParms();
         String uri = session.getUri();

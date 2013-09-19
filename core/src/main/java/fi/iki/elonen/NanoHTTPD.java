@@ -147,7 +147,7 @@ public abstract class NanoHTTPD {
                                     try {
                                         outputStream = finalAccept.getOutputStream();
                                         TempFileManager tempFileManager = tempFileManagerFactory.create();
-                                        ParsingHTTPSession session = new ParsingHTTPSession(tempFileManager, inputStream, outputStream);
+                                        HTTPSession session = new HTTPSession(tempFileManager, inputStream, outputStream);
                                         while (!finalAccept.isClosed()) {
                                             session.execute();
                                         }
@@ -227,7 +227,7 @@ public abstract class NanoHTTPD {
      * @param session The HTTP session
      * @return HTTP response, see class Response for details
      */
-    public Response serve(HTTPSession session) {
+    public Response serve(IHTTPSession session) {
         Map<String, String> files = new HashMap<String, String>();
         Method method = session.getMethod();
         if (Method.PUT.equals(method) || Method.POST.equals(method)) {
@@ -716,7 +716,7 @@ public abstract class NanoHTTPD {
     /**
      * Handles one session, i.e. parses the HTTP request and returns the response.
      */
-    public interface HTTPSession {
+    public interface IHTTPSession {
         void execute() throws IOException;
 
         Map<String, String> getParms();
@@ -741,9 +741,8 @@ public abstract class NanoHTTPD {
         void parseBody(Map<String, String> files) throws IOException, ResponseException;
     }
 
-    protected class ParsingHTTPSession implements HTTPSession {
-        int BUFSIZE = 8192;
-
+    protected class HTTPSession implements IHTTPSession {
+        public static final int BUFSIZE = 8192;
         private final TempFileManager tempFileManager;
         private final OutputStream outputStream;
         private InputStream inputStream;
@@ -755,7 +754,7 @@ public abstract class NanoHTTPD {
         private Map<String, String> headers;
         private CookieHandler cookies;
 
-        public ParsingHTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
+        public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
             this.tempFileManager = tempFileManager;
             this.inputStream = inputStream;
             this.outputStream = outputStream;
