@@ -10,7 +10,6 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -72,7 +71,7 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
             super(8192);
         }
 
-        @Override public Response serve(HTTPSession session) {
+        @Override public Response serve(IHTTPSession session) {
             CookieHandler cookies = session.getCookies();
             for (String cookieName : cookies) {
                 cookiesReceived.add(new Cookie(cookieName, cookies.read(cookieName)));
