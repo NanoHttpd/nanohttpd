@@ -339,7 +339,7 @@ public abstract class NanoHTTPD {
      * HTTP Request methods, with the ability to decode a <code>String</code> back to its enum value.
      */
     public enum Method {
-        GET, PUT, POST, DELETE, HEAD;
+        GET, PUT, POST, DELETE, HEAD, OPTIONS;
 
         static Method lookup(String method) {
             for (Method m : Method.values()) {
