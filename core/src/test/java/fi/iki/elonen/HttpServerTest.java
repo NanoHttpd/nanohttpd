@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -108,6 +109,10 @@ public class HttpServerTest {
 
         public HTTPSession createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
             return new HTTPSession(tempFileManager, inputStream, outputStream);
+        }
+
+        public HTTPSession createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
+            return new HTTPSession(tempFileManager, inputStream, outputStream, inetAddress);
         }
 
         @Override
