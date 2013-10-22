@@ -154,7 +154,7 @@ public abstract class NanoHTTPD {
                                     try {
                                         outputStream = finalAccept.getOutputStream();
                                         TempFileManager tempFileManager = tempFileManagerFactory.create();
-                                        HTTPSession session = new HTTPSession(tempFileManager, inputStream, outputStream);
+                                        HTTPSession session = new HTTPSession(tempFileManager, inputStream, outputStream, finalAccept.getInetAddress());
                                         while (!finalAccept.isClosed()) {
                                             session.execute();
                                         }
@@ -767,6 +767,17 @@ public abstract class NanoHTTPD {
             this.outputStream = outputStream;
         }
 
+        public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
+            this.tempFileManager = tempFileManager;
+            this.inputStream = inputStream;
+            this.outputStream = outputStream;
+            String remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
+            headers = new HashMap<String, String>();
+
+            headers.put("remote-addr", remoteIp);
+            headers.put("http-client-ip", remoteIp);
+        }
+
         @Override
         public void execute() throws IOException {
             try {
@@ -799,7 +810,9 @@ public abstract class NanoHTTPD {
                 }
 
                 parms = new HashMap<String, String>();
-                headers = new HashMap<String, String>();
+                if(null == headers) {
+                    headers = new HashMap<String, String>();
+                }
 
                 // Create a BufferedReader for parsing the header.
                 BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, rlen)));
