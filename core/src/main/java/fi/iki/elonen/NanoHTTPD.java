@@ -73,6 +73,7 @@ public abstract class NanoHTTPD {
     private final String hostname;
     private final int myPort;
     private ServerSocket myServerSocket;
+    private Set<Socket> openConnections = new HashSet<Socket>();
     private Thread myThread;
     /**
      * Pluggable strategy for asynchronously executing requests.
@@ -142,10 +143,12 @@ public abstract class NanoHTTPD {
                 do {
                     try {
                         final Socket finalAccept = myServerSocket.accept();
+                        registerConnection(finalAccept);
                         finalAccept.setSoTimeout(SOCKET_READ_TIMEOUT);
                         final InputStream inputStream = finalAccept.getInputStream();
                         if (inputStream == null) {
                             safeClose(finalAccept);
+                            unRegisterConnection(finalAccept);
                         } else {
                             asyncRunner.exec(new Runnable() {
                                 @Override
@@ -168,6 +171,7 @@ public abstract class NanoHTTPD {
                                         safeClose(outputStream);
                                         safeClose(inputStream);
                                         safeClose(finalAccept);
+                                        unRegisterConnection(finalAccept);
                                     }
                                 }
                             });
@@ -188,12 +192,41 @@ public abstract class NanoHTTPD {
     public void stop() {
         try {
             safeClose(myServerSocket);
+            closeAllConnections();
             myThread.join();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Registers that a new connection has been set up.
+     *
+     * @param socket
+     *            the {@link Socket} for the connection.
+     */
+    public synchronized void registerConnection(Socket socket) {
+        openConnections.add(socket);
+    }
+
+    /**
+     * Registers that a connection has been closed
+     *
+     * @param socket
+     *            the {@link Socket} for the connection.
+     */
+    public synchronized void unRegisterConnection(Socket socket) {
+        openConnections.remove(socket);
+    }
+
+    /**
+     * Forcibly closes all connections that are open.
+     */
+    public synchronized void closeAllConnections() {
+        for (Socket socket : openConnections) {
+            safeClose(socket);
+        }
+    }
 
     public final int getListeningPort() {
         return myServerSocket == null ? -1 : myServerSocket.getLocalPort();
