@@ -210,6 +210,26 @@ public abstract class NanoHTTPD {
       }
       return res;
    }
+   
+   /**
+    * Creates an SSLSocketFactory for HTTPS.
+    *
+    * Pass a loaded KeyStore and a loaded KeyManagerFactory.
+    * These objects must properly loaded/initialized by the caller.
+    */
+   public static SSLServerSocketFactory makeSSLSocketFactory(KeyStore loadedKeyStore, KeyManagerFactory loadedKeyFactory) throws IOException {
+      SSLServerSocketFactory res = null;
+      try {
+         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+         trustManagerFactory.init(loadedKeyStore);
+         SSLContext ctx = SSLContext.getInstance("TLS");
+         ctx.init(loadedKeyFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+         res = ctx.getServerSocketFactory();
+      } catch (Exception e) {
+         throw new IOException(e);
+      }
+      return res;
+   }
 
   /**
    * Call before start() to serve over HTTPS instead of HTTP
