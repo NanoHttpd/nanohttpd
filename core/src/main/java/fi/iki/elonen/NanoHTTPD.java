@@ -875,6 +875,8 @@ public abstract class NanoHTTPD {
             } catch (SocketException e) {
                 // throw it out to close socket object (finalAccept)
                 throw e;
+            } catch (SocketTimeoutException ste) {
+            	throw ste;
             } catch (IOException ioe) {
                 Response r = new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
                 r.send(outputStream);
