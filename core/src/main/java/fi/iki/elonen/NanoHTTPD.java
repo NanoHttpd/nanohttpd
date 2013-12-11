@@ -310,7 +310,9 @@ public abstract class NanoHTTPD {
             }
         }
 
-        return serve(session.getUri(), method, session.getHeaders(), session.getParms(), files);
+        Map<String, String> parms = session.getParms();
+        parms.put(QUERY_STRING_PARAMETER, session.getQueryParameterString());
+        return serve(session.getUri(), method, session.getHeaders(), parms, files);
     }
 
     /**
@@ -798,6 +800,8 @@ public abstract class NanoHTTPD {
          */
         String getUri();
 
+        String getQueryParameterString();
+
         Method getMethod();
 
         InputStream getInputStream();
@@ -823,6 +827,7 @@ public abstract class NanoHTTPD {
         private Map<String, String> parms;
         private Map<String, String> headers;
         private CookieHandler cookies;
+        private String queryParameterString;
 
         public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
             this.tempFileManager = tempFileManager;
@@ -1234,11 +1239,11 @@ public abstract class NanoHTTPD {
          */
         private void decodeParms(String parms, Map<String, String> p) {
             if (parms == null) {
-                p.put(QUERY_STRING_PARAMETER, "");
+                queryParameterString = "";
                 return;
             }
 
-            p.put(QUERY_STRING_PARAMETER, parms);
+            queryParameterString = parms;
             StringTokenizer st = new StringTokenizer(parms, "&");
             while (st.hasMoreTokens()) {
                 String e = st.nextToken();
@@ -1255,6 +1260,10 @@ public abstract class NanoHTTPD {
         @Override
         public final Map<String, String> getParms() {
             return parms;
+        }
+
+        public String getQueryParameterString() {
+            return queryParameterString;
         }
 
         @Override
