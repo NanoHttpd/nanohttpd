@@ -860,11 +860,15 @@ public abstract class NanoHTTPD {
                     int read = -1;
                     try {
                         read = inputStream.read(buf, 0, BUFSIZE);
-                    } catch (SocketException e) {
+                    } catch (Exception e) {
+                        safeClose(inputStream);
+                        safeClose(outputStream);
                         throw new SocketException("NanoHttpd Shutdown");
                     }
                     if (read == -1) {
                         // socket was been closed
+                        safeClose(inputStream);
+                        safeClose(outputStream);
                         throw new SocketException("NanoHttpd Shutdown");
                     }
                     while (read > 0) {
