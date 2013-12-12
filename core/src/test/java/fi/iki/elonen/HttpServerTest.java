@@ -7,6 +7,7 @@ import org.junit.Test;
 import java.io.*;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -102,6 +103,7 @@ public class HttpServerTest {
         public Map<String, String> files;
         public Map<String, List<String>> decodedParamters;
         public Map<String, List<String>> decodedParamtersFromParameter;
+        public String queryParameterString;
 
         public TestServer() {
             super(8192);
@@ -115,15 +117,20 @@ public class HttpServerTest {
             return new HTTPSession(tempFileManager, inputStream, outputStream, inetAddress);
         }
 
-        @Override
-        public Response serve(String uri, Method method, Map<String, String> header, Map<String, String> parms, Map<String, String> files) {
-            this.uri = uri;
-            this.method = method;
-            this.header = header;
-            this.parms = parms;
-            this.files = files;
-            this.decodedParamtersFromParameter = decodeParameters(parms);
-            this.decodedParamters = decodeParameters(parms.get("NanoHttpd.QUERY_STRING"));
+        @Override public Response serve(IHTTPSession session) {
+            this.uri = session.getUri();
+            this.method = session.getMethod();
+            this.header = session.getHeaders();
+            this.parms = session.getParms();
+            this.files = new HashMap<String, String>();
+            try {
+                session.parseBody(files);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            queryParameterString = session.getQueryParameterString();
+            this.decodedParamtersFromParameter = decodeParameters(queryParameterString);
+            this.decodedParamters = decodeParameters(session.getQueryParameterString());
             return response;
         }
 

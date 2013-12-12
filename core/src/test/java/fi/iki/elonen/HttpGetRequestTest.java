@@ -108,7 +108,7 @@ public class HttpGetRequestTest extends HttpServerTest {
     @Test
     public void testDecodingParametersWithSingleValue() {
         invokeServer("GET " + URI + "?foo=bar&baz=zot HTTP/1.1");
-        assertEquals("foo=bar&baz=zot", testServer.parms.get("NanoHttpd.QUERY_STRING"));
+        assertEquals("foo=bar&baz=zot", testServer.queryParameterString);
         assertTrue(testServer.decodedParamters.get("foo") instanceof List);
         assertEquals(1, testServer.decodedParamters.get("foo").size());
         assertEquals("bar", testServer.decodedParamters.get("foo").get(0));
@@ -120,7 +120,7 @@ public class HttpGetRequestTest extends HttpServerTest {
     @Test
     public void testDecodingParametersWithSingleValueAndMissingValue() {
         invokeServer("GET " + URI + "?foo&baz=zot HTTP/1.1");
-        assertEquals("foo&baz=zot", testServer.parms.get("NanoHttpd.QUERY_STRING"));
+        assertEquals("foo&baz=zot", testServer.queryParameterString);
         assertTrue(testServer.decodedParamters.get("foo") instanceof List);
         assertEquals(0, testServer.decodedParamters.get("foo").size());
         assertTrue(testServer.decodedParamters.get("baz") instanceof List);

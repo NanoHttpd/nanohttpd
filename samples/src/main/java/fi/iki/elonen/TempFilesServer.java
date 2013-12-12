@@ -1,5 +1,7 @@
 package fi.iki.elonen;
 
+import fi.iki.elonen.debug.DebugServer;
+
 import java.util.ArrayList;
 import java.util.List;
 
