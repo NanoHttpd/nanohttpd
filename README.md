@@ -183,6 +183,7 @@ user base and reduce confusion over why _two_ NanoHttpd projects existed.
 http://nanohttpd.com - went live July 1st, 2013.
 
 ## Version History (Java 6+ version)
+* 2.0.5 (2013-12-12) : Cleanup and stability fixes.
 * 2.0.4 (2013-09-15) : Added basic cookie support, experimental SSL support and runtime extensions.
 * 2.0.3 (2013-06-17) : Implemented 'Connection: keep-alive', (tested against latest Mozilla Firefox).
 * 2.0.2 (2013-06-06) : Polish for the webserver, and fixed a bug causing stack-traces on Samsung Phones.
