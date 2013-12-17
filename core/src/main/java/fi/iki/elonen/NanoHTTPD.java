@@ -649,6 +649,9 @@ public abstract class NanoHTTPD {
             while ((read = data.read(buff)) > 0) {
                 outputStream.write(String.format("%x\r\n", read).getBytes());
                 outputStream.write(buff, 0, read);
+                if (mOnDataSend != null){
+                    mOnDataSend.onSend(buff);
+                }
                 outputStream.write(CRLF);
             }
             outputStream.write(String.format("0\r\n\r\n").getBytes());
@@ -670,7 +673,9 @@ public abstract class NanoHTTPD {
                         break;
                     }
                     outputStream.write(buff, 0, read);
-
+                    if (mOnDataSend != null){
+                        mOnDataSend.onSend(buff);
+                    }
                     pending -= read;
                 }
             }
