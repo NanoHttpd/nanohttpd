@@ -528,7 +528,7 @@ public abstract class NanoHTTPD {
         }
     }
     public interface OnDataSend {
-        public void onSend(byte[] buffer);
+        public void onSend(byte[] buffer, int length);
     }
     /**
      * HTTP response. Return one of these from serve().
@@ -663,9 +663,8 @@ public abstract class NanoHTTPD {
             while ((read = data.read(buff)) > 0) {
                 outputStream.write(String.format("%x\r\n", read).getBytes());
                 outputStream.write(buff, 0, read);
-                if (onDataSend != null){
-                    onDataSend.onSend(buff);
-                }
+                if (onDataSend != null)
+                    onDataSend.onSend(buff, read);
                 outputStream.write(CRLF);
             }
             outputStream.write(String.format("0\r\n\r\n").getBytes());
@@ -687,9 +686,8 @@ public abstract class NanoHTTPD {
                         break;
                     }
                     outputStream.write(buff, 0, read);
-                    if (onDataSend != null){
-                        onDataSend.onSend(buff);
-                    }
+                    if (onDataSend != null)
+                        onDataSend.onSend(buff, read);
                     pending -= read;
                 }
             }
