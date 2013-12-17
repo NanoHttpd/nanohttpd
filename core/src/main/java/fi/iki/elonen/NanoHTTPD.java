@@ -567,7 +567,13 @@ public abstract class NanoHTTPD {
             this.mimeType = mimeType;
             this.data = data;
         }
-
+        /**
+         * Constructor used to assign data sharing interface.
+         */
+        public Response(Status status, String mimeType, InputStream data, OnDataSend onDataSend) {
+            this(status, mimeType, data);
+            mOnDataSend = onDataSend;
+        }
         /**
          * Convenience method that makes an InputStream out of given text.
          */
