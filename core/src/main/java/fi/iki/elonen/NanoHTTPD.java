@@ -75,6 +75,11 @@ public abstract class NanoHTTPD {
     private ServerSocket myServerSocket;
     private Set<Socket> openConnections = new HashSet<Socket>();
     private Thread myThread;
+
+    /**
+     * Create a link to the data sent to the client socket.
+     */
+    protected OnDataSend mOnDataSend;
     /**
      * Pluggable strategy for asynchronously executing requests.
      */
@@ -127,7 +132,13 @@ public abstract class NanoHTTPD {
             }
         }
     }
-
+    /**
+     * Creates a channel of access to data sent to the client socket.
+     * Can be used to create the content cache.
+     */
+    public void setOnDataSend(OnDataSend onDataSend){
+        mOnDataSend = onDataSend;
+    }
     /**
      * Start the server.
      *
@@ -526,7 +537,7 @@ public abstract class NanoHTTPD {
         /**
          * HTTP status code after processing, e.g. "200 OK", HTTP_OK
          */
-        private OnDataSend mOnDataSend;
+        private OnDataSend onDataSend;
         /**
          * HTTP status code after processing, e.g. "200 OK", HTTP_OK
          */
@@ -572,7 +583,7 @@ public abstract class NanoHTTPD {
          */
         public Response(Status status, String mimeType, InputStream data, OnDataSend onDataSend) {
             this(status, mimeType, data);
-            mOnDataSend = onDataSend;
+            this.onDataSend = onDataSend;
         }
         /**
          * Convenience method that makes an InputStream out of given text.
@@ -591,7 +602,7 @@ public abstract class NanoHTTPD {
          * Can be used to create the content cache.
          */
         public void setOnDataSend(OnDataSend instance){
-            mOnDataSend = instance;
+            onDataSend = instance;
         }
         /**
          * Adds given line to the header.
@@ -655,8 +666,8 @@ public abstract class NanoHTTPD {
             while ((read = data.read(buff)) > 0) {
                 outputStream.write(String.format("%x\r\n", read).getBytes());
                 outputStream.write(buff, 0, read);
-                if (mOnDataSend != null){
-                    mOnDataSend.onSend(buff);
+                if (onDataSend != null){
+                    onDataSend.onSend(buff);
                 }
                 outputStream.write(CRLF);
             }
@@ -679,8 +690,8 @@ public abstract class NanoHTTPD {
                         break;
                     }
                     outputStream.write(buff, 0, read);
-                    if (mOnDataSend != null){
-                        mOnDataSend.onSend(buff);
+                    if (onDataSend != null){
+                        onDataSend.onSend(buff);
                     }
                     pending -= read;
                 }
