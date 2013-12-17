@@ -598,13 +598,6 @@ public abstract class NanoHTTPD {
             }
         }
         /**
-         * Creates a channel of access to data sent to the client socket.
-         * Can be used to create the content cache.
-         */
-        public void setOnDataSend(OnDataSend instance){
-            onDataSend = instance;
-        }
-        /**
          * Adds given line to the header.
          */
         public void addHeader(String name, String value) {
