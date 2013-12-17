@@ -585,6 +585,10 @@ public abstract class NanoHTTPD {
             this(status, mimeType, data);
             this.onDataSend = onDataSend;
         }
+        public Response(Status status, String mimeType, String txt, OnDataSend onDataSend) {
+            this(status, mimeType, txt);
+            this.onDataSend = onDataSend;
+        }
         /**
          * Convenience method that makes an InputStream out of given text.
          */
