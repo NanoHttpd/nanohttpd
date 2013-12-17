@@ -546,7 +546,9 @@ public abstract class NanoHTTPD {
             return file.getAbsolutePath();
         }
     }
-
+    public interface OnDataSend {
+        public void onSend(byte[] buffer);
+    }
     /**
      * HTTP response. Return one of these from serve().
      */
