@@ -556,6 +556,10 @@ public abstract class NanoHTTPD {
         /**
          * HTTP status code after processing, e.g. "200 OK", HTTP_OK
          */
+        private OnDataSend mOnDataSend;
+        /**
+         * HTTP status code after processing, e.g. "200 OK", HTTP_OK
+         */
         private Status status;
         /**
          * MIME type of content, e.g. "text/html"
@@ -607,6 +611,9 @@ public abstract class NanoHTTPD {
             }
         }
 
+        public void setOnDataSend(OnDataSend instance){
+            mOnDataSend = instance;
+        }
         /**
          * Adds given line to the header.
          */
