@@ -607,7 +607,9 @@ public abstract class NanoHTTPD {
         public void addHeader(String name, String value) {
             header.put(name, value);
         }
-
+        public void setOnDataSend(OnDataSend onDataSend){
+            this.onDataSend = onDataSend;
+        }
         /**
          * Sends given response to the socket.
          */
