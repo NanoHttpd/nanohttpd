@@ -569,7 +569,9 @@ public abstract class NanoHTTPD {
         public Response(String msg) {
             this(Status.OK, MIME_HTML, msg);
         }
-
+        public Response(Status status) {
+            this.status = status;
+        }
         /**
          * Basic constructor.
          */
