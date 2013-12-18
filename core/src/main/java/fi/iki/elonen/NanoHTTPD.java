@@ -515,6 +515,10 @@ public abstract class NanoHTTPD {
             return file.getAbsolutePath();
         }
     }
+
+    /**
+     * Channel access to data being sent to the client socket.
+     */
     public interface OnDataSend {
         public void onSend(byte[] buffer, int length);
     }
