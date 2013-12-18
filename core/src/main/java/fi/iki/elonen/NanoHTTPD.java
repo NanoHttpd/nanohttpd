@@ -75,11 +75,6 @@ public abstract class NanoHTTPD {
     private ServerSocket myServerSocket;
     private Set<Socket> openConnections = new HashSet<Socket>();
     private Thread myThread;
-
-    /**
-     * Create a link to the data sent to the client socket.
-     */
-    protected OnDataSend mOnDataSend;
     /**
      * Pluggable strategy for asynchronously executing requests.
      */
@@ -131,13 +126,6 @@ public abstract class NanoHTTPD {
             } catch (IOException e) {
             }
         }
-    }
-    /**
-     * Creates a channel of access to data sent to the client socket.
-     * Can be used to create the content cache.
-     */
-    public void setOnDataSend(OnDataSend onDataSend){
-        mOnDataSend = onDataSend;
     }
     /**
      * Start the server.
@@ -612,6 +600,10 @@ public abstract class NanoHTTPD {
         public void addHeader(String name, String value) {
             header.put(name, value);
         }
+        /**
+         * Creates a channel of access to data sent to the client socket.
+         * Can be used to create the content cache.
+         */
         public void setOnDataSend(OnDataSend onDataSend){
             this.onDataSend = onDataSend;
         }
