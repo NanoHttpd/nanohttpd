@@ -563,6 +563,9 @@ public abstract class NanoHTTPD {
          */
         private boolean chunkedTransfer;
 
+        // default empty constructor
+        public Response() {}
+
         /**
          * Default constructor: response = HTTP_OK, mime = MIME_HTML and your supplied message
          */
