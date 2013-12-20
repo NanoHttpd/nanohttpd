@@ -157,7 +157,6 @@ public abstract class NanoHTTPD {
             }
         }
     }
-
     /**
      * Start the server.
      *
@@ -548,9 +547,20 @@ public abstract class NanoHTTPD {
     }
 
     /**
+     * Channel access to data being sent to the client socket.
+     */
+    public interface OnDataSend {
+        public void onSend(byte[] buffer, int length);
+        public void onStopSend();
+    }
+    /**
      * HTTP response. Return one of these from serve().
      */
     public static class Response {
+        /**
+         * HTTP status code after processing, e.g. "200 OK", HTTP_OK
+         */
+        private OnDataSend onDataSend;
         /**
          * HTTP status code after processing, e.g. "200 OK", HTTP_OK
          */
@@ -576,13 +586,18 @@ public abstract class NanoHTTPD {
          */
         private boolean chunkedTransfer;
 
+        // default empty constructor
+        public Response() {}
+
         /**
          * Default constructor: response = HTTP_OK, mime = MIME_HTML and your supplied message
          */
         public Response(String msg) {
             this(Status.OK, MIME_HTML, msg);
         }
-
+        public Response(Status status) {
+            this.status = status;
+        }
         /**
          * Basic constructor.
          */
@@ -591,7 +606,17 @@ public abstract class NanoHTTPD {
             this.mimeType = mimeType;
             this.data = data;
         }
-
+        /**
+         * Constructor used to assign data sharing interface.
+         */
+        public Response(Status status, String mimeType, InputStream data, OnDataSend onDataSend) {
+            this(status, mimeType, data);
+            this.onDataSend = onDataSend;
+        }
+        public Response(Status status, String mimeType, String txt, OnDataSend onDataSend) {
+            this(status, mimeType, txt);
+            this.onDataSend = onDataSend;
+        }
         /**
          * Convenience method that makes an InputStream out of given text.
          */
@@ -604,14 +629,19 @@ public abstract class NanoHTTPD {
                 uee.printStackTrace();
             }
         }
-
         /**
          * Adds given line to the header.
          */
         public void addHeader(String name, String value) {
             header.put(name, value);
         }
-
+        /**
+         * Creates a channel of access to data sent to the client socket.
+         * Can be used to create the content cache.
+         */
+        public void setOnDataSend(OnDataSend onDataSend){
+            this.onDataSend = onDataSend;
+        }
         /**
          * Sends given response to the socket.
          */
@@ -667,9 +697,12 @@ public abstract class NanoHTTPD {
             while ((read = data.read(buff)) > 0) {
                 outputStream.write(String.format("%x\r\n", read).getBytes());
                 outputStream.write(buff, 0, read);
+                if (onDataSend != null)
+                    onDataSend.onSend(buff, read);
                 outputStream.write(CRLF);
             }
             outputStream.write(String.format("0\r\n\r\n").getBytes());
+            onDataSend.onStopSend();
         }
 
         private void sendAsFixedLength(OutputStream outputStream, PrintWriter pw) throws IOException {
@@ -688,9 +721,11 @@ public abstract class NanoHTTPD {
                         break;
                     }
                     outputStream.write(buff, 0, read);
-
+                    if (onDataSend != null)
+                        onDataSend.onSend(buff, read);
                     pending -= read;
                 }
+                onDataSend.onStopSend();
             }
         }
 
@@ -745,7 +780,14 @@ public abstract class NanoHTTPD {
                 this.requestStatus = requestStatus;
                 this.description = description;
             }
-
+            public static Status lookup(int code){
+                for (Status s: Status.values()){
+                    if (s.getRequestStatus() == code){
+                        return s;
+                    }
+                }
+                return BAD_REQUEST;
+            }
             public int getRequestStatus() {
                 return this.requestStatus;
             }

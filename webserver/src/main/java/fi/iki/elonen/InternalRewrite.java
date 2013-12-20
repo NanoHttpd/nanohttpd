@@ -13,7 +13,6 @@ public class InternalRewrite extends Response {
     private final Map<String, String> headers;
 
     public InternalRewrite(Map<String, String> headers, String uri) {
-        super(null);
         this.headers = headers;
         this.uri = uri;
     }
