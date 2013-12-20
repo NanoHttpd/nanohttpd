@@ -1,11 +1,41 @@
 package fi.iki.elonen;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.RandomAccessFile;
+import java.io.SequenceInputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.TimeZone;
 
 /**
  * A simple, tiny, nicely embeddable HTTP server in Java
@@ -521,6 +551,7 @@ public abstract class NanoHTTPD {
      */
     public interface OnDataSend {
         public void onSend(byte[] buffer, int length);
+        public void onStopSend();
     }
     /**
      * HTTP response. Return one of these from serve().
@@ -671,6 +702,7 @@ public abstract class NanoHTTPD {
                 outputStream.write(CRLF);
             }
             outputStream.write(String.format("0\r\n\r\n").getBytes());
+            onDataSend.onStopSend();
         }
 
         private void sendAsFixedLength(OutputStream outputStream, PrintWriter pw) throws IOException {
@@ -693,6 +725,7 @@ public abstract class NanoHTTPD {
                         onDataSend.onSend(buff, read);
                     pending -= read;
                 }
+                onDataSend.onStopSend();
             }
         }
 
