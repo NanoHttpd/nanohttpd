@@ -172,7 +172,7 @@ public abstract class NanoHTTPD {
             public void run() {
                 do {
                     try {
-                        f final Socket finalAccept = myServerSocket.accept();
+                        final Socket finalAccept = myServerSocket.accept();
                         registerConnection(finalAccept);
                         finalAccept.setSoTimeout(SOCKET_READ_TIMEOUT);
                         final InputStream inputStream = finalAccept.getInputStream();
