@@ -1000,13 +1000,15 @@ public abstract class NanoHTTPD {
                     } else {
                         // Handle application/x-www-form-urlencoded
                         String postLine = "";
+                        StringBuilder postLineBuffer = new StringBuilder();
                         char pbuf[] = new char[512];
                         int read = in.read(pbuf);
                         while (read >= 0 && !postLine.endsWith("\r\n")) {
-                            postLine += String.valueOf(pbuf, 0, read);
+                            postLine = String.valueOf(pbuf, 0, read);
+                            postLineBuffer.append(postLine);
                             read = in.read(pbuf);
                         }
-                        postLine = postLine.trim();
+                        postLine = postLineBuffer.toString().trim();
                         decodeParms(postLine, parms);
                     }
                 } else if (Method.PUT.equals(method)) {
