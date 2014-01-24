@@ -165,7 +165,7 @@ public abstract class NanoHTTPD {
 
    /**
     * Creates an SSLSocketFactory for HTTPS.
-    * 
+    *
     * Pass a KeyStore resource with your certificate and passphrase
     */
    public static SSLServerSocketFactory makeSSLSocketFactory(String keyAndTrustStoreClasspathPath, char[] passphrase) throws IOException {
@@ -186,7 +186,7 @@ public abstract class NanoHTTPD {
       }
       return res;
    }
-   
+
    /**
     * Creates an SSLSocketFactory for HTTPS.
     *
@@ -247,7 +247,7 @@ public abstract class NanoHTTPD {
         } else {
             myServerSocket = new ServerSocket();
         }
-        
+
         myServerSocket.bind((hostname != null) ? new InetSocketAddress(hostname, myPort) : new InetSocketAddress(myPort));
 
         myThread = new Thread(new Runnable() {
@@ -698,7 +698,7 @@ public abstract class NanoHTTPD {
         /**
          * Sends given response to the socket.
          */
-        private void send(OutputStream outputStream) {
+        protected void send(OutputStream outputStream) {
             String mime = mimeType;
             SimpleDateFormat gmtFrmt = new SimpleDateFormat("E, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
             gmtFrmt.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -817,7 +817,7 @@ public abstract class NanoHTTPD {
          * Some HTTP response status codes
          */
         public enum Status {
-            OK(200, "OK"), CREATED(201, "Created"), ACCEPTED(202, "Accepted"), NO_CONTENT(204, "No Content"), PARTIAL_CONTENT(206, "Partial Content"), REDIRECT(301,
+            SWITCH_PROTOCOL(101, "Switching Protocols"), OK(200, "OK"), CREATED(201, "Created"), ACCEPTED(202, "Accepted"), NO_CONTENT(204, "No Content"), PARTIAL_CONTENT(206, "Partial Content"), REDIRECT(301,
                 "Moved Permanently"), NOT_MODIFIED(304, "Not Modified"), BAD_REQUEST(400, "Bad Request"), UNAUTHORIZED(401,
                 "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), METHOD_NOT_ALLOWED(405, "Method Not Allowed"), RANGE_NOT_SATISFIABLE(416,
                 "Requested Range Not Satisfiable"), INTERNAL_ERROR(500, "Internal Server Error");
