@@ -31,9 +31,7 @@ public class NanoWSDTest {
                     @Override
                     protected void onClose(WebSocketFrame.CloseCode code, String reason, boolean initiatedByRemote) {
                         //System.out.println("Closed ");
-                        if (code != WebSocketFrame.CloseCode.NormalClosure && initiatedByRemote) {
-                            System.err.println("code = [" + code + "], reason = [" + reason + "], initiatedByRemote = [" + initiatedByRemote + "]");
-                        }
+                        System.err.println("[" + (initiatedByRemote ? "Remote" : "Self") + "] " + (code != null ? code : "UnknownCloseCode[" + code + "]") + (reason != null && !reason.isEmpty() ? ": " + reason : ""));
                     }
 
                     @Override

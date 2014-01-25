@@ -8,6 +8,7 @@ import fi.iki.elonen.NanoHTTPD;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.CharacterCodingException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -51,6 +52,9 @@ public abstract class WebSocket {
             while (state == State.OPEN) {
                 handleWebsocketFrame(WebSocketFrame.read(in));
             }
+        } catch (CharacterCodingException e) {
+            onException(e);
+            doClose(CloseCode.InvalidFramePayloadData, e.toString(), false);
         } catch (IOException e) {
             onException(e);
             if (e instanceof WebSocketException) {
@@ -62,6 +66,7 @@ public abstract class WebSocket {
     }
 
     protected void handleWebsocketFrame(WebSocketFrame frame) throws IOException {
+        System.out.println(frame);
         if (frame.getOpCode() == OpCode.Close) {
             handleCloseFrame(frame);
         } else if (frame.getOpCode() == OpCode.Ping) {
@@ -127,6 +132,7 @@ public abstract class WebSocket {
     }
 
     public synchronized void sendFrame(WebSocketFrame frame) throws IOException {
+        System.out.println(frame);
         frame.write(out);
     }
 

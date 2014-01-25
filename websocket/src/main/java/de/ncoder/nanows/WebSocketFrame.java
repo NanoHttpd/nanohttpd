@@ -1,6 +1,15 @@
 package de.ncoder.nanows;
 
-import java.io.*;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,13 +38,13 @@ public class WebSocketFrame {
         this(opCode, fin, payload, null);
     }
 
-    public WebSocketFrame(OpCode opCode, boolean fin, String payload, byte[] maskingKey) {
+    public WebSocketFrame(OpCode opCode, boolean fin, String payload, byte[] maskingKey) throws CharacterCodingException {
         this(opCode, fin);
         setMaskingKey(maskingKey);
         setTextPayload(payload);
     }
 
-    public WebSocketFrame(OpCode opCode, boolean fin, String payload) {
+    public WebSocketFrame(OpCode opCode, boolean fin, String payload) throws CharacterCodingException {
         this(opCode, fin, payload, null);
     }
 
@@ -112,12 +121,16 @@ public class WebSocketFrame {
 
     public String getTextPayload() {
         if (_payloadString == null) {
-            _payloadString = binary2Text(getBinaryPayload());
+            try {
+                _payloadString = binary2Text(getBinaryPayload());
+            } catch (CharacterCodingException e) {
+                throw new RuntimeException("Undetected CharacterCodingException", e);
+            }
         }
         return _payloadString;
     }
 
-    public void setTextPayload(String payload) {
+    public void setTextPayload(String payload) throws CharacterCodingException {
         this.payload = text2Binary(payload);
         this._payloadLength = payload.length();
         this._payloadString = payload;
@@ -152,7 +165,7 @@ public class WebSocketFrame {
         if (read < 0) {
             throw new EOFException();
         }
-        System.out.println(read + "/" + Integer.toBinaryString(read));
+        //System.out.println(Integer.toBinaryString(read) + "/" + read + "/" + Integer.toHexString(read));
         return read;
     }
 
@@ -194,18 +207,29 @@ public class WebSocketFrame {
 
         if (masked) {
             maskingKey = new byte[4];
-            checkedRead(in.read(maskingKey, 0, 4));
+            int read = 0;
+            while (read < maskingKey.length) {
+                read += checkedRead(in.read(maskingKey, read, maskingKey.length - read));
+            }
         }
     }
 
     private void readPayload(InputStream in) throws IOException {
         payload = new byte[_payloadLength];
-        checkedRead(in.read(payload, 0, _payloadLength));
+        int read = 0;
+        while (read < _payloadLength) {
+            read += checkedRead(in.read(payload, read, _payloadLength - read));
+        }
 
         if (isMasked()) {
             for (int i = 0; i < payload.length; i++) {
                 payload[i] ^= maskingKey[i % 4];
             }
+        }
+
+        //Test for Unicode errors
+        if (getOpCode() == OpCode.Text) {
+            _payloadString = binary2Text(getBinaryPayload());
         }
     }
 
@@ -245,33 +269,58 @@ public class WebSocketFrame {
         } else {
             out.write(getBinaryPayload());
         }
+        out.flush();
     }
 
     // --------------------------------ENCODING--------------------------------
 
-    public static final String TEXT_ENCODING = "UTF-8";
+    public static final Charset TEXT_CHARSET = Charset.forName("UTF-8");
+    public static final CharsetDecoder TEXT_DECODER = TEXT_CHARSET.newDecoder();
+    public static final CharsetEncoder TEXT_ENCODER = TEXT_CHARSET.newEncoder();
 
-    public static String binary2Text(byte[] payload) {
-        try {
-            return new String(payload, TEXT_ENCODING);
-        } catch (UnsupportedEncodingException e) {
-            return new String(payload);
-        }
+
+    public static String binary2Text(byte[] payload) throws CharacterCodingException {
+        return TEXT_DECODER.decode(ByteBuffer.wrap(payload)).toString();
     }
 
-    public static String binary2Text(byte[] payload, int offset, int length) {
-        try {
-            return new String(payload, offset, length, TEXT_ENCODING);
-        } catch (UnsupportedEncodingException e) {
-            return new String(payload, offset, length);
-        }
+    public static String binary2Text(byte[] payload, int offset, int length) throws CharacterCodingException {
+        return TEXT_DECODER.decode(ByteBuffer.wrap(payload, offset, length)).toString();
     }
 
-    public static byte[] text2Binary(String payload) {
-        try {
-            return payload.getBytes(TEXT_ENCODING);
-        } catch (UnsupportedEncodingException e) {
-            return payload.getBytes();
+    public static byte[] text2Binary(String payload) throws CharacterCodingException {
+        return TEXT_ENCODER.encode(CharBuffer.wrap(payload)).array();
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("WS[");
+        sb.append(getOpCode());
+        sb.append(", ").append(isFin() ? "fin" : "inter");
+        sb.append(", ").append(isMasked() ? "masked" : "unmasked");
+        sb.append(", ").append(payloadToString());
+        sb.append(']');
+        return sb.toString();
+    }
+
+    protected String payloadToString() {
+        if (payload == null) return "null";
+        else {
+            final StringBuilder sb = new StringBuilder();
+            sb.append('[').append(payload.length).append("b] ");
+            if (getOpCode() == OpCode.Text) {
+                String text = getTextPayload();
+                if (text.length() > 100)
+                    sb.append(text.substring(0, 100)).append("...");
+                else
+                    sb.append(text);
+            } else {
+                sb.append("0x");
+                for (int i = 0; i < Math.min(payload.length, 50); ++i)
+                    sb.append(Integer.toHexString((int) payload[i] & 0xFF));
+                if (payload.length > 50)
+                    sb.append("...");
+            }
+            return sb.toString();
         }
     }
 
@@ -335,8 +384,9 @@ public class WebSocketFrame {
         private CloseCode _closeCode;
         private String _closeReason;
 
-        private CloseFrame(WebSocketFrame wrap) {
+        private CloseFrame(WebSocketFrame wrap) throws CharacterCodingException {
             super(wrap);
+            assert wrap.getOpCode() == OpCode.Close;
             if (wrap.getBinaryPayload().length >= 2) {
                 _closeCode = CloseCode.find((wrap.getBinaryPayload()[0] & 0xFF) << 8 |
                         (wrap.getBinaryPayload()[1] & 0xFF));
@@ -344,11 +394,11 @@ public class WebSocketFrame {
             }
         }
 
-        public CloseFrame(CloseCode code, String closeReason) {
+        public CloseFrame(CloseCode code, String closeReason) throws CharacterCodingException {
             super(OpCode.Close, true, generatePayload(code, closeReason));
         }
 
-        private static byte[] generatePayload(CloseCode code, String closeReason) {
+        private static byte[] generatePayload(CloseCode code, String closeReason) throws CharacterCodingException {
             if (code != null) {
                 byte[] reasonBytes = text2Binary(closeReason);
                 byte[] payload = new byte[reasonBytes.length + 2];
@@ -359,6 +409,10 @@ public class WebSocketFrame {
             } else {
                 return new byte[0];
             }
+        }
+
+        protected String payloadToString() {
+            return (_closeCode != null ? _closeCode : "UnknownCloseCode[" + _closeCode + "]") + (_closeReason != null && !_closeReason.isEmpty() ? ": " + _closeReason : "");
         }
 
         public CloseCode getCloseCode() {
