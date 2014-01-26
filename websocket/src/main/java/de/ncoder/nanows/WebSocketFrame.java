@@ -55,15 +55,19 @@ public class WebSocketFrame {
         setMaskingKey(clone.getMaskingKey());
     }
 
-    public WebSocketFrame(OpCode opCode, List<WebSocketFrame> fragments) {
+    public WebSocketFrame(OpCode opCode, List<WebSocketFrame> fragments) throws WebSocketException {
         setOpCode(opCode);
         setFin(true);
 
-        int length = 0;
+        long _payloadLength = 0;
         for (WebSocketFrame inter : fragments) {
-            length += inter.getBinaryPayload().length;
+            _payloadLength += inter.getBinaryPayload().length;
         }
-        byte[] payload = new byte[length];
+        if (_payloadLength < 0 || _payloadLength > Integer.MAX_VALUE) {
+            throw new WebSocketException(CloseCode.MessageTooBig, "Max frame length has been exceeded.");
+        }
+        this._payloadLength = (int) _payloadLength;
+        byte[] payload = new byte[this._payloadLength];
         int offset = 0;
         for (WebSocketFrame inter : fragments) {
             System.arraycopy(inter.getBinaryPayload(), 0, payload, offset, inter.getBinaryPayload().length);
@@ -191,7 +195,7 @@ public class WebSocketFrame {
                 throw new WebSocketException(CloseCode.ProtocolError, "Invalid data frame 4byte length. (not using minimal length encoding)");
             }
             if (_payloadLength < 0 || _payloadLength > Integer.MAX_VALUE) {
-                throw new WebSocketException(CloseCode.ProtocolError, "Max frame length has been exceeded.");
+                throw new WebSocketException(CloseCode.MessageTooBig, "Max frame length has been exceeded.");
             }
             this._payloadLength = (int) _payloadLength;
         }
