@@ -66,7 +66,6 @@ public abstract class WebSocket {
     }
 
     protected void handleWebsocketFrame(WebSocketFrame frame) throws IOException {
-        System.out.println(frame);
         if (frame.getOpCode() == OpCode.Close) {
             handleCloseFrame(frame);
         } else if (frame.getOpCode() == OpCode.Ping) {
@@ -132,7 +131,6 @@ public abstract class WebSocket {
     }
 
     public synchronized void sendFrame(WebSocketFrame frame) throws IOException {
-        System.out.println(frame);
         frame.write(out);
     }
 

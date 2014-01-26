@@ -4,22 +4,18 @@ import java.io.IOException;
 
 public class NanoWSDTest {
     public static void main(String[] args) throws IOException {
+        final boolean DEBUG = args.length >= 2 && args[1].toLowerCase().equals("-d");
         NanoWSD ws = new NanoWSD(Integer.parseInt(args[0])) {
             @Override
             protected WebSocket openWebSocket(IHTTPSession handshake) {
                 return new WebSocket(handshake) {
                     @Override
                     protected void onPong(WebSocketFrame pongFrame) {
-                        //System.out.println("PONG");
+                        //System.out.println("P " + pongFrame);
                     }
 
                     @Override
                     protected void onMessage(WebSocketFrame messageFrame) {
-                        //String text = messageFrame.getTextPayload();
-                        //if (text.length() > 100) {
-                        //text = text.substring(0, 100);
-                        //}
-                        //System.out.println(messageFrame.getOpCode() + ": " + text);
                         try {
                             messageFrame.setUnmasked();
                             sendFrame(messageFrame);
@@ -30,13 +26,30 @@ public class NanoWSDTest {
 
                     @Override
                     protected void onClose(WebSocketFrame.CloseCode code, String reason, boolean initiatedByRemote) {
-                        //System.out.println("Closed ");
-                        System.err.println("[" + (initiatedByRemote ? "Remote" : "Self") + "] " + (code != null ? code : "UnknownCloseCode[" + code + "]") + (reason != null && !reason.isEmpty() ? ": " + reason : ""));
+                        if (DEBUG) {
+                            System.out.println("C [" + (initiatedByRemote ? "Remote" : "Self") + "] " + (code != null ? code : "UnknownCloseCode[" + code + "]") + (reason != null && !reason.isEmpty() ? ": " + reason : ""));
+                        }
                     }
 
                     @Override
                     protected void onException(IOException e) {
-                        e.printStackTrace(System.err);
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    protected void handleWebsocketFrame(WebSocketFrame frame) throws IOException {
+                        if (DEBUG) {
+                            System.out.println("R " + frame);
+                        }
+                        super.handleWebsocketFrame(frame);
+                    }
+
+                    @Override
+                    public synchronized void sendFrame(WebSocketFrame frame) throws IOException {
+                        if (DEBUG) {
+                            System.out.println("S " + frame);
+                        }
+                        super.sendFrame(frame);
                     }
                 };
             }
