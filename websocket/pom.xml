@@ -1,37 +1,45 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>fi.iki.elonen</groupId>
-    <artifactId>nanohttpd-project</artifactId>
+    <groupId>de.ncoder</groupId>
+    <artifactId>nanowsd</artifactId>
     <version>2.0.5</version>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
-    <name>NanoHttpd-Project</name>
-    <url>https://github.com/NanoHttpd/nanohttpd</url>
+    <name>NanoWSd-Core</name>
+    <url>https://github.com/N-Coder/nanohttpd</url>
 
-    <modules>
-        <module>core</module>
-        <module>samples</module>
-        <module>webserver</module>
-        <module>webserver/markdown-plugin</module>
-        <module>websocket</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.2.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <version>4.2.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>fi.iki.elonen</groupId>
+            <artifactId>nanohttpd</artifactId>
+            <version>2.0.5</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
     <build>
-        <extensions>
-            <extension>
-                <groupId>org.jvnet.wagon-svn</groupId>
-                <artifactId>wagon-svn</artifactId>
-                <version>1.8</version>
-            </extension>
-            <extension>
-                <groupId>org.apache.maven.wagon</groupId>
-                <artifactId>wagon-ftp</artifactId>
-                <version>1.0-alpha-6</version>
-            </extension>
-        </extensions>
-
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
