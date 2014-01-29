@@ -12,7 +12,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
-import java.io.SequenceInputStream;
+import java.io.PushbackInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -819,7 +819,7 @@ public abstract class NanoHTTPD {
         public static final int BUFSIZE = 8192;
         private final TempFileManager tempFileManager;
         private final OutputStream outputStream;
-        private InputStream inputStream;
+        private PushbackInputStream inputStream;
         private int splitbyte;
         private int rlen;
         private String uri;
@@ -831,13 +831,13 @@ public abstract class NanoHTTPD {
 
         public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
             this.tempFileManager = tempFileManager;
-            this.inputStream = inputStream;
+            this.inputStream = new PushbackInputStream(inputStream, BUFSIZE);
             this.outputStream = outputStream;
         }
 
         public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
             this.tempFileManager = tempFileManager;
-            this.inputStream = inputStream;
+            this.inputStream = new PushbackInputStream(inputStream, BUFSIZE);
             this.outputStream = outputStream;
             String remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
             headers = new HashMap<String, String>();
@@ -881,9 +881,7 @@ public abstract class NanoHTTPD {
                 }
 
                 if (splitbyte < rlen) {
-                    ByteArrayInputStream splitInputStream = new ByteArrayInputStream(buf, splitbyte, rlen - splitbyte);
-                    SequenceInputStream sequenceInputStream = new SequenceInputStream(splitInputStream, inputStream);
-                    inputStream = sequenceInputStream;
+                    inputStream.unread(buf, splitbyte, rlen - splitbyte);
                 }
 
                 parms = new HashMap<String, String>();
@@ -954,7 +952,7 @@ public abstract class NanoHTTPD {
                 // Now read all the body and write it to f
                 byte[] buf = new byte[512];
                 while (rlen >= 0 && size > 0) {
-                    rlen = inputStream.read(buf, 0, 512);
+                    rlen = inputStream.read(buf, 0, (int)Math.min(size, 512));
                     size -= rlen;
                     if (rlen > 0) {
                         randomAccessFile.write(buf, 0, rlen);
