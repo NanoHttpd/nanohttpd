@@ -176,36 +176,31 @@ public abstract class NanoHTTPD {
                         registerConnection(finalAccept);
                         finalAccept.setSoTimeout(SOCKET_READ_TIMEOUT);
                         final InputStream inputStream = finalAccept.getInputStream();
-                        if (inputStream == null) {
-                            safeClose(finalAccept);
-                            unRegisterConnection(finalAccept);
-                        } else {
-                            asyncRunner.exec(new Runnable() {
-                                @Override
-                                public void run() {
-                                    OutputStream outputStream = null;
-                                    try {
-                                        outputStream = finalAccept.getOutputStream();
-                                        TempFileManager tempFileManager = tempFileManagerFactory.create();
-                                        HTTPSession session = new HTTPSession(tempFileManager, inputStream, outputStream, finalAccept.getInetAddress());
-                                        while (!finalAccept.isClosed()) {
-                                            session.execute();
-                                        }
-                                    } catch (Exception e) {
-                                        // When the socket is closed by the client, we throw our own SocketException
-                                        // to break the  "keep alive" loop above.
-                                        if (!(e instanceof SocketException && "NanoHttpd Shutdown".equals(e.getMessage()))) {
-                                            e.printStackTrace();
-                                        }
-                                    } finally {
-                                        safeClose(outputStream);
-                                        safeClose(inputStream);
-                                        safeClose(finalAccept);
-                                        unRegisterConnection(finalAccept);
+                        asyncRunner.exec(new Runnable() {
+                            @Override
+                            public void run() {
+                                OutputStream outputStream = null;
+                                try {
+                                    outputStream = finalAccept.getOutputStream();
+                                    TempFileManager tempFileManager = tempFileManagerFactory.create();
+                                    HTTPSession session = new HTTPSession(tempFileManager, inputStream, outputStream, finalAccept.getInetAddress());
+                                    while (!finalAccept.isClosed()) {
+                                        session.execute();
                                     }
+                                } catch (Exception e) {
+                                    // When the socket is closed by the client, we throw our own SocketException
+                                    // to break the  "keep alive" loop above.
+                                    if (!(e instanceof SocketException && "NanoHttpd Shutdown".equals(e.getMessage()))) {
+                                        e.printStackTrace();
+                                    }
+                                } finally {
+                                    safeClose(outputStream);
+                                    safeClose(inputStream);
+                                    safeClose(finalAccept);
+                                    unRegisterConnection(finalAccept);
                                 }
-                            });
-                        }
+                            }
+                        });
                     } catch (IOException e) {
                     }
                 } while (!myServerSocket.isClosed());
