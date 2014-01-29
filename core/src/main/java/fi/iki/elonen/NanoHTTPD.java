@@ -140,6 +140,24 @@ public abstract class NanoHTTPD {
         }
     }
 
+    private static final void safeClose(Socket closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (IOException e) {
+            }
+        }
+    }
+
+    private static final void safeClose(ServerSocket closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (IOException e) {
+            }
+        }
+    }
+
     /**
      * Start the server.
      *
