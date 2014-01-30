@@ -1,21 +1,22 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fi.iki.elonen</groupId>
-    <artifactId>nanohttpd-project</artifactId>
+    <artifactId>nanohttpd-websocket</artifactId>
     <version>2.0.5</version>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
-    <name>NanoHttpd-Project</name>
+    <name>NanoHttpd-Websocket</name>
     <url>https://github.com/NanoHttpd/nanohttpd</url>
 
-    <modules>
-        <module>core</module>
-        <module>samples</module>
-        <module>webserver</module>
-        <module>webserver/markdown-plugin</module>
-        <module>websocket</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>fi.iki.elonen</groupId>
+            <artifactId>nanohttpd</artifactId>
+            <version>2.0.5</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <extensions>
@@ -63,6 +64,29 @@
                     <source>1.6</source>
                     <target>1.6</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2-beta-5</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>fi.iki.elonen.NanoWSD</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
