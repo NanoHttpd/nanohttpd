@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -85,16 +86,46 @@ public class HttpPostRequestTest extends HttpServerTest {
         assertEquals(VALUE, testServer.parms.get(FIELD));
         assertEquals(VALUE2, testServer.parms.get(FIELD2));
     }
-
+    
     @Test
     public void testPostWithMultipartFormUpload() throws Exception {
-        String divider = UUID.randomUUID().toString();
         String filename = "GrandCanyon.txt";
         String fileContent = VALUE;
+        String input = preparePostWithMultipartForm(filename, fileContent);
+    
+        invokeServer(input);
+    
+        assertEquals(1, testServer.parms.size());
+        BufferedReader reader = new BufferedReader(new FileReader(testServer.files.get(FIELD)));
+        List<String> lines = readLinesFromFile(reader);
+        assertLinesOfText(new String[]{fileContent}, lines);
+    }
+    
+    @Test
+    public void testPostWithMultipartFormUploadFilenameHasSpaces() throws Exception {
+      String fileNameWithSpace = "Grand Canyon.txt";
+      String fileContent = VALUE;
+      String input = preparePostWithMultipartForm(fileNameWithSpace, fileContent);
+      
+      invokeServer(input);
+      
+      String fileNameAfter = new ArrayList<String>(testServer.parms.values()).get(0);
+      
+      assertEquals(fileNameWithSpace, fileNameAfter);
+    }
+    
+    /**
+     * contains common preparation steps for testing POST with Multipart Form
+     * @param fileName Name of file to be uploaded
+     * @param fileContent Content of file to be uploaded
+     * @return input String with POST request complete information including header, length and content
+     */
+    private String preparePostWithMultipartForm(String fileName, String fileContent) {
+        String divider = UUID.randomUUID().toString();
         String header = "POST " + URI + " HTTP/1.1\nContent-Type: " +
                 "multipart/form-data, boundary=" + divider + "\n";
         String content = "--" + divider + "\n" +
-                "Content-Disposition: form-data; name=\""+FIELD+"\"; filename=\""+filename+"\"\n" +
+                "Content-Disposition: form-data; name=\""+FIELD+"\"; filename=\""+fileName+"\"\n" +
                 "Content-Type: image/jpeg\r\n"+
                 "\r\n" +
                 fileContent +"\r\n" +
@@ -103,12 +134,8 @@ public class HttpPostRequestTest extends HttpServerTest {
         int contentLengthHeaderValueSize = String.valueOf(size).length();
         int contentLength = size + contentLengthHeaderValueSize + CONTENT_LENGTH.length();
         String input = header + CONTENT_LENGTH + (contentLength+5) + "\r\n\r\n" + content;
-
-        invokeServer(input);
-
-        assertEquals(1, testServer.parms.size());
-        BufferedReader reader = new BufferedReader(new FileReader(testServer.files.get(FIELD)));
-        List<String> lines = readLinesFromFile(reader);
-        assertLinesOfText(new String[]{fileContent}, lines);
+        
+        return input;
     }
+
 }

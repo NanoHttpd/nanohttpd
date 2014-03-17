@@ -1095,10 +1095,10 @@ public abstract class NanoHTTPD {
                         if (contentDisposition == null) {
                             throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but no content-disposition info found. Usage: GET /example/file.html");
                         }
-                        StringTokenizer st = new StringTokenizer(contentDisposition, "; ");
+                        StringTokenizer st = new StringTokenizer(contentDisposition, ";");
                         Map<String, String> disposition = new HashMap<String, String>();
                         while (st.hasMoreTokens()) {
-                            String token = st.nextToken();
+                            String token = st.nextToken().trim();
                             int p = token.indexOf('=');
                             if (p != -1) {
                                 disposition.put(token.substring(0, p).trim().toLowerCase(Locale.US), token.substring(p + 1).trim());
