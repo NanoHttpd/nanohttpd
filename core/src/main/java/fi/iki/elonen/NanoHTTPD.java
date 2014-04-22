@@ -991,7 +991,6 @@ public abstract class NanoHTTPD {
 
                         decodeMultipartData(boundary, fbuf, in, parms, files);
                     } else {
-                        // Handle application/x-www-form-urlencoded
                         String postLine = "";
                         StringBuilder postLineBuffer = new StringBuilder();
                         char pbuf[] = new char[512];
@@ -1002,7 +1001,13 @@ public abstract class NanoHTTPD {
                             read = in.read(pbuf);
                         }
                         postLine = postLineBuffer.toString().trim();
-                        decodeParms(postLine, parms);
+                        // Handle application/x-www-form-urlencoded
+                        if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType)) {
+                        	decodeParms(postLine, parms);
+                        } else if (postLine.length() != 0) {
+                        	// Special case for raw POST data => create a special files entry "postData" with raw content data
+                        	files.put("postData", postLine);
+                        }
                     }
                 } else if (Method.PUT.equals(method)) {
                     files.put("content", saveTmpFile(fbuf, 0, fbuf.limit()));
@@ -1261,7 +1266,7 @@ public abstract class NanoHTTPD {
             return parms;
         }
 
-        public String getQueryParameterString() {
+		public String getQueryParameterString() {
             return queryParameterString;
         }
 
