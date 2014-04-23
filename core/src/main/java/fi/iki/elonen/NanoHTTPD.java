@@ -214,8 +214,11 @@ public abstract class NanoHTTPD {
                                     }
                                 } catch (Exception e) {
                                     // When the socket is closed by the client, we throw our own SocketException
-                                    // to break the  "keep alive" loop above.
-                                    if (!(e instanceof SocketException && "NanoHttpd Shutdown".equals(e.getMessage()))) {
+                                    // to break the  "keep alive" loop above. If the exception was anything other
+                                    // than the expected SocketException OR a SocketTimeoutException, print the
+                                    // stacktrace
+                                    if (!(e instanceof SocketException && "NanoHttpd Shutdown".equals(e.getMessage())) &&
+                                        !(e instanceof SocketTimeoutException)) {
                                     	LOG.log(Level.SEVERE, "Communication with the client broken", e);
                                     }
                                 } finally {
@@ -986,6 +989,9 @@ public abstract class NanoHTTPD {
                 // throw it out to close socket object (finalAccept)
                 throw e;
             } catch (SocketTimeoutException ste) {
+                // treat socket timeouts the same way we treat socket exceptions
+                // i.e. close the stream & finalAccept object by throwing the
+                // exception up the call stack.
             	throw ste;
             } catch (IOException ioe) {
                 Response r = new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
