@@ -75,7 +75,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>fi.iki.elonen.NanoWSD</mainClass>
+                            <mainClass>fi.iki.elonen.NanoWebSocketServer</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

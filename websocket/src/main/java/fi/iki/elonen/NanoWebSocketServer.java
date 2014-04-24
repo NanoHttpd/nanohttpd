@@ -6,7 +6,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
-public abstract class NanoWSD extends NanoHTTPD {
+public abstract class NanoWebSocketServer extends NanoHTTPD {
     public static final String HEADER_UPGRADE = "upgrade";
     public static final String HEADER_UPGRADE_VALUE = "websocket";
     public static final String HEADER_CONNECTION = "connection";
@@ -19,11 +19,11 @@ public abstract class NanoWSD extends NanoHTTPD {
 
     public final static String WEBSOCKET_KEY_MAGIC = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
-    public NanoWSD(int port) {
+    public NanoWebSocketServer(int port) {
         super(port);
     }
 
-    public NanoWSD(String hostname, int port) {
+    public NanoWebSocketServer(String hostname, int port) {
         super(hostname, port);
     }
 
@@ -32,7 +32,7 @@ public abstract class NanoWSD extends NanoHTTPD {
         Map<String, String> headers = session.getHeaders();
         if (isWebsocketRequested(session)) {
             if (!HEADER_UPGRADE_VALUE.equalsIgnoreCase(headers.get(HEADER_UPGRADE))
-                    || !HEADER_CONNECTION_VALUE.equalsIgnoreCase(headers.get(HEADER_CONNECTION))) {
+                    || !isWebSocketConnectionHeader(session.getHeaders())) {
                 return new Response(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Invalid Websocket handshake");
             }
             if (!HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(HEADER_WEBSOCKET_VERSION))) {
@@ -61,8 +61,15 @@ public abstract class NanoWSD extends NanoHTTPD {
 
     protected boolean isWebsocketRequested(IHTTPSession session) {
         Map<String, String> headers = session.getHeaders();
-        return ((HEADER_UPGRADE_VALUE.equalsIgnoreCase(headers.get(HEADER_UPGRADE)))
-                && (HEADER_CONNECTION_VALUE.equalsIgnoreCase(headers.get(HEADER_CONNECTION))));
+        String upgrade = headers.get(HEADER_UPGRADE);
+        boolean isCorrectConnection = isWebSocketConnectionHeader(headers);
+        boolean isUpgrade = HEADER_UPGRADE_VALUE.equalsIgnoreCase(upgrade);
+        return (isUpgrade && isCorrectConnection);
+    }
+
+    private boolean isWebSocketConnectionHeader(Map<String, String> headers) {
+        String connection = headers.get(HEADER_CONNECTION);
+        return (connection != null && connection.toLowerCase().contains(HEADER_CONNECTION_VALUE.toLowerCase()));
     }
 
     public static String makeAcceptKey(String key) throws NoSuchAlgorithmException {

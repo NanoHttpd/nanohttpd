@@ -637,7 +637,7 @@ public abstract class NanoHTTPD {
                     }
                 }
 
-                pw.print("Connection: keep-alive\r\n");
+                sendConnectionHeaderIfNotAlreadyPresent(pw, header);
 
                 if (requestMethod != Method.HEAD && chunkedTransfer) {
                     sendAsChunked(outputStream, pw);
@@ -648,6 +648,16 @@ public abstract class NanoHTTPD {
                 safeClose(data);
             } catch (IOException ioe) {
                 // Couldn't write? No can do.
+            }
+        }
+
+        protected void sendConnectionHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header) {
+            boolean connectionAlreadySent = false;
+            for (String headerName : header.keySet()) {
+                connectionAlreadySent |= headerName.equalsIgnoreCase("connection");
+            }
+            if (!connectionAlreadySent) {
+                pw.print("Connection: keep-alive\r\n");
             }
         }
 
