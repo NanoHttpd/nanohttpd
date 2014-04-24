@@ -1211,7 +1211,7 @@ public abstract class NanoHTTPD {
                     dest.write(src.slice());
                     path = tempFile.getName();
                 } catch (Exception e) { // Catch exception if any
-                    System.err.println("Error: " + e.getMessage());
+                    throw new Error(e); // we won't recover, so throw an error
                 } finally {
                     safeClose(fileOutputStream);
                 }
@@ -1224,9 +1224,8 @@ public abstract class NanoHTTPD {
                 TempFile tempFile = tempFileManager.createTempFile();
                 return new RandomAccessFile(tempFile.getName(), "rw");
             } catch (Exception e) {
-                System.err.println("Error: " + e.getMessage());
+            	throw new Error(e); // we won't recover, so throw an error
             }
-            return null;
         }
 
         /**
