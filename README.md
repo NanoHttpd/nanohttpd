@@ -6,8 +6,6 @@
 
 ## Current major development efforts
 
-Waffle.io Issue Tracking: [![Stories in Ready](https://badge.waffle.io/NanoHttpd/nanohttpd.png?label=ready)](https://waffle.io/NanoHttpd/nanohttpd)  
-
 *Core*
 * Please take a look at the new "ssl-support" branch containing submitted code adding SSL support to NanoHttpd.  It's a great new feature that needs all eyes to polish in preparation for a release, making sure it works on all platforms.
 
@@ -33,6 +31,9 @@ Waffle.io Issue Tracking: [![Stories in Ready](https://badge.waffle.io/NanoHttpd
 * Very low memory overhead when processing even the largest of requests.
 * Temp file usage and threading model are easily cutomized.
 * Persistent connections (Connection "keep-alive") support allowing multiple requests to be served over a single socket connection.
+
+## Websocket Support
+* Tested on Firefox, Chrome and IE.
 
 ## Webserver Features
 * Supports both dynamic content and file serving.
@@ -180,9 +181,13 @@ the samples from the runtime JAR to further slim it down.
 The two projects pooled resources in early 2013, merging code-bases, to better support the
 user base and reduce confusion over why _two_ NanoHttpd projects existed.
 
-http://nanohttpd.com - went live July 1st, 2013.
+## Nanohttp.com site
+
+* http://nanohttpd.com - went live July 1st, 2013.
+* Moved hosting, adding news and better documentation April 2014.
 
 ## Version History (Java 6+ version)
+* 2.1.0 (2014-04-23) : Websocket Support
 * 2.0.5 (2013-12-12) : Cleanup and stability fixes.
 * 2.0.4 (2013-09-15) : Added basic cookie support, experimental SSL support and runtime extensions.
 * 2.0.3 (2013-06-17) : Implemented 'Connection: keep-alive', (tested against latest Mozilla Firefox).

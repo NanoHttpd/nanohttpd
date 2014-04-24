@@ -4,7 +4,7 @@
 
     <groupId>fi.iki.elonen</groupId>
     <artifactId>nanohttpd-samples</artifactId>
-    <version>2.0.5</version>
+    <version>2.1.0</version>
     <packaging>jar</packaging>
 
     <name>NanoHttpd-Samples</name>
@@ -14,12 +14,12 @@
         <dependency>
             <groupId>fi.iki.elonen</groupId>
             <artifactId>nanohttpd</artifactId>
-            <version>2.0.5</version>
+            <version>2.1.0</version>
         </dependency>
         <dependency>
             <groupId>fi.iki.elonen</groupId>
             <artifactId>nanohttpd-webserver</artifactId>
-            <version>2.0.5</version>
+            <version>2.1.0</version>
         </dependency>
     </dependencies>
 
