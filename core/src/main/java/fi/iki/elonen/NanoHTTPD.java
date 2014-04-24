@@ -549,7 +549,7 @@ public abstract class NanoHTTPD {
         /**
          * HTTP status code after processing, e.g. "200 OK", HTTP_OK
          */
-        private Status status;
+        private IStatus status;
         /**
          * MIME type of content, e.g. "text/html"
          */
@@ -581,7 +581,7 @@ public abstract class NanoHTTPD {
         /**
          * Basic constructor.
          */
-        public Response(Status status, String mimeType, InputStream data) {
+        public Response(IStatus status, String mimeType, InputStream data) {
             this.status = status;
             this.mimeType = mimeType;
             this.data = data;
@@ -590,7 +590,7 @@ public abstract class NanoHTTPD {
         /**
          * Convenience method that makes an InputStream out of given text.
          */
-        public Response(Status status, String mimeType, String txt) {
+        public Response(IStatus status, String mimeType, String txt) {
             this.status = status;
             this.mimeType = mimeType;
             try {
@@ -699,7 +699,7 @@ public abstract class NanoHTTPD {
             }
         }
 
-        public Status getStatus() {
+        public IStatus getStatus() {
             return status;
         }
 
@@ -735,10 +735,15 @@ public abstract class NanoHTTPD {
             this.chunkedTransfer = chunkedTransfer;
         }
 
+        public interface IStatus {
+            int getRequestStatus();
+            String getDescription();
+        }
+
         /**
          * Some HTTP response status codes
          */
-        public enum Status {
+        public enum Status implements IStatus {
             SWITCH_PROTOCOL(101, "Switching Protocols"), OK(200, "OK"), CREATED(201, "Created"), ACCEPTED(202, "Accepted"), NO_CONTENT(204, "No Content"), PARTIAL_CONTENT(206, "Partial Content"), REDIRECT(301,
                 "Moved Permanently"), NOT_MODIFIED(304, "Not Modified"), BAD_REQUEST(400, "Bad Request"), UNAUTHORIZED(401,
                 "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), METHOD_NOT_ALLOWED(405, "Method Not Allowed"), RANGE_NOT_SATISFIABLE(416,
@@ -751,10 +756,12 @@ public abstract class NanoHTTPD {
                 this.description = description;
             }
 
+            @Override
             public int getRequestStatus() {
                 return this.requestStatus;
             }
 
+            @Override
             public String getDescription() {
                 return "" + this.requestStatus + " " + description;
             }
