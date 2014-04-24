@@ -6,7 +6,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
-public abstract class NanoWebSocketServer extends NanoHTTPD {
+public class NanoWebSocketServer extends NanoHTTPD implements WebSocketFactory {
     public static final String HEADER_UPGRADE = "upgrade";
     public static final String HEADER_UPGRADE_VALUE = "websocket";
     public static final String HEADER_CONNECTION = "connection";
@@ -18,13 +18,27 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
     public static final String HEADER_WEBSOCKET_PROTOCOL = "sec-websocket-protocol";
 
     public final static String WEBSOCKET_KEY_MAGIC = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    
+    private final WebSocketFactory webSocketFactory;
 
     public NanoWebSocketServer(int port) {
         super(port);
+        webSocketFactory = null;
     }
 
     public NanoWebSocketServer(String hostname, int port) {
         super(hostname, port);
+        webSocketFactory = null;
+    }
+    
+    public NanoWebSocketServer(int port, WebSocketFactory webSocketFactory) {
+        super(port);
+        this.webSocketFactory = webSocketFactory;
+    }
+
+    public NanoWebSocketServer(String hostname, int port,WebSocketFactory webSocketFactory) {
+        super(hostname, port);
+        this.webSocketFactory = webSocketFactory;
     }
 
     @Override
@@ -57,7 +71,12 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
         }
     }
 
-    protected abstract WebSocket openWebSocket(IHTTPSession handshake);
+    public WebSocket openWebSocket(IHTTPSession handshake) {
+        if (webSocketFactory == null) {
+            throw new Error("You must either override this method or supply a WebSocketFactory in the cosntructor");
+        }
+        return webSocketFactory.openWebSocket(handshake);
+    }
 
     protected boolean isWebsocketRequested(IHTTPSession session) {
         Map<String, String> headers = session.getHeaders();
