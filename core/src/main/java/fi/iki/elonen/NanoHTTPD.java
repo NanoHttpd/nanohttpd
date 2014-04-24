@@ -606,6 +606,10 @@ public abstract class NanoHTTPD {
         public void addHeader(String name, String value) {
             header.put(name, value);
         }
+        
+        public String getHeader(String name) {
+            return header.get(name);
+        }
 
         /**
          * Sends given response to the socket.
