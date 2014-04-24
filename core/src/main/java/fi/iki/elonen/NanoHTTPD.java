@@ -610,7 +610,7 @@ public abstract class NanoHTTPD {
         /**
          * Sends given response to the socket.
          */
-        private void send(OutputStream outputStream) {
+        protected void send(OutputStream outputStream) {
             String mime = mimeType;
             SimpleDateFormat gmtFrmt = new SimpleDateFormat("E, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
             gmtFrmt.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -637,7 +637,7 @@ public abstract class NanoHTTPD {
                     }
                 }
 
-                pw.print("Connection: keep-alive\r\n");
+                sendConnectionHeaderIfNotAlreadyPresent(pw, header);
 
                 if (requestMethod != Method.HEAD && chunkedTransfer) {
                     sendAsChunked(outputStream, pw);
@@ -648,6 +648,16 @@ public abstract class NanoHTTPD {
                 safeClose(data);
             } catch (IOException ioe) {
                 // Couldn't write? No can do.
+            }
+        }
+
+        protected void sendConnectionHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header) {
+            boolean connectionAlreadySent = false;
+            for (String headerName : header.keySet()) {
+                connectionAlreadySent |= headerName.equalsIgnoreCase("connection");
+            }
+            if (!connectionAlreadySent) {
+                pw.print("Connection: keep-alive\r\n");
             }
         }
 
@@ -729,7 +739,7 @@ public abstract class NanoHTTPD {
          * Some HTTP response status codes
          */
         public enum Status {
-            OK(200, "OK"), CREATED(201, "Created"), ACCEPTED(202, "Accepted"), NO_CONTENT(204, "No Content"), PARTIAL_CONTENT(206, "Partial Content"), REDIRECT(301,
+            SWITCH_PROTOCOL(101, "Switching Protocols"), OK(200, "OK"), CREATED(201, "Created"), ACCEPTED(202, "Accepted"), NO_CONTENT(204, "No Content"), PARTIAL_CONTENT(206, "Partial Content"), REDIRECT(301,
                 "Moved Permanently"), NOT_MODIFIED(304, "Not Modified"), BAD_REQUEST(400, "Bad Request"), UNAUTHORIZED(401,
                 "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), METHOD_NOT_ALLOWED(405, "Method Not Allowed"), RANGE_NOT_SATISFIABLE(416,
                 "Requested Range Not Satisfiable"), INTERNAL_ERROR(500, "Internal Server Error");
