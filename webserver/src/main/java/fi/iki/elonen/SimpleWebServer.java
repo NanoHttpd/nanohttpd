@@ -1,8 +1,21 @@
 package fi.iki.elonen;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.StringTokenizer;
 
 public class SimpleWebServer extends NanoHTTPD {
     /**
@@ -246,10 +259,10 @@ public class SimpleWebServer extends NanoHTTPD {
                     "INTERNAL ERRROR: given path is not a directory (" + homeDir + ").");
             }
         }
-        return respond(Collections.unmodifiableMap(header), uri);
+        return respond(Collections.unmodifiableMap(header), session, uri);
     }
 
-    private Response respond(Map<String, String> headers, String uri) {
+    private Response respond(Map<String, String> headers, IHTTPSession session, String uri) {
         // Remove URL arguments
         uri = uri.trim().replace(File.separatorChar, '/');
         if (uri.indexOf('?') >= 0) {
@@ -293,7 +306,7 @@ public class SimpleWebServer extends NanoHTTPD {
                     return createResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: No directory listing.");
                 }
             } else {
-                return respond(headers, uri + indexFile);
+                return respond(headers, session, uri + indexFile);
             }
         }
 
@@ -301,10 +314,10 @@ public class SimpleWebServer extends NanoHTTPD {
         WebServerPlugin plugin = mimeTypeHandlers.get(mimeTypeForFile);
         Response response = null;
         if (plugin != null) {
-            response = plugin.serveFile(uri, headers, f, mimeTypeForFile);
+            response = plugin.serveFile(uri, headers, session, f, mimeTypeForFile);
             if (response != null && response instanceof InternalRewrite) {
                 InternalRewrite rewrite = (InternalRewrite) response;
-                return respond(rewrite.getHeaders(), rewrite.getUri());
+                return respond(rewrite.getHeaders(), session, rewrite.getUri());
             }
         } else {
             response = serveFile(uri, headers, f, mimeTypeForFile);
