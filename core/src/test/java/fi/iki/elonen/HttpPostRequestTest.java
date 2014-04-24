@@ -18,6 +18,22 @@ public class HttpPostRequestTest extends HttpServerTest {
     public static final String VALUE = "Summer vacation";
     public static final String FIELD2 = "location";
     public static final String VALUE2 = "Grand Canyon";
+    public static final String POST_RAW_CONTENT_FILE_ENTRY = "postData";
+    public static final String VALUE_TEST_SIMPLE_RAW_DATA_WITH_AMPHASIS = "Test raw data & Result value";
+
+    @Test
+    public void testSimpleRawPostData() throws Exception {
+        String header = "POST " + URI + " HTTP/1.1\n";
+        String content = VALUE_TEST_SIMPLE_RAW_DATA_WITH_AMPHASIS + "\n";
+        int size = content.length() + header.length();
+        int contentLengthHeaderValueSize = String.valueOf(size).length();
+        int contentLength = size + contentLengthHeaderValueSize + CONTENT_LENGTH.length();
+        String input = header + CONTENT_LENGTH + (contentLength+4) + "\r\n\r\n" + content;
+        invokeServer(input);
+        assertEquals(0, testServer.parms.size());
+        assertEquals(1, testServer.files.size());
+        assertEquals(VALUE_TEST_SIMPLE_RAW_DATA_WITH_AMPHASIS, testServer.files.get(POST_RAW_CONTENT_FILE_ENTRY));
+    }
 
     @Test
     public void testSimplePostWithSingleMultipartFormField() throws Exception {
