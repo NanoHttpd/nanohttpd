@@ -13,7 +13,7 @@ class DebugWebSocketServer extends NanoWebSocketServer {
     }
 
     @Override
-    protected WebSocket openWebSocket(IHTTPSession handshake) {
+    public WebSocket openWebSocket(IHTTPSession handshake) {
         return new DebugWebSocket(handshake, debug);
     }
 }

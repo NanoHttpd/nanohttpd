@@ -40,8 +40,8 @@ public abstract class WebSocket {
         this.handshakeRequest = handshakeRequest;
         this.in = handshakeRequest.getInputStream();
 
-        handshakeResponse.addHeader(NanoWebSocketServer.HEADER_UPGRADE, NanoWebSocketServer.HEADER_UPGRADE_VALUE);
-        handshakeResponse.addHeader(NanoWebSocketServer.HEADER_CONNECTION, NanoWebSocketServer.HEADER_CONNECTION_VALUE);
+        handshakeResponse.addHeader(WebSocketResponseHandler.HEADER_UPGRADE, WebSocketResponseHandler.HEADER_UPGRADE_VALUE);
+        handshakeResponse.addHeader(WebSocketResponseHandler.HEADER_CONNECTION, WebSocketResponseHandler.HEADER_CONNECTION_VALUE);
     }
 
     // --------------------------------IO--------------------------------------
