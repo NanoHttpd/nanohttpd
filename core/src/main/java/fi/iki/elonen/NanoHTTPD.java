@@ -1131,7 +1131,7 @@ public abstract class NanoHTTPD {
                                 if (mpline != null) {
                                     int d = mpline.indexOf(boundary);
                                     if (d == -1) {
-                                        value += mpline;
+                                        value += mpline + "\n";
                                     } else {
                                         value += mpline.substring(0, d - 2);
                                     }
@@ -1150,7 +1150,7 @@ public abstract class NanoHTTPD {
                                 mpline = in.readLine();
                             } while (mpline != null && !mpline.contains(boundary));
                         }
-                        parms.put(pname, value);
+                        parms.put(pname, value.trim());
                     }
                 }
             } catch (IOException ioe) {
