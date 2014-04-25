@@ -28,7 +28,8 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
         return f.exists();
     }
 
-    @Override public NanoHTTPD.Response serveFile(String uri, Map<String, String> headers, File file, String mimeType) {
+    @Override
+    public NanoHTTPD.Response serveFile(String uri, Map<String, String> headers, NanoHTTPD.IHTTPSession session, File file, String mimeType) {
         String markdownSource = readSource(file);
         return markdownSource == null ? null :
             new NanoHTTPD.Response(OK, MIME_HTML, processor.markdownToHtml(markdownSource));
