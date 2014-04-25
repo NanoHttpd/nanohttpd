@@ -1,10 +1,11 @@
 package fi.iki.elonen;
 
 
-public class NanoWebSocketServer extends NanoHTTPD implements WebSocketFactory {
-    
+public class NanoWebSocketServer extends NanoHTTPD implements IWebSocketFactory {
+    public static final String MISSING_FACTORY_MESSAGE = "You must either override this method or supply a WebSocketFactory in the constructor";
+
     private final WebSocketResponseHandler responseHandler;
-    
+
     public NanoWebSocketServer(int port) {
         super(port);
         responseHandler = new WebSocketResponseHandler(this);
@@ -14,17 +15,17 @@ public class NanoWebSocketServer extends NanoHTTPD implements WebSocketFactory {
         super(hostname, port);
         responseHandler = new WebSocketResponseHandler(this);
     }
-    
-    public NanoWebSocketServer(int port, WebSocketFactory webSocketFactory) {
+
+    public NanoWebSocketServer(int port, IWebSocketFactory webSocketFactory) {
         super(port);
         responseHandler = new WebSocketResponseHandler(webSocketFactory);
     }
 
-    public NanoWebSocketServer(String hostname, int port,WebSocketFactory webSocketFactory) {
+    public NanoWebSocketServer(String hostname, int port, IWebSocketFactory webSocketFactory) {
         super(hostname, port);
         responseHandler = new WebSocketResponseHandler(webSocketFactory);
     }
-    
+
     @Override
     public Response serve(IHTTPSession session) {
         Response candidate = responseHandler.serve(session);
@@ -32,7 +33,7 @@ public class NanoWebSocketServer extends NanoHTTPD implements WebSocketFactory {
     }
 
     public WebSocket openWebSocket(IHTTPSession handshake) {
-        throw new Error("You must either override this method or supply a WebSocketFactory in the cosntructor");
+        throw new Error(MISSING_FACTORY_MESSAGE);
     }
 }
 

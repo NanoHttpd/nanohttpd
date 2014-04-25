@@ -1,4 +1,7 @@
-package fi.iki.elonen;
+package fi.iki.elonen.samples.echo;
+
+import fi.iki.elonen.NanoWebSocketServer;
+import fi.iki.elonen.WebSocket;
 
 /**
 * @author Paul S. Hawke (paul.hawke@gmail.com)

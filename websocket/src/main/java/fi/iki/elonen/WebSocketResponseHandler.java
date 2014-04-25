@@ -19,38 +19,40 @@ public class WebSocketResponseHandler {
     public static final String HEADER_WEBSOCKET_PROTOCOL = "sec-websocket-protocol";
 
     public final static String WEBSOCKET_KEY_MAGIC = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-    
-    private final WebSocketFactory webSocketFactory;
 
-    public WebSocketResponseHandler(WebSocketFactory webSocketFactory) {
-        super();
+    private final IWebSocketFactory webSocketFactory;
+
+    public WebSocketResponseHandler(IWebSocketFactory webSocketFactory) {
         this.webSocketFactory = webSocketFactory;
     }
-    
+
     public Response serve(final IHTTPSession session) {
         Map<String, String> headers = session.getHeaders();
         if (isWebsocketRequested(session)) {
-            if (!HEADER_UPGRADE_VALUE.equalsIgnoreCase(headers.get(HEADER_UPGRADE))
-                    || !isWebSocketConnectionHeader(session.getHeaders())) {
-                return new Response(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Invalid Websocket handshake");
-            }
             if (!HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(HEADER_WEBSOCKET_VERSION))) {
-                return new Response(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Invalid Websocket-Version " + headers.get(HEADER_WEBSOCKET_VERSION));
+                return new Response(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+                        "Invalid Websocket-Version " + headers.get(HEADER_WEBSOCKET_VERSION));
             }
+
             if (!headers.containsKey(HEADER_WEBSOCKET_KEY)) {
-                return new Response(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key");
+                return new Response(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+                        "Missing Websocket-Key");
             }
 
             WebSocket webSocket = webSocketFactory.openWebSocket(session);
+            Response handshakeResponse = webSocket.getHandshakeResponse();
             try {
-                webSocket.getHandshakeResponse().addHeader(HEADER_WEBSOCKET_ACCEPT, makeAcceptKey(headers.get(HEADER_WEBSOCKET_KEY)));
+                handshakeResponse.addHeader(HEADER_WEBSOCKET_ACCEPT, makeAcceptKey(headers.get(HEADER_WEBSOCKET_KEY)));
             } catch (NoSuchAlgorithmException e) {
-                return new Response(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "The SHA-1 Algorithm required for websockets is not available on the server.");
+                return new Response(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+                        "The SHA-1 Algorithm required for websockets is not available on the server.");
             }
+
             if (headers.containsKey(HEADER_WEBSOCKET_PROTOCOL)) {
-                webSocket.getHandshakeResponse().addHeader(HEADER_WEBSOCKET_PROTOCOL, headers.get(HEADER_WEBSOCKET_PROTOCOL).split(",")[0]);
+                handshakeResponse.addHeader(HEADER_WEBSOCKET_PROTOCOL, headers.get(HEADER_WEBSOCKET_PROTOCOL).split(",")[0]);
             }
-            return webSocket.getHandshakeResponse();
+
+            return handshakeResponse;
         } else {
             return null;
         }
@@ -76,7 +78,6 @@ public class WebSocketResponseHandler {
         byte[] sha1hash = md.digest();
         return encodeBase64(sha1hash);
     }
-
 
     private final static char[] ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".toCharArray();
 

@@ -2,6 +2,6 @@ package fi.iki.elonen;
 
 import fi.iki.elonen.NanoHTTPD.IHTTPSession;
 
-public interface WebSocketFactory {
+public interface IWebSocketFactory {
     WebSocket openWebSocket(IHTTPSession handshake);
 }

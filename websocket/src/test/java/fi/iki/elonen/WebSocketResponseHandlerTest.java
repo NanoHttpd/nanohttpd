@@ -1,97 +1,120 @@
 package fi.iki.elonen;
 
-import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import fi.iki.elonen.NanoHTTPD.IHTTPSession;
 import fi.iki.elonen.NanoHTTPD.Response;
-import fi.iki.elonen.WebSocketFrame.CloseCode;
-import fi.iki.elonen.testutil.MockHttpSession;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
 import static junit.framework.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class WebSocketResponseHandlerTest {
-    private WebSocketResponseHandler responseHandler = new WebSocketResponseHandler(new DummyWebSocketFactory(
-            new WebSocketAdapter(new MockHttpSession())));
-    
+
+    @Mock
+    private IHTTPSession session;
+    @Mock
+    private WebSocket webSocket;
+    @Mock
+    private IWebSocketFactory webSocketFactory;
+    @Mock
+    private Response response;
+    @Captor
+    private ArgumentCaptor<String> headerNameCaptor;
+    @Captor
+    private ArgumentCaptor<String> headerCaptor;
+
+    private Map<String, String> headers;
+
+    private WebSocketResponseHandler responseHandler;
+
+    @Before
+    public void setUp() {
+        headers = new HashMap<String, String>();
+        headers.put("upgrade", "websocket");
+        headers.put("connection", "Upgrade");
+        headers.put("sec-websocket-key", "x3JJHMbDL1EzLkh9GBhXDw==");
+        headers.put("sec-websocket-protocol", "chat, superchat");
+        headers.put("sec-websocket-version", "13");
+
+        when(session.getHeaders()).thenReturn(headers);
+        when(webSocketFactory.openWebSocket(any(IHTTPSession.class))).thenReturn(webSocket);
+        when(webSocket.getHandshakeResponse()).thenReturn(response);
+
+        responseHandler = new WebSocketResponseHandler(webSocketFactory);
+    }
+
     @Test
-    public void testHandshake_returnsExpectedHeaders() {
-        MockHttpSession session = createWebSocketHandshakeRequest();
+    public void testHandshakeReturnsResponseWithExpectedHeaders() {
+        Response handshakeResponse = responseHandler.serve(session);
+
+        verify(webSocket).getHandshakeResponse();
+        assertNotNull(handshakeResponse);
+        assertSame(response, handshakeResponse);
+
+        verify(response, atLeast(1)).addHeader(headerNameCaptor.capture(), headerCaptor.capture());
+        assertHeader(0, "sec-websocket-accept", "HSmrc0sMlYUkAGmm5OPpG2HaGWk=");
+        assertHeader(1, "sec-websocket-protocol", "chat");
+    }
+
+    @Test
+    public void testWrongWebsocketVersionReturnsErrorResponse() {
+        headers.put("sec-websocket-version", "12");
 
         Response handshakeResponse = responseHandler.serve(session);
-        
+
         assertNotNull(handshakeResponse);
-        assertEquals(101, handshakeResponse.getStatus().getRequestStatus());
-        assertEquals("101 Switching Protocols", handshakeResponse.getStatus().getDescription());
-        assertEquals("websocket", handshakeResponse.getHeader("upgrade"));
-        assertEquals("Upgrade", handshakeResponse.getHeader("connection"));
-        assertEquals("HSmrc0sMlYUkAGmm5OPpG2HaGWk=", handshakeResponse.getHeader("sec-websocket-accept"));
-        assertEquals("chat", handshakeResponse.getHeader("sec-websocket-protocol"));
+        assertEquals(Response.Status.BAD_REQUEST, handshakeResponse.getStatus());
     }
-    
+
     @Test
-    public void testWrongWebsocketVersion_returnsErrorResponse() {
-        MockHttpSession session = createWebSocketHandshakeRequest();
-        session.getHeaders().put("sec-websocket-version", "12");
+    public void testMissingKeyReturnsErrorResponse() {
+        headers.remove("sec-websocket-key");
 
         Response handshakeResponse = responseHandler.serve(session);
-        
+
         assertNotNull(handshakeResponse);
-        assertEquals(400, handshakeResponse.getStatus().getRequestStatus());
-        assertEquals("400 Bad Request", handshakeResponse.getStatus().getDescription());
+        assertEquals(Response.Status.BAD_REQUEST, handshakeResponse.getStatus());
     }
 
-    private MockHttpSession createWebSocketHandshakeRequest() {
-        // Example headers copied from Wikipedia
-        MockHttpSession session = new MockHttpSession();
-        session.getHeaders().put("upgrade", "websocket");
-        session.getHeaders().put("connection", "Upgrade");
-        session.getHeaders().put("sec-websocket-key", "x3JJHMbDL1EzLkh9GBhXDw==");
-        session.getHeaders().put("sec-websocket-protocol", "chat, superchat");
-        session.getHeaders().put("sec-websocket-version", "13");
-        return session;
+    @Test
+    public void testWrongUpgradeHeaderReturnsNullResponse() {
+        headers.put("upgrade", "not a websocket");
+        Response handshakeResponse = responseHandler.serve(session);
+        assertNull(handshakeResponse);
     }
-    
-    private static class DummyWebSocketFactory implements WebSocketFactory {
-        private final WebSocket webSocket;
-        
-        private DummyWebSocketFactory(WebSocket webSocket) {
-            super();
-            this.webSocket = webSocket;
-        }
 
-        @Override
-        public WebSocket openWebSocket(IHTTPSession handshake) {
-            return webSocket;
-        }
+    @Test
+    public void testWrongConnectionHeaderReturnsNullResponse() {
+        headers.put("connection", "Junk");
+        Response handshakeResponse = responseHandler.serve(session);
+        assertNull(handshakeResponse);
     }
-    
-    private static class WebSocketAdapter extends WebSocket {
 
-        public WebSocketAdapter(IHTTPSession handshakeRequest) {
-            super(handshakeRequest);
-        }
+    @Test
+    public void testConnectionHeaderHandlesKeepAlive_FixingFirefoxConnectIssue() {
+        headers.put("connection", "keep-alive, Upgrade");
+        Response handshakeResponse = responseHandler.serve(session);
 
-        @Override
-        protected void onPong(WebSocketFrame pongFrame) {
-            throw new Error("this method should not have been called");
-        }
+        verify(webSocket).getHandshakeResponse();
+        assertNotNull(handshakeResponse);
+        assertSame(response, handshakeResponse);
+    }
 
-        @Override
-        protected void onMessage(WebSocketFrame messageFrame) {
-            throw new Error("this method should not have been called");
-        }
-
-        @Override
-        protected void onClose(CloseCode code, String reason,
-                boolean initiatedByRemote) {
-            throw new Error("this method should not have been called");
-        }
-
-        @Override
-        protected void onException(IOException e) {
-            throw new Error("this method should not have been called");
-        }
-        
+    private void assertHeader(int index, String name, String value) {
+        assertEquals(name, headerNameCaptor.getAllValues().get(index));
+        assertEquals(value, headerCaptor.getAllValues().get(index));
     }
 }

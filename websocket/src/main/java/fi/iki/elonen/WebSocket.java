@@ -12,20 +12,24 @@ import java.util.LinkedList;
 import java.util.List;
 
 public abstract class WebSocket {
-    protected final InputStream in;
-    protected /*final*/ OutputStream out;
-
-    protected WebSocketFrame.OpCode continuousOpCode = null;
-    protected List<WebSocketFrame> continuousFrames = new LinkedList<WebSocketFrame>();
-
-    protected State state = State.UNCONNECTED;
-
     public static enum State {
         UNCONNECTED, CONNECTING, OPEN, CLOSING, CLOSED
     }
 
+    protected InputStream in;
+
+    protected OutputStream out;
+
+    protected WebSocketFrame.OpCode continuousOpCode = null;
+
+    protected List<WebSocketFrame> continuousFrames = new LinkedList<WebSocketFrame>();
+
+    protected State state = State.UNCONNECTED;
+
     protected final NanoHTTPD.IHTTPSession handshakeRequest;
-    protected final NanoHTTPD.Response handshakeResponse = new NanoHTTPD.Response(NanoHTTPD.Response.Status.SWITCH_PROTOCOL, null, (InputStream) null) {
+
+    protected final NanoHTTPD.Response handshakeResponse = new NanoHTTPD.Response(
+            NanoHTTPD.Response.Status.SWITCH_PROTOCOL, null, (InputStream) null) {
         @Override
         protected void send(OutputStream out) {
             WebSocket.this.out = out;
@@ -40,8 +44,18 @@ public abstract class WebSocket {
         this.handshakeRequest = handshakeRequest;
         this.in = handshakeRequest.getInputStream();
 
-        handshakeResponse.addHeader(WebSocketResponseHandler.HEADER_UPGRADE, WebSocketResponseHandler.HEADER_UPGRADE_VALUE);
-        handshakeResponse.addHeader(WebSocketResponseHandler.HEADER_CONNECTION, WebSocketResponseHandler.HEADER_CONNECTION_VALUE);
+        handshakeResponse.addHeader(WebSocketResponseHandler.HEADER_UPGRADE,
+                WebSocketResponseHandler.HEADER_UPGRADE_VALUE);
+        handshakeResponse.addHeader(WebSocketResponseHandler.HEADER_CONNECTION,
+                WebSocketResponseHandler.HEADER_CONNECTION_VALUE);
+    }
+
+    public NanoHTTPD.IHTTPSession getHandshakeRequest() {
+        return handshakeRequest;
+    }
+
+    public NanoHTTPD.Response getHandshakeResponse() {
+        return handshakeResponse;
     }
 
     // --------------------------------IO--------------------------------------
@@ -189,15 +203,5 @@ public abstract class WebSocket {
         } else {
             doClose(code, reason, false);
         }
-    }
-
-    // --------------------------------Getters---------------------------------
-
-    public NanoHTTPD.IHTTPSession getHandshakeRequest() {
-        return handshakeRequest;
-    }
-
-    public NanoHTTPD.Response getHandshakeResponse() {
-        return handshakeResponse;
     }
 }

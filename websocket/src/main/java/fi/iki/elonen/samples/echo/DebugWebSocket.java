@@ -1,4 +1,8 @@
-package fi.iki.elonen;
+package fi.iki.elonen.samples.echo;
+
+import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.WebSocket;
+import fi.iki.elonen.WebSocketFrame;
 
 import java.io.IOException;
 
@@ -7,16 +11,16 @@ import java.io.IOException;
 *         On: 4/23/14 at 10:34 PM
 */
 class DebugWebSocket extends WebSocket {
-    private final boolean DEBUG;
+    private final boolean debug;
 
     public DebugWebSocket(NanoHTTPD.IHTTPSession handshake, boolean debug) {
         super(handshake);
-        DEBUG = debug;
+        this.debug = debug;
     }
 
     @Override
     protected void onPong(WebSocketFrame pongFrame) {
-        if (DEBUG) {
+        if (debug) {
             System.out.println("P " + pongFrame);
         }
     }
@@ -33,8 +37,10 @@ class DebugWebSocket extends WebSocket {
 
     @Override
     protected void onClose(WebSocketFrame.CloseCode code, String reason, boolean initiatedByRemote) {
-        if (DEBUG) {
-            System.out.println("C [" + (initiatedByRemote ? "Remote" : "Self") + "] " + (code != null ? code : "UnknownCloseCode[" + code + "]") + (reason != null && !reason.isEmpty() ? ": " + reason : ""));
+        if (debug) {
+            System.out.println("C [" + (initiatedByRemote ? "Remote" : "Self") + "] " +
+                    (code != null ? code : "UnknownCloseCode[" + code + "]") +
+                    (reason != null && !reason.isEmpty() ? ": " + reason : ""));
         }
     }
 
@@ -45,7 +51,7 @@ class DebugWebSocket extends WebSocket {
 
     @Override
     protected void handleWebsocketFrame(WebSocketFrame frame) throws IOException {
-        if (DEBUG) {
+        if (debug) {
             System.out.println("R " + frame);
         }
         super.handleWebsocketFrame(frame);
@@ -53,7 +59,7 @@ class DebugWebSocket extends WebSocket {
 
     @Override
     public synchronized void sendFrame(WebSocketFrame frame) throws IOException {
-        if (DEBUG) {
+        if (debug) {
             System.out.println("S " + frame);
         }
         super.sendFrame(frame);
