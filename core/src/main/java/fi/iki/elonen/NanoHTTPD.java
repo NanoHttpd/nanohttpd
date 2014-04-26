@@ -1,19 +1,6 @@
 package fi.iki.elonen;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.RandomAccessFile;
-import java.io.PushbackInputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -218,7 +205,9 @@ public abstract class NanoHTTPD {
         try {
             safeClose(myServerSocket);
             closeAllConnections();
-            myThread.join();
+            if (myThread != null) {
+                myThread.join();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -227,8 +216,7 @@ public abstract class NanoHTTPD {
     /**
      * Registers that a new connection has been set up.
      *
-     * @param socket
-     *            the {@link Socket} for the connection.
+     * @param socket the {@link Socket} for the connection.
      */
     public synchronized void registerConnection(Socket socket) {
         openConnections.add(socket);
@@ -606,7 +594,7 @@ public abstract class NanoHTTPD {
         public void addHeader(String name, String value) {
             header.put(name, value);
         }
-        
+
         public String getHeader(String name) {
             return header.get(name);
         }
@@ -646,7 +634,11 @@ public abstract class NanoHTTPD {
                 if (requestMethod != Method.HEAD && chunkedTransfer) {
                     sendAsChunked(outputStream, pw);
                 } else {
-                    sendAsFixedLength(outputStream, pw);
+                    int pending = data != null ? data.available() : 0;
+                    sendContentLengthHeaderIfNotAlreadyPresent(pw, header, pending);
+                    pw.print("\r\n");
+                    pw.flush();
+                    sendAsFixedLength(outputStream, pending);
                 }
                 outputStream.flush();
                 safeClose(data);
@@ -655,14 +647,24 @@ public abstract class NanoHTTPD {
             }
         }
 
-        protected void sendConnectionHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header) {
-            boolean connectionAlreadySent = false;
-            for (String headerName : header.keySet()) {
-                connectionAlreadySent |= headerName.equalsIgnoreCase("connection");
+        protected void sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header, int size) {
+            if (!headerAlreadySent(header, "content-length")) {
+                pw.print("Content-Length: "+ size +"\r\n");
             }
-            if (!connectionAlreadySent) {
+        }
+
+        protected void sendConnectionHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header) {
+            if (!headerAlreadySent(header, "connection")) {
                 pw.print("Connection: keep-alive\r\n");
             }
+        }
+
+        private boolean headerAlreadySent(Map<String, String> header, String name) {
+            boolean alreadySent = false;
+            for (String headerName : header.keySet()) {
+                alreadySent |= headerName.equalsIgnoreCase(name);
+            }
+            return alreadySent;
         }
 
         private void sendAsChunked(OutputStream outputStream, PrintWriter pw) throws IOException {
@@ -681,13 +683,7 @@ public abstract class NanoHTTPD {
             outputStream.write(String.format("0\r\n\r\n").getBytes());
         }
 
-        private void sendAsFixedLength(OutputStream outputStream, PrintWriter pw) throws IOException {
-            int pending = data != null ? data.available() : 0; // This is to support partial sends, see serveFile()
-            pw.print("Content-Length: "+pending+"\r\n");
-
-            pw.print("\r\n");
-            pw.flush();
-
+        private void sendAsFixedLength(OutputStream outputStream, int pending) throws IOException {
             if (requestMethod != Method.HEAD && data != null) {
                 int BUFFER_SIZE = 16 * 1024;
                 byte[] buff = new byte[BUFFER_SIZE];
@@ -697,7 +693,6 @@ public abstract class NanoHTTPD {
                         break;
                     }
                     outputStream.write(buff, 0, read);
-
                     pending -= read;
                 }
             }
