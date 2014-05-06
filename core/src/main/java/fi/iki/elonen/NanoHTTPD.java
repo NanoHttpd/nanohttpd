@@ -206,7 +206,7 @@ public abstract class NanoHTTPD {
          ctx.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
          res = ctx.getServerSocketFactory();
       } catch (Exception e) {
-         throw new IOException(e);
+         throw new IOException(e.getMessage());
       }
       return res;
    }
@@ -226,7 +226,7 @@ public abstract class NanoHTTPD {
          ctx.init(loadedKeyFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
          res = ctx.getServerSocketFactory();
       } catch (Exception e) {
-         throw new IOException(e);
+         throw new IOException(e.getMessage());
       }
       return res;
    }
@@ -246,7 +246,7 @@ public abstract class NanoHTTPD {
          ctx.init(keyManagers, trustManagerFactory.getTrustManagers(), null);
          res = ctx.getServerSocketFactory();
       } catch (Exception e) {
-         throw new IOException(e);
+         throw new IOException(e.getMessage());
       }
       return res;
    }
