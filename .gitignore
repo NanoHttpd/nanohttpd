@@ -8,6 +8,7 @@ target
 .idea
 .classpath
 .project
+.gradle
 
 # Vim Backup/Swap Files
 *~
