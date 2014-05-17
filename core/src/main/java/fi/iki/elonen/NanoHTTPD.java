@@ -257,7 +257,7 @@ public abstract class NanoHTTPD {
      * Override this to customize the server.
      * <p/>
      * <p/>
-     * (By default, this delegates to serveFile() and allows directory listing.)
+     * (By default, this returns a 404 "Not Found" plain text error response.)
      *
      * @param uri     Percent-decoded URI without parameters, for example "/index.cgi"
      * @param method  "GET", "POST" etc.
@@ -275,7 +275,7 @@ public abstract class NanoHTTPD {
      * Override this to customize the server.
      * <p/>
      * <p/>
-     * (By default, this delegates to serveFile() and allows directory listing.)
+     * (By default, this returns a 404 "Not Found" plain text error response.)
      *
      * @param session The HTTP session
      * @return HTTP response, see class Response for details
