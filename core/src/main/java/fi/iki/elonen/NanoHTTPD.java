@@ -821,7 +821,7 @@ public abstract class NanoHTTPD {
 
         /**
          * Adds the files in the request body to the files map.
-         * @arg files - map to modify
+         * @param files map to modify
          */
         void parseBody(Map<String, String> files) throws IOException, ResponseException;
     }
