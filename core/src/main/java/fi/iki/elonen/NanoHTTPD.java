@@ -53,8 +53,8 @@ import java.util.TimeZone;
  * <li>File server does the 301 redirection trick for directories without '/'</li>
  * <li>File server supports simple skipping for files (continue download)</li>
  * <li>File server serves also very long files without memory overhead</li>
- * <li>Contains a built-in list of most common mime types</li>
- * <li>All header names are converted lowercase so they don't vary between browsers/clients</li>
+ * <li>Contains a built-in list of most common MIME types</li>
+ * <li>All header names are converted to lower case so they don't vary between browsers/clients</li>
  * <p/>
  * </ul>
  * <p/>
@@ -76,11 +76,11 @@ public abstract class NanoHTTPD {
      */
     public static final int SOCKET_READ_TIMEOUT = 5000;
     /**
-     * Common mime type for dynamic content: plain text
+     * Common MIME type for dynamic content: plain text
      */
     public static final String MIME_PLAINTEXT = "text/plain";
     /**
-     * Common mime type for dynamic content: html
+     * Common MIME type for dynamic content: html
      */
     public static final String MIME_HTML = "text/html";
     /**
@@ -318,7 +318,7 @@ public abstract class NanoHTTPD {
      * supplied several times, by return lists of values.  In general these lists will contain a single
      * element.
      *
-     * @param parms original <b>NanoHttpd</b> parameters values, as passed to the <code>serve()</code> method.
+     * @param parms original <b>NanoHTTPD</b> parameters values, as passed to the <code>serve()</code> method.
      * @return a map of <code>String</code> (parameter name) to <code>List&lt;String&gt;</code> (a list of the values supplied).
      */
     protected Map<String, List<String>> decodeParameters(Map<String, String> parms) {
@@ -442,7 +442,7 @@ public abstract class NanoHTTPD {
     }
 
     /**
-     * Default threading strategy for NanoHttpd.
+     * Default threading strategy for NanoHTTPD.
      * <p/>
      * <p>By default, the server spawns a new Thread for every incoming request.  These are set
      * to <i>daemon</i> status, and named according to the request number.  The name is
@@ -1068,9 +1068,9 @@ public abstract class NanoHTTPD {
                     uri = decodePercent(uri);
                 }
 
-                // If there's another token, it's protocol version,
+                // If there's another token, its protocol version,
                 // followed by HTTP headers. Ignore version but parse headers.
-                // NOTE: this now forces header names lowercase since they are
+                // NOTE: this now forces header names lower case since they are
                 // case insensitive and vary by client.
                 if (st.hasMoreTokens()) {
                     String line = in.readLine();
