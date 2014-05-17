@@ -29,7 +29,7 @@ import java.util.TimeZone;
  * <p/>
  * <p/>
  * NanoHTTPD
- * <p></p>Copyright (c) 2012-2013 by Paul S. Hawke, 2001,2005-2013 by Jarno Elonen, 2010 by Konstantinos Togias</p>
+ * <p>Copyright (c) 2012-2013 by Paul S. Hawke, 2001,2005-2013 by Jarno Elonen, 2010 by Konstantinos Togias</p>
  * <p/>
  * <p/>
  * <b>Features + limitations: </b>
@@ -464,7 +464,7 @@ public abstract class NanoHTTPD {
     /**
      * Default strategy for creating and cleaning up temporary files.
      * <p/>
-     * <p></p>This class stores its files in the standard location (that is,
+     * <p>This class stores its files in the standard location (that is,
      * wherever <code>java.io.tmpdir</code> points to).  Files are added
      * to an internal list, and deleted when no longer needed (that is,
      * when <code>clear()</code> is invoked at the end of processing a
@@ -501,7 +501,7 @@ public abstract class NanoHTTPD {
     /**
      * Default strategy for creating and cleaning up temporary files.
      * <p/>
-     * <p></p></[>By default, files are created by <code>File.createTempFile()</code> in
+     * <p>By default, files are created by <code>File.createTempFile()</code> in
      * the directory specified.</p>
      */
     public static class DefaultTempFile implements TempFile {
