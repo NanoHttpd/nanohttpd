@@ -535,7 +535,7 @@ public abstract class NanoHTTPD {
      */
     public static class Response {
         /**
-         * HTTP status code after processing, e.g. "200 OK", HTTP_OK
+         * HTTP status code after processing, e.g. "200 OK", Status.OK
          */
         private IStatus status;
         /**
@@ -560,7 +560,7 @@ public abstract class NanoHTTPD {
         private boolean chunkedTransfer;
 
         /**
-         * Default constructor: response = HTTP_OK, mime = MIME_HTML and your supplied message
+         * Default constructor: response = Status.OK, mime = MIME_HTML and your supplied message
          */
         public Response(String msg) {
             this(Status.OK, MIME_HTML, msg);
