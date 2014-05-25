@@ -898,6 +898,8 @@ public abstract class NanoHTTPD {
                 parms = new HashMap<String, String>();
                 if(null == headers) {
                     headers = new HashMap<String, String>();
+                } else {
+                    headers.clear();
                 }
 
                 // Create a BufferedReader for parsing the header.
