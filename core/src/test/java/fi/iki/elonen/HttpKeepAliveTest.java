@@ -54,12 +54,17 @@ public class HttpKeepAliveTest extends HttpServerTest {
                     PipedOutputStream requestStream = new PipedOutputStream();
                     PipedInputStream inputStream = new PipedInputStream(requestStream);
                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                    NanoHTTPD.HTTPSession session = testServer.createSession(new TestTempFileManager(), inputStream, outputStream);
-                    for (int i = 0; i < 2048; i++) {
-                        requestStream.write(request.getBytes());
-                        requestStream.flush();
-                        session.execute();
-                        assertResponse(outputStream, expected);
+                    NanoHTTPD.DefaultTempFileManager tempFileManager = new NanoHTTPD.DefaultTempFileManager();
+                    try {
+                        NanoHTTPD.HTTPSession session = testServer.createSession(tempFileManager, inputStream, outputStream);
+                        for (int i = 0; i < 2048; i++) {
+                            requestStream.write(request.getBytes());
+                            requestStream.flush();
+                            session.execute();
+                            assertResponse(outputStream, expected);
+                        }
+                    } finally {
+                        tempFileManager.clear();
                     }
                 } catch (Throwable t) {
                     error = t;
