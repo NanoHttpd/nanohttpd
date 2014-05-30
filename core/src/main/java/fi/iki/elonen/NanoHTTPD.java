@@ -88,23 +88,29 @@ public abstract class NanoHTTPD {
 	private Method method;
 	private OutputStream outputStream;
 
-
 	/**
-	 * Constructs an HTTP server on given port.
+	 * Constructs an HTTP server on given port with useCallback option disabled.
 	 */
 	public NanoHTTPD(int port) {
 		this(null, port, false);
 	}
 
 	/**
-	 * Constructs an HTTP server on given port.
+	 * Constructs an HTTP server on given port, with useCallback option enabled or disabled.
 	 */
 	public NanoHTTPD(int port, Boolean useCallback) {
 		this(null, port, useCallback);
 	}
+	
+	/**
+	 * Constructs an HTTP server on given hostname and port with useCallback option disabled.
+	 */
+	public NanoHTTPD(String hostname, int port) {
+		this(hostname, port, false);
+	}
 
 	/**
-	 * Constructs an HTTP server on given hostname and port.
+	 * Constructs an HTTP server on given hostname, port, and with useCallback option enabled or disabled.
 	 */
 	public NanoHTTPD(String hostname, int port, Boolean useCallback) {
 		this.hostname = hostname;
@@ -113,7 +119,6 @@ public abstract class NanoHTTPD {
 		setTempFileManagerFactory(new DefaultTempFileManagerFactory());
 		setAsyncRunner(new DefaultAsyncRunner());
 	}
-
 
 	/**
 	 * Creates an SSLSocketFactory for HTTPS.
