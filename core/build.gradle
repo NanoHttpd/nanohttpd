@@ -2,6 +2,12 @@ apply plugin: 'java'
 
 version = '2.1.0'
 
+task wrapper( type : Wrapper ) {
+    description = "Bootstrap for running gradle. The configured version of gradle is downloaded and used in the execution of this build."
+    gradleVersion '1.12'
+    distributionUrl "http://services.gradle.org/distributions/gradle-${gradleVersion}-bin.zip"
+}
+
 jar {
     baseName = 'nanohttpd'
 }
