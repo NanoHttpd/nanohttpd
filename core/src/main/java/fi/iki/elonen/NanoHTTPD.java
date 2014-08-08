@@ -635,7 +635,7 @@ public abstract class NanoHTTPD {
                     sendAsChunked(outputStream, pw);
                 } else {
                     int pending = data != null ? data.available() : 0;
-                    sendContentLengthHeaderIfNotAlreadyPresent(pw, header, pending);
+                    pending = sendContentLengthHeaderIfNotAlreadyPresent(pw, header, pending);
                     pw.print("\r\n");
                     pw.flush();
                     sendAsFixedLength(outputStream, pending);
@@ -647,10 +647,19 @@ public abstract class NanoHTTPD {
             }
         }
 
-        protected void sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header, int size) {
-            if (!headerAlreadySent(header, "content-length")) {
-                pw.print("Content-Length: "+ size +"\r\n");
+        protected int sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header, int size) {
+            for (String headerName : header.keySet()) {
+                if (headerName.equalsIgnoreCase("content-length") {
+                    try {
+                        return Integer.parseInt(header.get(headerName));
+                    } catch (NumberFormatException ex) {
+                        return size;
+                    }
+                }
             }
+
+            pw.print("Content-Length: "+ size +"\r\n");
+            return size;
         }
 
         protected void sendConnectionHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header) {
