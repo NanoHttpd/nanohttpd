@@ -5,6 +5,7 @@
 *NanoHttpd* has been released under a Modified BSD licence.
 
 [![Build Status](https://travis-ci.org/dzlab/nanohttpd.png)](https://travis-ci.org/dzlab/nanohttpd)
+[![Coverage Status](https://coveralls.io/repos/dzlab/nanohttpd/badge.png?branch=master)](https://coveralls.io/r/dzlab/nanohttpd?branch=master)
 
 ## Core Features
 * Only one Java file, providing HTTP 1.1 support.
