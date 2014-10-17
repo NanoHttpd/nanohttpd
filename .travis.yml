@@ -1,0 +1,15 @@
+language: java
+jdk:
+  - oraclejdk8
+  - oraclejdk7
+  - openjdk6
+
+# build
+install:
+  - mvn install -DskipTests=true
+
+# run tests
+script: mvn test
+
+after_success:
+  - mvn clean cobertura:cobertura coveralls:report
