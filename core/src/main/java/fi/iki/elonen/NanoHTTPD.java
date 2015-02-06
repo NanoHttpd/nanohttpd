@@ -702,7 +702,7 @@ public abstract class NanoHTTPD {
             return status;
         }
 
-        public void setStatus(Status status) {
+        public void setStatus(IStatus status) {
             this.status = status;
         }
 
