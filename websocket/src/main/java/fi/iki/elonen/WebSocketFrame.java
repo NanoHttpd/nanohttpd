@@ -280,7 +280,6 @@ public class WebSocketFrame {
 
     public static final Charset TEXT_CHARSET = Charset.forName("UTF-8");
     public static final CharsetDecoder TEXT_DECODER = TEXT_CHARSET.newDecoder();
-    public static final CharsetEncoder TEXT_ENCODER = TEXT_CHARSET.newEncoder();
 
 
     public static String binary2Text(byte[] payload) throws CharacterCodingException {
@@ -292,7 +291,7 @@ public class WebSocketFrame {
     }
 
     public static byte[] text2Binary(String payload) throws CharacterCodingException {
-        return TEXT_ENCODER.encode(CharBuffer.wrap(payload)).array();
+        return payload.getBytes(TEXT_CHARSET);
     }
 
     @Override
