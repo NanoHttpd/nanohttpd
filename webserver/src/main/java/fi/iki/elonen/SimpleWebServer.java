@@ -212,11 +212,11 @@ public class SimpleWebServer extends NanoHTTPD {
         return rootDirs.get(0);
     }
 
-    private List<File> getRootDirs() {
+    public List<File> getRootDirs() {
         return rootDirs;
     }
 
-    private void addWwwRootDir(File wwwroot) {
+    public void addWwwRootDir(File wwwroot) {
         rootDirs.add(wwwroot);
     }
 
