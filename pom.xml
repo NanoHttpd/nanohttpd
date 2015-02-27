@@ -13,8 +13,8 @@
 	<description>NanoHttpd is a light-weight HTTP server designed for embedding in other applications.</description>
 	<url>https://github.com/NanoHttpd/nanohttpd</url>
 	<scm>
-		<connection>scm:git:https://github.com/NanoHttpd/nanohttpd.git</connection>
-		<developerConnection>scm:git:https://github.com/NanoHttpd/nanohttpd.git</developerConnection>
+		<connection>scm:git:https://github.com/ritchieGitHub/nanohttpd.git</connection>
+		<developerConnection>scm:git:https://github.com/ritchieGitHub/nanohttpd.git</developerConnection>
 		<url>https://github.com/NanoHttpd/nanohttpd</url>
 		<tag>HEAD</tag>
 	</scm>
