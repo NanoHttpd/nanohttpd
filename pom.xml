@@ -7,7 +7,7 @@
 	</parent>
 	<groupId>com.nanohttpd</groupId>
 	<artifactId>nanohttpd-project</artifactId>
-	<version>2.1.2-SNAPSHOT</version>
+	<version>2.1.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>NanoHttpd-Project</name>
 	<description>NanoHttpd is a light-weight HTTP server designed for embedding in other applications.</description>
@@ -130,7 +130,7 @@
 				<version>2.5.1</version>
 				<configuration>
 					<mavenExecutorId>forked-path</mavenExecutorId>
-					<branchName>${project.artifactId}-${project.version}</branchName>
+					<branchName>${project.artifactId}-2.1.1</branchName>
 				</configuration>
 			</plugin>
 			<plugin>
