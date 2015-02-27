@@ -3,9 +3,10 @@
 	<parent>
 		<groupId>com.nanohttpd</groupId>
 		<artifactId>nanohttpd-project</artifactId>
-		<version>2.1.0-SNAPSHOT</version>
+		<version>2.1.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>nanohttpd-webserver-markdown-plugin</artifactId>
+  <version>2.1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>NanoHttpd-Webserver-Markdown-Plugin</name>
 	<url>https://github.com/NanoHttpd/nanohttpd</url>
@@ -56,4 +57,8 @@
 			</plugin>
 		</plugins>
 	</build>
+
+  <scm>
+    <tag>nanohttpd-project-2.1.1-SNAPSHOT</tag>
+  </scm>
 </project>
