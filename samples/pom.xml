@@ -1,75 +1,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
-    <groupId>fi.iki.elonen</groupId>
+	<parent>
+		<groupId>com.nanohttpd</groupId>
+		<artifactId>nanohttpd-project</artifactId>
+		<version>2.1.0-SNAPSHOT</version>
+	</parent>
     <artifactId>nanohttpd-samples</artifactId>
-    <version>2.1.0</version>
     <packaging>jar</packaging>
-
     <name>NanoHttpd-Samples</name>
-    <url>https://github.com/NanoHttpd/nanohttpd</url>
-
     <dependencies>
         <dependency>
-            <groupId>fi.iki.elonen</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>nanohttpd</artifactId>
-            <version>2.1.0</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>fi.iki.elonen</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>nanohttpd-webserver</artifactId>
-            <version>2.1.0</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
-
-    <build>
-        <extensions>
-            <extension>
-                <groupId>org.jvnet.wagon-svn</groupId>
-                <artifactId>wagon-svn</artifactId>
-                <version>1.8</version>
-            </extension>
-            <extension>
-                <groupId>org.apache.maven.wagon</groupId>
-                <artifactId>wagon-ftp</artifactId>
-                <version>1.0-alpha-6</version>
-            </extension>
-        </extensions>
-
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.4</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.1</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>

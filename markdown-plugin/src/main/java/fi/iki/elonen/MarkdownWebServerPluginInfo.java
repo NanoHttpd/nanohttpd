@@ -2,7 +2,7 @@ package fi.iki.elonen;
 
 /*
  * #%L
- * NanoHttpd-Core
+ * NanoHttpd-Webserver-Markdown-Plugin
  * %%
  * Copyright (C) 2012 - 2015 nanohttpd
  * %%
@@ -33,34 +33,20 @@ package fi.iki.elonen;
  * #L%
  */
 
-import org.junit.Test;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.net.InetAddress;
-
-import static org.junit.Assert.assertEquals;
-
-public class HttpSessionHeadersTest extends HttpServerTest {
-    private static final String DUMMY_REQUEST_CONTENT = "dummy request content";
-    private static final TestTempFileManager TEST_TEMP_FILE_MANAGER = new TestTempFileManager();
-
-    @Override
-    public void setUp() {
-        super.setUp();
+/**
+ * @author Paul S. Hawke (paul.hawke@gmail.com)
+ *         On: 9/13/13 at 4:01 AM
+ */
+public class MarkdownWebServerPluginInfo implements WebServerPluginInfo {
+    @Override public String[] getMimeTypes() {
+        return new String[]{"text/markdown"};
     }
 
-    @Test
-    public void testHeadersRemoteIp() throws Exception {
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(DUMMY_REQUEST_CONTENT.getBytes());
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        String[] ipAddresses = { "127.0.0.1", "192.168.1.1", "192.30.252.129" };
-        for(String ipAddress : ipAddresses) {
-            InetAddress inetAddress = InetAddress.getByName(ipAddress);
-            NanoHTTPD.HTTPSession session = testServer.createSession(TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
-            assertEquals(ipAddress, session.getHeaders().get("remote-addr"));
-            assertEquals(ipAddress, session.getHeaders().get("http-client-ip"));
-        }
+    @Override public String[] getIndexFilesForMimeType(String mime) {
+        return new String[]{"index.md"};
     }
 
+    @Override public WebServerPlugin getWebServerPlugin(String mimeType) {
+        return new MarkdownWebServerPlugin();
+    }
 }
