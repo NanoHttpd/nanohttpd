@@ -527,7 +527,7 @@ public class SimpleWebServer extends NanoHTTPD {
                     } else if (len < 1024 * 1024) {
                         msg.append(len / 1024).append(".").append(len % 1024 / 10 % 100).append(" KB");
                     } else {
-                        msg.append(len / (1024 * 1024)).append(".").append(len % (1024 * 1024) / 10 % 100).append(" MB");
+                        msg.append(len / (1024 * 1024)).append(".").append(len % (1024 * 1024) / 10000 % 100).append(" MB");
                     }
                     msg.append(")</span></li>");
                 }
