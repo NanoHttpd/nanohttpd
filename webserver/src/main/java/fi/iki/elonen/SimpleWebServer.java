@@ -53,6 +53,7 @@ public class SimpleWebServer extends NanoHTTPD {
         put("mov", "video/quicktime");
         put("swf", "application/x-shockwave-flash");
         put("js", "application/javascript");
+        put("json", "application/json");
         put("pdf", "application/pdf");
         put("doc", "application/msword");
         put("ogg", "application/x-ogg");
