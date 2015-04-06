@@ -4,12 +4,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
 import java.util.Arrays;
 import java.util.List;
 
@@ -279,20 +275,17 @@ public class WebSocketFrame {
     // --------------------------------ENCODING--------------------------------
 
     public static final Charset TEXT_CHARSET = Charset.forName("UTF-8");
-    public static final CharsetDecoder TEXT_DECODER = TEXT_CHARSET.newDecoder();
-    public static final CharsetEncoder TEXT_ENCODER = TEXT_CHARSET.newEncoder();
-
 
     public static String binary2Text(byte[] payload) throws CharacterCodingException {
-        return TEXT_DECODER.decode(ByteBuffer.wrap(payload)).toString();
+    	return new String(payload, TEXT_CHARSET);
     }
 
     public static String binary2Text(byte[] payload, int offset, int length) throws CharacterCodingException {
-        return TEXT_DECODER.decode(ByteBuffer.wrap(payload, offset, length)).toString();
+    	return new String(payload, offset, length, TEXT_CHARSET);
     }
 
     public static byte[] text2Binary(String payload) throws CharacterCodingException {
-        return TEXT_ENCODER.encode(CharBuffer.wrap(payload)).array();
+    	return payload.getBytes(TEXT_CHARSET);
     }
 
     @Override
