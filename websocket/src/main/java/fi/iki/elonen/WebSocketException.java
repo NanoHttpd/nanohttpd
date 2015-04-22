@@ -5,6 +5,8 @@ import fi.iki.elonen.WebSocketFrame.CloseCode;
 import java.io.IOException;
 
 public class WebSocketException extends IOException {
+    private static final long serialVersionUID = -6179651370664878831L;
+
     private CloseCode code;
     private String reason;
 

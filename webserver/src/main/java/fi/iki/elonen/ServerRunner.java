@@ -3,7 +3,7 @@ package fi.iki.elonen;
 import java.io.IOException;
 
 public class ServerRunner {
-    public static void run(Class serverClass) {
+    public static <T extends NanoHTTPD> void run(Class<T> serverClass) {
         try {
             executeInstance((NanoHTTPD) serverClass.newInstance());
         } catch (Exception e) {

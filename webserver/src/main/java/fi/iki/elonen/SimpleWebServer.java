@@ -25,6 +25,7 @@ public class SimpleWebServer extends NanoHTTPD {
     /**
      * Default Index file names.
      */
+    @SuppressWarnings("serial")
     public static final List<String> INDEX_FILE_NAMES = new ArrayList<String>() {{
         add("index.html");
         add("index.htm");
@@ -32,6 +33,7 @@ public class SimpleWebServer extends NanoHTTPD {
     /**
      * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
      */
+    @SuppressWarnings("serial")
     private static final Map<String, String> MIME_TYPES = new HashMap<String, String>() {{
         put("css", "text/css");
         put("htm", "text/html");
@@ -208,7 +210,7 @@ public class SimpleWebServer extends NanoHTTPD {
         plugin.initialize(commandLineOptions);
     }
 
-    private File getRootDir() {
+    protected File getRootDir() {
         return rootDirs.get(0);
     }
 
@@ -216,7 +218,7 @@ public class SimpleWebServer extends NanoHTTPD {
         return rootDirs;
     }
 
-    private void addWwwRootDir(File wwwroot) {
+    protected void addWwwRootDir(File wwwroot) {
         rootDirs.add(wwwroot);
     }
 
