@@ -29,7 +29,7 @@ import java.util.TimeZone;
  * <p/>
  * <p/>
  * NanoHTTPD
- * <p></p>Copyright (c) 2012-2013 by Paul S. Hawke, 2001,2005-2013 by Jarno Elonen, 2010 by Konstantinos Togias</p>
+ * <p>Copyright (c) 2012-2013 by Paul S. Hawke, 2001,2005-2013 by Jarno Elonen, 2010 by Konstantinos Togias</p>
  * <p/>
  * <p/>
  * <b>Features + limitations: </b>
@@ -53,8 +53,8 @@ import java.util.TimeZone;
  * <li>File server does the 301 redirection trick for directories without '/'</li>
  * <li>File server supports simple skipping for files (continue download)</li>
  * <li>File server serves also very long files without memory overhead</li>
- * <li>Contains a built-in list of most common mime types</li>
- * <li>All header names are converted lowercase so they don't vary between browsers/clients</li>
+ * <li>Contains a built-in list of most common MIME types</li>
+ * <li>All header names are converted to lower case so they don't vary between browsers/clients</li>
  * <p/>
  * </ul>
  * <p/>
@@ -76,11 +76,11 @@ public abstract class NanoHTTPD {
      */
     public static final int SOCKET_READ_TIMEOUT = 5000;
     /**
-     * Common mime type for dynamic content: plain text
+     * Common MIME type for dynamic content: plain text
      */
     public static final String MIME_PLAINTEXT = "text/plain";
     /**
-     * Common mime type for dynamic content: html
+     * Common MIME type for dynamic content: html
      */
     public static final String MIME_HTML = "text/html";
     /**
@@ -258,7 +258,7 @@ public abstract class NanoHTTPD {
      * Override this to customize the server.
      * <p/>
      * <p/>
-     * (By default, this delegates to serveFile() and allows directory listing.)
+     * (By default, this returns a 404 "Not Found" plain text error response.)
      *
      * @param uri     Percent-decoded URI without parameters, for example "/index.cgi"
      * @param method  "GET", "POST" etc.
@@ -276,7 +276,7 @@ public abstract class NanoHTTPD {
      * Override this to customize the server.
      * <p/>
      * <p/>
-     * (By default, this delegates to serveFile() and allows directory listing.)
+     * (By default, this returns a 404 "Not Found" plain text error response.)
      *
      * @param session The HTTP session
      * @return HTTP response, see class Response for details
@@ -319,7 +319,7 @@ public abstract class NanoHTTPD {
      * supplied several times, by return lists of values.  In general these lists will contain a single
      * element.
      *
-     * @param parms original <b>NanoHttpd</b> parameters values, as passed to the <code>serve()</code> method.
+     * @param parms original <b>NanoHTTPD</b> parameters values, as passed to the <code>serve()</code> method.
      * @return a map of <code>String</code> (parameter name) to <code>List&lt;String&gt;</code> (a list of the values supplied).
      */
     protected Map<String, List<String>> decodeParameters(Map<String, String> parms) {
@@ -443,7 +443,7 @@ public abstract class NanoHTTPD {
     }
 
     /**
-     * Default threading strategy for NanoHttpd.
+     * Default threading strategy for NanoHTTPD.
      * <p/>
      * <p>By default, the server spawns a new Thread for every incoming request.  These are set
      * to <i>daemon</i> status, and named according to the request number.  The name is
@@ -465,7 +465,7 @@ public abstract class NanoHTTPD {
     /**
      * Default strategy for creating and cleaning up temporary files.
      * <p/>
-     * <p></p>This class stores its files in the standard location (that is,
+     * <p>This class stores its files in the standard location (that is,
      * wherever <code>java.io.tmpdir</code> points to).  Files are added
      * to an internal list, and deleted when no longer needed (that is,
      * when <code>clear()</code> is invoked at the end of processing a
@@ -502,7 +502,7 @@ public abstract class NanoHTTPD {
     /**
      * Default strategy for creating and cleaning up temporary files.
      * <p/>
-     * <p></p></[>By default, files are created by <code>File.createTempFile()</code> in
+     * <p>By default, files are created by <code>File.createTempFile()</code> in
      * the directory specified.</p>
      */
     public static class DefaultTempFile implements TempFile {
@@ -536,7 +536,7 @@ public abstract class NanoHTTPD {
      */
     public static class Response {
         /**
-         * HTTP status code after processing, e.g. "200 OK", HTTP_OK
+         * HTTP status code after processing, e.g. "200 OK", Status.OK
          */
         private IStatus status;
         /**
@@ -561,7 +561,7 @@ public abstract class NanoHTTPD {
         private boolean chunkedTransfer;
 
         /**
-         * Default constructor: response = HTTP_OK, mime = MIME_HTML and your supplied message
+         * Default constructor: response = Status.OK, mime = MIME_HTML and your supplied message
          */
         public Response(String msg) {
             this(Status.OK, MIME_HTML, msg);
@@ -822,7 +822,7 @@ public abstract class NanoHTTPD {
 
         /**
          * Adds the files in the request body to the files map.
-         * @arg files - map to modify
+         * @param files map to modify
          */
         void parseBody(Map<String, String> files) throws IOException, ResponseException;
     }
@@ -1069,9 +1069,9 @@ public abstract class NanoHTTPD {
                     uri = decodePercent(uri);
                 }
 
-                // If there's another token, it's protocol version,
+                // If there's another token, its protocol version,
                 // followed by HTTP headers. Ignore version but parse headers.
-                // NOTE: this now forces header names lowercase since they are
+                // NOTE: this now forces header names lower case since they are
                 // case insensitive and vary by client.
                 if (st.hasMoreTokens()) {
                     String line = in.readLine();
