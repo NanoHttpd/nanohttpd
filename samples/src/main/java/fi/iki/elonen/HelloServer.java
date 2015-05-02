@@ -6,8 +6,9 @@ import java.util.Map;
  * An example of subclassing NanoHTTPD to make a custom HTTP server.
  */
 public class HelloServer extends NanoHTTPD {
+    private String hostname="localhost"; 
     public HelloServer() {
-        super(8080);
+        super(hostname,8080);
     }
 
     @Override public Response serve(IHTTPSession session) {
