@@ -346,7 +346,7 @@ public class SimpleWebServer extends NanoHTTPD {
 
     protected Response getInternalErrorResponse(String s) {
         return createResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
-            "INTERNAL ERRROR: " + s);
+            "INTERNAL ERROR: " + s);
     }
 
     private boolean canServeUri(String uri, File homeDir) {
