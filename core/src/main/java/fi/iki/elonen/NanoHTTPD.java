@@ -840,6 +840,7 @@ public abstract class NanoHTTPD {
         private Map<String, String> headers;
         private CookieHandler cookies;
         private String queryParameterString;
+        private String remoteIp;
 
         public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
             this.tempFileManager = tempFileManager;
@@ -851,11 +852,8 @@ public abstract class NanoHTTPD {
             this.tempFileManager = tempFileManager;
             this.inputStream = new PushbackInputStream(inputStream, BUFSIZE);
             this.outputStream = outputStream;
-            String remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
+            remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
             headers = new HashMap<String, String>();
-
-            headers.put("remote-addr", remoteIp);
-            headers.put("http-client-ip", remoteIp);
         }
 
         @Override
@@ -899,7 +897,15 @@ public abstract class NanoHTTPD {
                 parms = new HashMap<String, String>();
                 if(null == headers) {
                     headers = new HashMap<String, String>();
+                } else {
+                    headers.clear();
                 }
+
+                if (null != remoteIp) {
+                	headers.put("remote-addr", remoteIp);
+            		headers.put("http-client-ip", remoteIp);
+            	}
+
 
                 // Create a BufferedReader for parsing the header.
                 BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, rlen)));
