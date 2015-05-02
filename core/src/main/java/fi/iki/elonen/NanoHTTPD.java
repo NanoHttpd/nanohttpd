@@ -1148,7 +1148,15 @@ public abstract class NanoHTTPD {
                             }
                             int offset = stripMultipartHeaders(fbuf, bpositions[boundarycount - 2]);
                             String path = saveTmpFile(fbuf, offset, bpositions[boundarycount - 1] - offset - 4);
-                            files.put(pname, path);
+                            if(!files.containsKey(pname)) {
+                            	files.put(pname, path);
+                            } else {
+                            	int count = 2;
+                            	while(files.containsKey(pname+count)) {
+                            		count++;
+                            	};
+                            	files.put(pname+count, path);
+                            }
                             value = disposition.get("filename");
                             value = value.substring(1, value.length() - 1);
                             do {
