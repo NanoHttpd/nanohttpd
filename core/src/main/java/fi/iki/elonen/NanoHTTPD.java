@@ -650,7 +650,7 @@ public abstract class NanoHTTPD {
 
         protected int sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header, int size) {
             for (String headerName : header.keySet()) {
-                if (headerName.equalsIgnoreCase("content-length") {
+                if (headerName.equalsIgnoreCase("content-length")) {
                     try {
                         return Integer.parseInt(header.get(headerName));
                     } catch (NumberFormatException ex) {
