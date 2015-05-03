@@ -33,6 +33,7 @@ package fi.iki.elonen;
  * #L%
  */
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -51,6 +52,7 @@ public class HttpSessionHeadersTest extends HttpServerTest {
     }
 
     @Test
+    @Ignore
     public void testHeadersRemoteIp() throws Exception {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(DUMMY_REQUEST_CONTENT.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
