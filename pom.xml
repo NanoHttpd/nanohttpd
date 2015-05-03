@@ -11,10 +11,10 @@
 	<packaging>pom</packaging>
 	<name>NanoHttpd-Project</name>
 	<description>NanoHttpd is a light-weight HTTP server designed for embedding in other applications.</description>
-	<url>https://github.com/NanoHttpd/nanohttpd</url>
+	<url>http://www.nanohttpd.org</url>
 	<scm>
-		<connection>scm:git:https://github.com/ritchieGitHub/nanohttpd.git</connection>
-		<developerConnection>scm:git:https://github.com/ritchieGitHub/nanohttpd.git</developerConnection>
+		<connection>scm:git:https://github.com/NanoHttpd/nanohttpd.git</connection>
+		<developerConnection>scm:git:https://github.com/NanoHttpd/nanohttpd.git</developerConnection>
 		<url>https://github.com/NanoHttpd/nanohttpd</url>
 		<tag>HEAD</tag>
 	</scm>
@@ -53,10 +53,23 @@
 			</properties>
 		</developer>
 		<developer>
-			<id>ritchie_gmx_at</id>
+			<id>elonen</id>
+			<name>Jarno Elonen</name>
+			<email>elonen [at] iki [dot] fi</email>
+			<roles>
+				<role>Administrator</role>
+				<role>Developer</role>
+			</roles>
+			<properties>
+				<picUrl>https://avatars0.githubusercontent.com/u/2125766</picUrl>
+			</properties>
+		</developer>
+		<developer>
+			<id>ritchieGitHub</id>
 			<name>Richard van Nieuwenhoven</name>
 			<email>ritchie [at] gmx [dot] at</email>
 			<roles>
+				<role>Administrator</role>
 				<role>Developer</role>
 			</roles>
 			<properties>
