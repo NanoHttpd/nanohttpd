@@ -86,6 +86,7 @@ public class SimpleWebServer extends NanoHTTPD {
         put("mov", "video/quicktime");
         put("swf", "application/x-shockwave-flash");
         put("js", "application/javascript");
+        put("json", "application/json");
         put("pdf", "application/pdf");
         put("doc", "application/msword");
         put("ogg", "application/x-ogg");
@@ -245,11 +246,11 @@ public class SimpleWebServer extends NanoHTTPD {
         return rootDirs.get(0);
     }
 
-    private List<File> getRootDirs() {
+    public List<File> getRootDirs() {
         return rootDirs;
     }
 
-    private void addWwwRootDir(File wwwroot) {
+    public void addWwwRootDir(File wwwroot) {
         rootDirs.add(wwwroot);
     }
 
