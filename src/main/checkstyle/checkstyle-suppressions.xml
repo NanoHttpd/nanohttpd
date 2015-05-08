@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE suppressions PUBLIC
+     "-//Puppy Crawl//DTD Suppressions 1.0//EN"
+     "http://www.puppycrawl.com/dtds/suppressions_1_0.dtd">
+
+<suppressions>
+
+	<suppress files=".jpg" checks="NewlineAtEndOfFile|FileTabCharacter|FileLength" />
+	<suppress files=".png" checks="NewlineAtEndOfFile|FileTabCharacter|FileLength" />
+	<suppress files=".fxml" checks="FileTabCharacter" />
+	<suppress files=".css" checks="FileTabCharacter" />
+	<suppress files="META[\\-]INF[\\/]services[\\/]" checks="NewlineAtEndOfFile|FileTabCharacter" />
+
+	<!-- JUnit Rules require the rules field to have public visibility. -->
+	<!-- See http://checkstyle.sourceforge.net/config_design.html#VisibilityModifier -->
+	<suppress files=".*Test\.java" checks="VisibilityModifier" />
+	<suppress files="Test.*\.java" checks="VisibilityModifier" />
+
+	<!-- For our tests we do not demand API documentation. -->
+	<!-- See http://checkstyle.sf.net/config_javadoc.html -->
+	<suppress files=".*Test\.java" checks="JavadocPackage" />
+	<suppress files=".*Test\.java" checks="JavadocMethod" />
+	<suppress files=".*Test\.java" checks="JavadocType" />
+	<suppress files=".*Test\.java" checks="JavadocVariable" />
+	<suppress files=".*Test\.java" checks="JavadocStyle" />
+
+</suppressions>

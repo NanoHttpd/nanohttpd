@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="${project.name}">
+	<skin>
+		<groupId>org.apache.maven.skins</groupId>
+		<artifactId>maven-fluido-skin</artifactId>
+		<version>1.3.0</version>
+	</skin>
+	<bannerLeft>
+		<src>../images/nanohttpd_logo.png</src>
+	</bannerLeft>
+	<bannerRight>
+		<src>../images/nanohttpd_logo_text.png</src>
+	</bannerRight>
+	<publishDate position="left" format="yyyy-MM-dd" />
+	<version position="right" />
+	<poweredBy>
+		<logo name="Maven" href="http://maven.apache.org/"
+			img="http://maven.apache.org/images/logos/maven-feather.png" />
+	</poweredBy>
+	<custom>
+		<fluidoSkin>
+			<topBarEnabled>false</topBarEnabled>
+			<sideBarEnabled>true</sideBarEnabled>
+			<gitHub>
+				<projectId>Nanohttpd/nanohttpd</projectId>
+				<ribbonOrientation>right</ribbonOrientation>
+				<ribbonColor>black</ribbonColor>
+			</gitHub>
+		</fluidoSkin>
+	</custom>
+	<body>
+		<breadcrumbs>
+			<item name="${project.name}" href="index.html" />
+		</breadcrumbs>
+		<menu name="Documentation">
+			<item name="About" href="index.html" />
+		</menu>
+		<menu ref="modules" />
+		<menu ref="reports" />
+	</body>
+</project>
