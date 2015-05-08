@@ -123,9 +123,6 @@
 		</module>
 		<module name="IllegalInstantiation" />
 		<module name="InnerAssignment" />
-		<module name="MagicNumber">
-			<property name="ignoreAnnotation" value="true" />
-		</module>
 
 		<module name="MissingSwitchDefault" />
 		<module name="RedundantThrows">
