@@ -33,9 +33,9 @@ package fi.iki.elonen;
  * #L%
  */
 
-import fi.iki.elonen.WebSocketFrame.CloseCode;
-
 import java.io.IOException;
+
+import fi.iki.elonen.WebSocketFrame.CloseCode;
 
 public class WebSocketException extends IOException {
     private static final long serialVersionUID = -6179651370664878831L;

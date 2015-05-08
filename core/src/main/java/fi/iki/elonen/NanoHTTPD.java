@@ -33,7 +33,20 @@ package fi.iki.elonen;
  * #L%
  */
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.PushbackInputStream;
+import java.io.RandomAccessFile;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -56,6 +69,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A simple, tiny, nicely embeddable HTTP server in Java
@@ -120,6 +135,12 @@ public abstract class NanoHTTPD {
      * Pseudo-Parameter to use to store the actual query string in the parameters map for later re-processing.
      */
     private static final String QUERY_STRING_PARAMETER = "NanoHttpd.QUERY_STRING";
+    
+	/**
+	 * logger to log to.
+	 */
+	private static Logger LOG = Logger.getLogger(NanoHTTPD.class.getName());
+	
     private final String hostname;
     private final int myPort;
     private ServerSocket myServerSocket;
@@ -156,24 +177,7 @@ public abstract class NanoHTTPD {
             try {
                 closeable.close();
             } catch (IOException e) {
-            }
-        }
-    }
-
-    private static final void safeClose(Socket closeable) {
-        if (closeable != null) {
-            try {
-                closeable.close();
-            } catch (IOException e) {
-            }
-        }
-    }
-
-    private static final void safeClose(ServerSocket closeable) {
-        if (closeable != null) {
-            try {
-                closeable.close();
-            } catch (IOException e) {
+            	LOG.log(Level.SEVERE, "Could not close",e);
             }
         }
     }
@@ -212,7 +216,7 @@ public abstract class NanoHTTPD {
                                     // When the socket is closed by the client, we throw our own SocketException
                                     // to break the  "keep alive" loop above.
                                     if (!(e instanceof SocketException && "NanoHttpd Shutdown".equals(e.getMessage()))) {
-                                        e.printStackTrace();
+                                    	LOG.log(Level.SEVERE, "Communication with the client broken", e);
                                     }
                                 } finally {
                                     safeClose(outputStream);
@@ -223,6 +227,7 @@ public abstract class NanoHTTPD {
                             }
                         });
                     } catch (IOException e) {
+                    	LOG.log(Level.SEVERE, "Communication with the client broken", e);
                     }
                 } while (!myServerSocket.isClosed());
             }
@@ -243,7 +248,7 @@ public abstract class NanoHTTPD {
                 myThread.join();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+        	LOG.log(Level.SEVERE, "Could not stop all connections", e);
         }
     }
 
@@ -343,6 +348,7 @@ public abstract class NanoHTTPD {
         try {
             decoded = URLDecoder.decode(str, "UTF8");
         } catch (UnsupportedEncodingException ignored) {
+        	LOG.log(Level.WARNING, "Encoding not supported, ignored", ignored);
         }
         return decoded;
     }
@@ -526,6 +532,7 @@ public abstract class NanoHTTPD {
                 try {
                     file.delete();
                 } catch (Exception ignored) {
+                	LOG.log(Level.WARNING, "could not delete file ", ignored);
                 }
             }
             tempFiles.clear();
@@ -677,7 +684,7 @@ public abstract class NanoHTTPD {
                 outputStream.flush();
                 safeClose(data);
             } catch (IOException ioe) {
-                // Couldn't write? No can do.
+            	LOG.log(Level.SEVERE, "Could not send response to the client", ioe);
             }
         }
 
@@ -1203,7 +1210,7 @@ public abstract class NanoHTTPD {
                             	int count = 2;
                             	while(files.containsKey(pname+count)) {
                             		count++;
-                            	};
+                            	}
                             	files.put(pname+count, path);
                             }
                             value = disposition.get("filename");

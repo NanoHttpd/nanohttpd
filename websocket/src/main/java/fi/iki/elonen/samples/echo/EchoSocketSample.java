@@ -33,9 +33,9 @@ package fi.iki.elonen.samples.echo;
  * #L%
  */
 
-import fi.iki.elonen.NanoWebSocketServer;
-
 import java.io.IOException;
+
+import fi.iki.elonen.NanoWebSocketServer;
 
 public class EchoSocketSample {
     public static void main(String[] args) throws IOException {

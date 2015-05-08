@@ -33,13 +33,16 @@ package fi.iki.elonen;
  * #L%
  */
 
-import org.pegdown.PegDownProcessor;
-
-import java.io.*;
-import java.util.Map;
-
 import static fi.iki.elonen.NanoHTTPD.MIME_HTML;
 import static fi.iki.elonen.NanoHTTPD.Response.Status.OK;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Map;
+
+import org.pegdown.PegDownProcessor;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com)

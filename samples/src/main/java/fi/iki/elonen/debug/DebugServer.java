@@ -33,12 +33,12 @@ package fi.iki.elonen.debug;
  * #L%
  */
 
-import fi.iki.elonen.NanoHTTPD;
-import fi.iki.elonen.ServerRunner;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.ServerRunner;
 
 public class DebugServer extends NanoHTTPD {
     public DebugServer() {

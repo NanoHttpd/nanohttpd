@@ -33,10 +33,10 @@ package fi.iki.elonen;
  * #L%
  */
 
-import fi.iki.elonen.debug.DebugServer;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import fi.iki.elonen.debug.DebugServer;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com)

@@ -33,11 +33,11 @@ package fi.iki.elonen.samples.echo;
  * #L%
  */
 
+import java.io.IOException;
+
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.WebSocket;
 import fi.iki.elonen.WebSocketFrame;
-
-import java.io.IOException;
 
 /**
 * @author Paul S. Hawke (paul.hawke@gmail.com)

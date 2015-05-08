@@ -33,16 +33,16 @@ package fi.iki.elonen;
  * #L%
  */
 
-import fi.iki.elonen.WebSocketFrame.CloseCode;
-import fi.iki.elonen.WebSocketFrame.CloseFrame;
-import fi.iki.elonen.WebSocketFrame.OpCode;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.CharacterCodingException;
 import java.util.LinkedList;
 import java.util.List;
+
+import fi.iki.elonen.WebSocketFrame.CloseCode;
+import fi.iki.elonen.WebSocketFrame.CloseFrame;
+import fi.iki.elonen.WebSocketFrame.OpCode;
 
 public abstract class WebSocket {
     public static enum State {
