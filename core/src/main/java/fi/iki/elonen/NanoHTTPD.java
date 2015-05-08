@@ -72,6 +72,10 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
+import java.security.KeyStore;
+import javax.net.ssl.*;
+
 /**
  * A simple, tiny, nicely embeddable HTTP server in Java
  * <p/>
@@ -145,6 +149,7 @@ public abstract class NanoHTTPD {
     private final int myPort;
     private ServerSocket myServerSocket;
     private Set<Socket> openConnections = new HashSet<Socket>();
+    private SSLServerSocketFactory sslServerSocketFactory;
     private Thread myThread;
     /**
      * Pluggable strategy for asynchronously executing requests.
@@ -182,13 +187,90 @@ public abstract class NanoHTTPD {
         }
     }
 
+   /**
+    * Creates an SSLSocketFactory for HTTPS.
+    *
+    * Pass a KeyStore resource with your certificate and passphrase
+    */
+   public static SSLServerSocketFactory makeSSLSocketFactory(String keyAndTrustStoreClasspathPath, char[] passphrase) throws IOException {
+      SSLServerSocketFactory res = null;
+      try {
+         KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+         InputStream keystoreStream = NanoHTTPD.class.getResourceAsStream(keyAndTrustStoreClasspathPath);
+         keystore.load(keystoreStream, passphrase);
+         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+         trustManagerFactory.init(keystore);
+         KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+         keyManagerFactory.init(keystore, passphrase);
+         SSLContext ctx = SSLContext.getInstance("TLS");
+         ctx.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+         res = ctx.getServerSocketFactory();
+      } catch (Exception e) {
+         throw new IOException(e.getMessage());
+      }
+      return res;
+   }
+   
+   /**
+    * Creates an SSLSocketFactory for HTTPS.
+    *
+    * Pass a loaded KeyStore and a loaded KeyManagerFactory.
+    * These objects must properly loaded/initialized by the caller.
+    */
+   public static SSLServerSocketFactory makeSSLSocketFactory(KeyStore loadedKeyStore, KeyManagerFactory loadedKeyFactory) throws IOException {
+      SSLServerSocketFactory res = null;
+      try {
+         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+         trustManagerFactory.init(loadedKeyStore);
+         SSLContext ctx = SSLContext.getInstance("TLS");
+         ctx.init(loadedKeyFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+         res = ctx.getServerSocketFactory();
+      } catch (Exception e) {
+         throw new IOException(e.getMessage());
+      }
+      return res;
+   }
+
+   /**
+    * Creates an SSLSocketFactory for HTTPS.
+    *
+    * Pass a loaded KeyStore and an array of loaded KeyManagers.
+    * These objects must properly loaded/initialized by the caller.
+    */
+   public static SSLServerSocketFactory makeSSLSocketFactory(KeyStore loadedKeyStore, KeyManager[] keyManagers) throws IOException {
+      SSLServerSocketFactory res = null;
+      try {
+         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+         trustManagerFactory.init(loadedKeyStore);
+         SSLContext ctx = SSLContext.getInstance("TLS");
+         ctx.init(keyManagers, trustManagerFactory.getTrustManagers(), null);
+         res = ctx.getServerSocketFactory();
+      } catch (Exception e) {
+         throw new IOException(e.getMessage());
+      }
+      return res;
+   }
+
+  /**
+   * Call before start() to serve over HTTPS instead of HTTP
+   */
+   public void makeSecure(SSLServerSocketFactory sslServerSocketFactory) {
+      this.sslServerSocketFactory = sslServerSocketFactory;
+   }
+
     /**
      * Start the server.
      *
      * @throws IOException if the socket is in use.
      */
     public void start() throws IOException {
-        myServerSocket = new ServerSocket();
+        if (sslServerSocketFactory != null) {
+            SSLServerSocket ss = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
+            ss.setNeedClientAuth(false);
+            myServerSocket = ss;
+        } else {
+            myServerSocket = new ServerSocket();
+        }
         myServerSocket.setReuseAddress(true);
         myServerSocket.bind((hostname != null) ? new InetSocketAddress(hostname, myPort) : new InetSocketAddress(myPort));
 
@@ -214,8 +296,11 @@ public abstract class NanoHTTPD {
                                     }
                                 } catch (Exception e) {
                                     // When the socket is closed by the client, we throw our own SocketException
-                                    // to break the  "keep alive" loop above.
-                                    if (!(e instanceof SocketException && "NanoHttpd Shutdown".equals(e.getMessage()))) {
+                                    // to break the  "keep alive" loop above. If the exception was anything other
+                                    // than the expected SocketException OR a SocketTimeoutException, print the
+                                    // stacktrace
+                                    if (!(e instanceof SocketException && "NanoHttpd Shutdown".equals(e.getMessage())) &&
+                                        !(e instanceof SocketTimeoutException)) {
                                     	LOG.log(Level.SEVERE, "Communication with the client broken", e);
                                     }
                                 } finally {
@@ -986,6 +1071,9 @@ public abstract class NanoHTTPD {
                 // throw it out to close socket object (finalAccept)
                 throw e;
             } catch (SocketTimeoutException ste) {
+                // treat socket timeouts the same way we treat socket exceptions
+                // i.e. close the stream & finalAccept object by throwing the
+                // exception up the call stack.
             	throw ste;
             } catch (IOException ioe) {
                 Response r = new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
