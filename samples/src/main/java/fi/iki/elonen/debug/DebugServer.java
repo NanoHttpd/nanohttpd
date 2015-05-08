@@ -98,14 +98,14 @@ public class DebugServer extends NanoHTTPD {
     private String unsortedList(Map<String, ? extends Object> map) {
         StringBuilder sb = new StringBuilder();
         sb.append("<ul>");
-        for (Map.Entry entry : map.entrySet()) {
+        for (Map.Entry<String, ? extends Object> entry : map.entrySet()) {
             listItem(sb, entry);
         }
         sb.append("</ul>");
         return sb.toString();
     }
 
-    private void listItem(StringBuilder sb, Map.Entry entry) {
+    private void listItem(StringBuilder sb, Map.Entry<String, ? extends Object> entry) {
         sb.append("<li><code><b>").append(entry.getKey()).
             append("</b> = ").append(entry.getValue()).append("</code></li>");
     }
