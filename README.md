@@ -6,6 +6,8 @@
 
 current build status at https://travis-ci.org [![Build Status](https://api.travis-ci.org/NanoHttpd/nanohttpd.png)](https://travis-ci.org/NanoHttpd/nanohttpd)
 
+Test Coverage Status  [![Coverage Status](https://coveralls.io/repos/NanoHttpd/nanohttpd/badge.svg)](https://coveralls.io/r/NanoHttpd/nanohttpd)
+
 ## Core Features
 * Only one Java file, providing HTTP 1.1 support.
 * Two "flavours" - one at "current" standards and one strictly Java 1.1 compatible.
