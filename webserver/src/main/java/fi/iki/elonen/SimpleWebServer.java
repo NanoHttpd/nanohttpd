@@ -124,8 +124,10 @@ public class SimpleWebServer extends NanoHTTPD {
             + "(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n"
             + "OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.";
     private static Map<String, WebServerPlugin> mimeTypeHandlers = new HashMap<String, WebServerPlugin>();
-    private final List<File> rootDirs;
     private final boolean quiet;
+
+    protected List<File> rootDirs;
+
 
     public SimpleWebServer(String host, int port, File wwwroot, boolean quiet) {
         super(host, port);
@@ -243,18 +245,6 @@ public class SimpleWebServer extends NanoHTTPD {
         plugin.initialize(commandLineOptions);
     }
 
-    protected File getRootDir() {
-        return rootDirs.get(0);
-    }
-
-    private List<File> getRootDirs() {
-        return rootDirs;
-    }
-
-    protected void addWwwRootDir(File wwwroot) {
-        rootDirs.add(wwwroot);
-    }
-
     /**
      * URL-encodes everything between "/"-characters. Encodes spaces as '%20' instead of '+'.
      */
@@ -297,7 +287,7 @@ public class SimpleWebServer extends NanoHTTPD {
             }
         }
 
-        for (File homeDir : getRootDirs()) {
+        for (File homeDir : rootDirs) {
             // Make sure we won't die of an exception later
             if (!homeDir.isDirectory()) {
                 return getInternalErrorResponse("given path is not a directory (" + homeDir + ").");
@@ -320,9 +310,8 @@ public class SimpleWebServer extends NanoHTTPD {
 
         boolean canServeUri = false;
         File homeDir = null;
-        List<File> roots = getRootDirs();
-        for (int i = 0; !canServeUri && i < roots.size(); i++) {
-            homeDir = roots.get(i);
+        for (int i = 0; !canServeUri && i < rootDirs.size(); i++) {
+            homeDir = rootDirs.get(i);
             canServeUri = canServeUri(uri, homeDir);
         }
         if (!canServeUri) {
