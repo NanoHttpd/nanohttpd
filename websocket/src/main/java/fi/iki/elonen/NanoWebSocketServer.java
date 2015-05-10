@@ -708,7 +708,7 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
     /**
      * logger to log to.
      */
-    private static Logger LOG = Logger.getLogger(NanoWebSocketServer.class.getName());
+    private static final Logger LOG = Logger.getLogger(NanoWebSocketServer.class.getName());
 
     public static final String HEADER_UPGRADE = "upgrade";
 

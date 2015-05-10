@@ -47,7 +47,7 @@ public class DebugWebSocketServer extends NanoWebSocketServer {
     /**
      * logger to log to.
      */
-    private static Logger LOG = Logger.getLogger(DebugWebSocketServer.class.getName());
+    private static final Logger LOG = Logger.getLogger(DebugWebSocketServer.class.getName());
 
     private final boolean debug;
 

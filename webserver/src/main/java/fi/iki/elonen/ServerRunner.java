@@ -42,7 +42,7 @@ public class ServerRunner {
     /**
      * logger to log to.
      */
-    private static Logger LOG = Logger.getLogger(ServerRunner.class.getName());
+    private static final Logger LOG = Logger.getLogger(ServerRunner.class.getName());
 
     public static void executeInstance(NanoHTTPD server) {
         try {

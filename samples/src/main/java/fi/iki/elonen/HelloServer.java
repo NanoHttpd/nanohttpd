@@ -44,7 +44,7 @@ public class HelloServer extends NanoHTTPD {
     /**
      * logger to log to.
      */
-    private static Logger LOG = Logger.getLogger(HelloServer.class.getName());
+    private static final Logger LOG = Logger.getLogger(HelloServer.class.getName());
 
     public HelloServer() {
         super(8080);

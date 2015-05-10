@@ -588,29 +588,28 @@ public abstract class NanoHTTPD {
                 byte[] buf = new byte[HTTPSession.BUFSIZE];
                 this.splitbyte = 0;
                 this.rlen = 0;
-                {
-                    int read = -1;
-                    try {
-                        read = this.inputStream.read(buf, 0, HTTPSession.BUFSIZE);
-                    } catch (Exception e) {
-                        safeClose(this.inputStream);
-                        safeClose(this.outputStream);
-                        throw new SocketException("NanoHttpd Shutdown");
+
+                int read = -1;
+                try {
+                    read = this.inputStream.read(buf, 0, HTTPSession.BUFSIZE);
+                } catch (Exception e) {
+                    safeClose(this.inputStream);
+                    safeClose(this.outputStream);
+                    throw new SocketException("NanoHttpd Shutdown");
+                }
+                if (read == -1) {
+                    // socket was been closed
+                    safeClose(this.inputStream);
+                    safeClose(this.outputStream);
+                    throw new SocketException("NanoHttpd Shutdown");
+                }
+                while (read > 0) {
+                    this.rlen += read;
+                    this.splitbyte = findHeaderEnd(buf, this.rlen);
+                    if (this.splitbyte > 0) {
+                        break;
                     }
-                    if (read == -1) {
-                        // socket was been closed
-                        safeClose(this.inputStream);
-                        safeClose(this.outputStream);
-                        throw new SocketException("NanoHttpd Shutdown");
-                    }
-                    while (read > 0) {
-                        this.rlen += read;
-                        this.splitbyte = findHeaderEnd(buf, this.rlen);
-                        if (this.splitbyte > 0) {
-                            break;
-                        }
-                        read = this.inputStream.read(buf, this.rlen, HTTPSession.BUFSIZE - this.rlen);
-                    }
+                    read = this.inputStream.read(buf, this.rlen, HTTPSession.BUFSIZE - this.rlen);
                 }
 
                 if (this.splitbyte < this.rlen) {
@@ -1310,7 +1309,7 @@ public abstract class NanoHTTPD {
     /**
      * logger to log to.
      */
-    private static Logger LOG = Logger.getLogger(NanoHTTPD.class.getName());
+    private static final Logger LOG = Logger.getLogger(NanoHTTPD.class.getName());
 
     /**
      * Creates an SSLSocketFactory for HTTPS. Pass a loaded KeyStore and an

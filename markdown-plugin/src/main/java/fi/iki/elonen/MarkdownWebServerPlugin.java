@@ -53,7 +53,7 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
     /**
      * logger to log to.
      */
-    private static Logger LOG = Logger.getLogger(MarkdownWebServerPlugin.class.getName());
+    private static final Logger LOG = Logger.getLogger(MarkdownWebServerPlugin.class.getName());
 
     private final PegDownProcessor processor;
 
