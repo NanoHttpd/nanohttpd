@@ -41,6 +41,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.pegdown.PegDownProcessor;
 
@@ -49,7 +51,12 @@ import org.pegdown.PegDownProcessor;
  *         On: 9/13/13 at 4:03 AM
  */
 public class MarkdownWebServerPlugin implements WebServerPlugin {
-
+    
+    /**
+     * logger to log to.
+     */
+    private static Logger LOG = Logger.getLogger(MarkdownWebServerPlugin.class.getName());
+    
     private final PegDownProcessor processor;
 
     public MarkdownWebServerPlugin() {
@@ -88,7 +95,7 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
             reader.close();
             return sb.toString();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.log(Level.SEVERE, "could not read source",e);
             return null;
         } finally {
             try {
@@ -98,7 +105,9 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
                 if (reader != null) {
                     reader.close();
                 }
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+                LOG.log(Level.FINEST, "close failed",ignored);
+            }
         }
     }
 }

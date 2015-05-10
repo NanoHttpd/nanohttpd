@@ -710,7 +710,7 @@ public abstract class NanoHTTPD {
             try {
                 this.data = txt != null ? new ByteArrayInputStream(txt.getBytes("UTF-8")) : null;
             } catch (java.io.UnsupportedEncodingException uee) {
-                uee.printStackTrace();
+                LOG.log(Level.SEVERE,"encoding problem",uee);
             }
         }
 

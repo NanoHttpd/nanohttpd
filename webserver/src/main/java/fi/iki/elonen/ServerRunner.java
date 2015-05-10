@@ -34,13 +34,20 @@ package fi.iki.elonen;
  */
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ServerRunner {
+    /**
+     * logger to log to.
+     */
+    private static Logger LOG = Logger.getLogger(ServerRunner.class.getName());
+    
     public static <T extends NanoHTTPD> void run(Class<T> serverClass) {
         try {
             executeInstance((NanoHTTPD) serverClass.newInstance());
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.log(Level.SEVERE, "Cound nor create server",e);
         }
     }
 

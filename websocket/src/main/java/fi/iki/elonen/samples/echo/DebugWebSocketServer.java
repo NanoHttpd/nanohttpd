@@ -34,6 +34,9 @@ package fi.iki.elonen.samples.echo;
  */
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import fi.iki.elonen.NanoWebSocketServer;
 
 /**
@@ -41,6 +44,11 @@ import fi.iki.elonen.NanoWebSocketServer;
 *         On: 4/23/14 at 10:31 PM
 */
 public class DebugWebSocketServer extends NanoWebSocketServer {
+    /**
+     * logger to log to.
+     */
+    private static Logger LOG = Logger.getLogger(DebugWebSocketServer.class.getName());
+    
     private final boolean debug;
 
     public DebugWebSocketServer(int port, boolean debug) {
@@ -76,7 +84,7 @@ public class DebugWebSocketServer extends NanoWebSocketServer {
 
     @Override
     protected void onException(WebSocket socket, IOException e) {
-        e.printStackTrace();
+        LOG.log(Level.SEVERE,"exception occured",e);
     }
 
     @Override

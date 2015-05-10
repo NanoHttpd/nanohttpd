@@ -45,12 +45,19 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import fi.iki.elonen.NanoWebSocketServer.WebSocketFrame.CloseCode;
 import fi.iki.elonen.NanoWebSocketServer.WebSocketFrame.CloseFrame;
 import fi.iki.elonen.NanoWebSocketServer.WebSocketFrame.OpCode;
 
 public abstract class NanoWebSocketServer extends NanoHTTPD {
+    /**
+     * logger to log to.
+     */
+    private static Logger LOG = Logger.getLogger(NanoWebSocketServer.class.getName());
+    
 	public static final String HEADER_UPGRADE = "upgrade";
 	public static final String HEADER_UPGRADE_VALUE = "websocket";
 	public static final String HEADER_CONNECTION = "connection";
@@ -307,14 +314,14 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
                 try {
                     in.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOG.log(Level.FINE, "close failed",e);
                 }
             }
             if (out != null) {
                 try {
                     out.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOG.log(Level.FINE, "close failed",e);
                 }
             }
             state = State.CLOSED;
