@@ -50,12 +50,12 @@ public class HttpDeleteRequestTest extends HttpServerTest {
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + URI + " HTTP/1.1");
 
         String[] expected = {
-                "HTTP/1.1 204 No Content",
-                "Content-Type: text/html",
-                "Date: .*",
-                "Connection: keep-alive",
-                "Content-Length: 0",
-                ""
+            "HTTP/1.1 204 No Content",
+            "Content-Type: text/html",
+            "Date: .*",
+            "Connection: keep-alive",
+            "Content-Length: 0",
+            ""
         };
 
         assertResponse(outputStream, expected);
@@ -63,17 +63,17 @@ public class HttpDeleteRequestTest extends HttpServerTest {
 
     @Test
     public void testDeleteRequestThatDoesntSendBackResponseBody_NullString() throws Exception {
-        testServer.response = new NanoHTTPD.Response(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_HTML, (String)null);
+        testServer.response = new NanoHTTPD.Response(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_HTML, (String) null);
 
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + URI + " HTTP/1.1");
 
         String[] expected = {
-                "HTTP/1.1 204 No Content",
-                "Content-Type: text/html",
-                "Date: .*",
-                "Connection: keep-alive",
-                "Content-Length: 0",
-                ""
+            "HTTP/1.1 204 No Content",
+            "Content-Type: text/html",
+            "Date: .*",
+            "Connection: keep-alive",
+            "Content-Length: 0",
+            ""
         };
 
         assertResponse(outputStream, expected);
@@ -81,17 +81,17 @@ public class HttpDeleteRequestTest extends HttpServerTest {
 
     @Test
     public void testDeleteRequestThatDoesntSendBackResponseBody_NullInputStream() throws Exception {
-        testServer.response = new NanoHTTPD.Response(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_HTML, (InputStream)null);
+        testServer.response = new NanoHTTPD.Response(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_HTML, (InputStream) null);
 
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + URI + " HTTP/1.1");
 
         String[] expected = {
-                "HTTP/1.1 204 No Content",
-                "Content-Type: text/html",
-                "Date: .*",
-                "Connection: keep-alive",
-                "Content-Length: 0",
-                ""
+            "HTTP/1.1 204 No Content",
+            "Content-Type: text/html",
+            "Date: .*",
+            "Connection: keep-alive",
+            "Content-Length: 0",
+            ""
         };
 
         assertResponse(outputStream, expected);
@@ -104,13 +104,13 @@ public class HttpDeleteRequestTest extends HttpServerTest {
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + URI + " HTTP/1.1");
 
         String[] expected = {
-                "HTTP/1.1 200 OK",
-                "Content-Type: application/xml",
-                "Date: .*",
-                "Connection: keep-alive",
-                "Content-Length: 8",
-                "",
-                "<body />"
+            "HTTP/1.1 200 OK",
+            "Content-Type: application/xml",
+            "Date: .*",
+            "Connection: keep-alive",
+            "Content-Length: 8",
+            "",
+            "<body />"
         };
 
         assertResponse(outputStream, expected);
@@ -123,13 +123,13 @@ public class HttpDeleteRequestTest extends HttpServerTest {
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + URI + " HTTP/1.1");
 
         String[] expected = {
-                "HTTP/1.1 202 Accepted",
-                "Content-Type: application/xml",
-                "Date: .*",
-                "Connection: keep-alive",
-                "Content-Length: 8",
-                "",
-                "<body />"
+            "HTTP/1.1 202 Accepted",
+            "Content-Type: application/xml",
+            "Date: .*",
+            "Connection: keep-alive",
+            "Content-Length: 8",
+            "",
+            "<body />"
         };
 
         assertResponse(outputStream, expected);

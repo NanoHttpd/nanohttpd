@@ -41,6 +41,7 @@ import java.net.URLEncoder;
 import static junit.framework.Assert.assertEquals;
 
 public class HttpParsingTest extends HttpServerTest {
+
     @Test
     public void testNormalCharacters() throws Exception {
         for (int i = 0x20; i < 0x80; i++) {

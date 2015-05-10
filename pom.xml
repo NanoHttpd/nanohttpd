@@ -361,6 +361,25 @@
 					<exists>src/main/java</exists>
 				</file>
 			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.googlecode.maven-java-formatter-plugin</groupId>
+						<artifactId>maven-java-formatter-plugin</artifactId>
+						<version>0.4</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>format</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<configFile>${project.basedir}/../src/main/formatter/formatter.xml</configFile>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
 			<reporting>
 				<plugins>
 					<plugin>
@@ -385,28 +404,6 @@
 					</plugin>
 				</plugins>
 			</reporting>
-		</profile>
-		<profile>
-			<id>format</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.googlecode.maven-java-formatter-plugin</groupId>
-						<artifactId>maven-java-formatter-plugin</artifactId>
-						<version>0.4</version>
-						<executions>
-							<execution>
-								<goals>
-									<goal>format</goal>
-								</goals>
-							</execution>
-						</executions>
-						<configuration>
-							<configFile>${project.basedir}/../src/main/formatter/formatter.xml</configFile>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
 		</profile>
 	</profiles>
 </project>

@@ -49,12 +49,12 @@ public class HttpPutRequestTest extends HttpServerTest {
         ByteArrayOutputStream outputStream = invokeServer("PUT " + URI + " HTTP/1.1\r\n\r\nBodyData 1\nLine 2");
 
         String[] expectedOutput = {
-                "HTTP/1.1 200 OK",
-                "Content-Type: text/html",
-                "Date: .*",
-                "Connection: keep-alive",
-                "Content-Length: 0",
-                ""
+            "HTTP/1.1 200 OK",
+            "Content-Type: text/html",
+            "Date: .*",
+            "Connection: keep-alive",
+            "Content-Length: 0",
+            ""
         };
 
         assertResponse(outputStream, expectedOutput);
@@ -63,8 +63,8 @@ public class HttpPutRequestTest extends HttpServerTest {
         BufferedReader reader = null;
         try {
             String[] expectedInputToServeMethodViaFile = {
-                    "BodyData 1",
-                    "Line 2"
+                "BodyData 1",
+                "Line 2"
             };
             reader = new BufferedReader(new FileReader(testServer.files.get("content")));
             List<String> lines = readLinesFromFile(reader);

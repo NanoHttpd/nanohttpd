@@ -61,8 +61,8 @@ public class WebSocketResponseHandlerTest {
 
     @Before
     public void setUp() {
-    	nanoWebSocketServer = Mockito.mock(NanoWebSocketServer.class, Mockito.CALLS_REAL_METHODS);
-    	
+        nanoWebSocketServer = Mockito.mock(NanoWebSocketServer.class, Mockito.CALLS_REAL_METHODS);
+
         headers = new HashMap<String, String>();
         headers.put("upgrade", "websocket");
         headers.put("connection", "Upgrade");

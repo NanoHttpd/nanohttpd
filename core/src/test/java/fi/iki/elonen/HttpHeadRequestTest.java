@@ -41,6 +41,7 @@ import java.util.List;
 import static junit.framework.Assert.*;
 
 public class HttpHeadRequestTest extends HttpServerTest {
+
     @Override
     public void setUp() {
         super.setUp();
@@ -53,12 +54,12 @@ public class HttpHeadRequestTest extends HttpServerTest {
         ByteArrayOutputStream outputStream = invokeServer("HEAD " + URI + " HTTP/1.1");
 
         String[] expected = {
-                "HTTP/1.1 200 OK",
-                "Content-Type: text/html",
-                "Date: .*",
-                "Connection: keep-alive",
-                "Content-Length: 8",
-                ""
+            "HTTP/1.1 200 OK",
+            "Content-Type: text/html",
+            "Date: .*",
+            "Connection: keep-alive",
+            "Content-Length: 8",
+            ""
         };
 
         assertResponse(outputStream, expected);
@@ -186,6 +187,7 @@ public class HttpHeadRequestTest extends HttpServerTest {
         invokeServer("HEAD " + URI + "?foo=bar&foo=baz&zot&zim= HTTP/1.1");
         assertEquals(testServer.decodedParamters, testServer.decodedParamtersFromParameter);
     }
-    // -------------------------------------------------------------------------------------------------------- //
+    // --------------------------------------------------------------------------------------------------------
+    // //
 
 }

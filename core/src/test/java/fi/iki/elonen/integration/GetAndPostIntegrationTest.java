@@ -59,8 +59,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 
 /**
- * @author Paul S. Hawke (paul.hawke@gmail.com)
- *         On: 5/19/13 at 5:36 PM
+ * @author Paul S. Hawke (paul.hawke@gmail.com) On: 5/19/13 at 5:36 PM
  */
 public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostIntegrationTest.TestServer> {
 
@@ -129,11 +128,13 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
         assertEquals("POST:testPostRequestWithMultipartEncodedParameters-params=2;age=120;gender=Male", responseBody);
     }
 
-    @Override public TestServer createTestServer() {
+    @Override
+    public TestServer createTestServer() {
         return new TestServer();
     }
 
     public static class TestServer extends NanoHTTPD {
+
         public String response;
 
         public TestServer() {

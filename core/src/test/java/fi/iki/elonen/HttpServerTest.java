@@ -47,12 +47,14 @@ import java.util.Map;
 import static junit.framework.Assert.*;
 
 /**
- * @author Paul S. Hawke (paul.hawke@gmail.com)
- *         On: 3/10/13 at 8:32 PM
+ * @author Paul S. Hawke (paul.hawke@gmail.com) On: 3/10/13 at 8:32 PM
  */
 public class HttpServerTest {
+
     public static final String URI = "http://www.myserver.org/pub/WWW/someFile.html";
+
     protected TestServer testServer;
+
     private TestTempFileManager tempFileManager;
 
     @Before
@@ -77,12 +79,10 @@ public class HttpServerTest {
     }
 
     protected void assertLinesOfText(String[] expected, List<String> lines) {
-//        assertEquals(expected.length, lines.size());
+        // assertEquals(expected.length, lines.size());
         for (int i = 0; i < expected.length; i++) {
             String line = lines.get(i);
-            assertTrue("Output line " + i + " doesn't match expectation.\n" +
-                    "  Output: " + line + "\n" +
-                    "Expected: " + expected[i], line.matches(expected[i]));
+            assertTrue("Output line " + i + " doesn't match expectation.\n" + "  Output: " + line + "\n" + "Expected: " + expected[i], line.matches(expected[i]));
         }
     }
 
@@ -93,7 +93,7 @@ public class HttpServerTest {
         try {
             session.execute();
         } catch (IOException e) {
-            fail(""+e);
+            fail("" + e);
             e.printStackTrace();
         }
         return outputStream;
@@ -117,6 +117,7 @@ public class HttpServerTest {
     }
 
     public static class TestTempFileManager extends NanoHTTPD.DefaultTempFileManager {
+
         public void _clear() {
             super.clear();
         }
@@ -128,14 +129,23 @@ public class HttpServerTest {
     }
 
     public static class TestServer extends NanoHTTPD {
+
         public Response response = new Response("");
+
         public String uri;
+
         public Method method;
+
         public Map<String, String> header;
+
         public Map<String, String> parms;
+
         public Map<String, String> files;
+
         public Map<String, List<String>> decodedParamters;
+
         public Map<String, List<String>> decodedParamtersFromParameter;
+
         public String queryParameterString;
 
         public TestServer() {
@@ -150,7 +160,8 @@ public class HttpServerTest {
             return new HTTPSession(tempFileManager, inputStream, outputStream, inetAddress);
         }
 
-        @Override public Response serve(IHTTPSession session) {
+        @Override
+        public Response serve(IHTTPSession session) {
             this.uri = session.getUri();
             this.method = session.getMethod();
             this.header = session.getHeaders();

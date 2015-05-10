@@ -39,10 +39,10 @@ import java.util.List;
 import fi.iki.elonen.debug.DebugServer;
 
 /**
- * @author Paul S. Hawke (paul.hawke@gmail.com)
- *         On: 3/9/13 at 12:47 AM
+ * @author Paul S. Hawke (paul.hawke@gmail.com) On: 3/9/13 at 12:47 AM
  */
 public class TempFilesServer extends DebugServer {
+
     public static void main(String[] args) {
         TempFilesServer server = new TempFilesServer();
         server.setTempFileManagerFactory(new ExampleManagerFactory());
@@ -50,6 +50,7 @@ public class TempFilesServer extends DebugServer {
     }
 
     private static class ExampleManagerFactory implements TempFileManagerFactory {
+
         @Override
         public TempFileManager create() {
             return new ExampleManager();
@@ -57,7 +58,9 @@ public class TempFilesServer extends DebugServer {
     }
 
     private static class ExampleManager implements TempFileManager {
+
         private final String tmpdir;
+
         private final List<TempFile> tempFiles;
 
         private ExampleManager() {
@@ -80,9 +83,10 @@ public class TempFilesServer extends DebugServer {
             }
             for (TempFile file : tempFiles) {
                 try {
-                    System.out.println("   "+file.getName());
+                    System.out.println("   " + file.getName());
                     file.delete();
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
             tempFiles.clear();
         }

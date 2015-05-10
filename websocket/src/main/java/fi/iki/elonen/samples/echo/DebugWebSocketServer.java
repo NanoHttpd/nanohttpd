@@ -40,15 +40,15 @@ import java.util.logging.Logger;
 import fi.iki.elonen.NanoWebSocketServer;
 
 /**
-* @author Paul S. Hawke (paul.hawke@gmail.com)
-*         On: 4/23/14 at 10:31 PM
-*/
+ * @author Paul S. Hawke (paul.hawke@gmail.com) On: 4/23/14 at 10:31 PM
+ */
 public class DebugWebSocketServer extends NanoWebSocketServer {
+
     /**
      * logger to log to.
      */
     private static Logger LOG = Logger.getLogger(DebugWebSocketServer.class.getName());
-    
+
     private final boolean debug;
 
     public DebugWebSocketServer(int port, boolean debug) {
@@ -76,15 +76,14 @@ public class DebugWebSocketServer extends NanoWebSocketServer {
     @Override
     protected void onClose(WebSocket socket, WebSocketFrame.CloseCode code, String reason, boolean initiatedByRemote) {
         if (debug) {
-            System.out.println("C [" + (initiatedByRemote ? "Remote" : "Self") + "] " +
-                    (code != null ? code : "UnknownCloseCode[" + code + "]") +
-                    (reason != null && !reason.isEmpty() ? ": " + reason : ""));
+            System.out.println("C [" + (initiatedByRemote ? "Remote" : "Self") + "] " + (code != null ? code : "UnknownCloseCode[" + code + "]")
+                    + (reason != null && !reason.isEmpty() ? ": " + reason : ""));
         }
     }
 
     @Override
     protected void onException(WebSocket socket, IOException e) {
-        LOG.log(Level.SEVERE,"exception occured",e);
+        LOG.log(Level.SEVERE, "exception occured", e);
     }
 
     @Override

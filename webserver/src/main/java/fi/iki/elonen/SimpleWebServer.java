@@ -51,83 +51,80 @@ import java.util.ServiceLoader;
 import java.util.StringTokenizer;
 
 public class SimpleWebServer extends NanoHTTPD {
+
     /**
      * Common mime type for dynamic content: binary
      */
     public static final String MIME_DEFAULT_BINARY = "application/octet-stream";
+
     /**
      * Default Index file names.
      */
     @SuppressWarnings("serial")
-    public static final List<String> INDEX_FILE_NAMES = new ArrayList<String>() {{
-        add("index.html");
-        add("index.htm");
-    }};
+    public static final List<String> INDEX_FILE_NAMES = new ArrayList<String>() {
+
+        {
+            add("index.html");
+            add("index.htm");
+        }
+    };
+
     /**
      * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
      */
     @SuppressWarnings("serial")
-    private static final Map<String, String> MIME_TYPES = new HashMap<String, String>() {{
-        put("css", "text/css");
-        put("htm", "text/html");
-        put("html", "text/html");
-        put("xml", "text/xml");
-        put("java", "text/x-java-source, text/java");
-        put("md", "text/plain");
-        put("txt", "text/plain");
-        put("asc", "text/plain");
-        put("gif", "image/gif");
-        put("jpg", "image/jpeg");
-        put("jpeg", "image/jpeg");
-        put("png", "image/png");
-        put("mp3", "audio/mpeg");
-        put("m3u", "audio/mpeg-url");
-        put("mp4", "video/mp4");
-        put("ogv", "video/ogg");
-        put("flv", "video/x-flv");
-        put("mov", "video/quicktime");
-        put("swf", "application/x-shockwave-flash");
-        put("js", "application/javascript");
-        put("pdf", "application/pdf");
-        put("doc", "application/msword");
-        put("ogg", "application/x-ogg");
-        put("zip", "application/octet-stream");
-        put("exe", "application/octet-stream");
-        put("class", "application/octet-stream");
-    }};
+    private static final Map<String, String> MIME_TYPES = new HashMap<String, String>() {
+
+        {
+            put("css", "text/css");
+            put("htm", "text/html");
+            put("html", "text/html");
+            put("xml", "text/xml");
+            put("java", "text/x-java-source, text/java");
+            put("md", "text/plain");
+            put("txt", "text/plain");
+            put("asc", "text/plain");
+            put("gif", "image/gif");
+            put("jpg", "image/jpeg");
+            put("jpeg", "image/jpeg");
+            put("png", "image/png");
+            put("mp3", "audio/mpeg");
+            put("m3u", "audio/mpeg-url");
+            put("mp4", "video/mp4");
+            put("ogv", "video/ogg");
+            put("flv", "video/x-flv");
+            put("mov", "video/quicktime");
+            put("swf", "application/x-shockwave-flash");
+            put("js", "application/javascript");
+            put("pdf", "application/pdf");
+            put("doc", "application/msword");
+            put("ogg", "application/x-ogg");
+            put("zip", "application/octet-stream");
+            put("exe", "application/octet-stream");
+            put("class", "application/octet-stream");
+        }
+    };
+
     /**
      * The distribution licence
      */
-    private static final String LICENCE =
-        "Copyright (c) 2012-2013 by Paul S. Hawke, 2001,2005-2013 by Jarno Elonen, 2010 by Konstantinos Togias\n"
-            + "\n"
-            + "Redistribution and use in source and binary forms, with or without\n"
-            + "modification, are permitted provided that the following conditions\n"
-            + "are met:\n"
-            + "\n"
-            + "Redistributions of source code must retain the above copyright notice,\n"
-            + "this list of conditions and the following disclaimer. Redistributions in\n"
-            + "binary form must reproduce the above copyright notice, this list of\n"
-            + "conditions and the following disclaimer in the documentation and/or other\n"
-            + "materials provided with the distribution. The name of the author may not\n"
-            + "be used to endorse or promote products derived from this software without\n"
-            + "specific prior written permission. \n"
-            + " \n"
-            + "THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR\n"
-            + "IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES\n"
-            + "OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.\n"
-            + "IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,\n"
-            + "INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT\n"
-            + "NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\n"
-            + "DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\n"
-            + "THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n"
-            + "(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n"
+    private static final String LICENCE = "Copyright (c) 2012-2013 by Paul S. Hawke, 2001,2005-2013 by Jarno Elonen, 2010 by Konstantinos Togias\n" + "\n"
+            + "Redistribution and use in source and binary forms, with or without\n" + "modification, are permitted provided that the following conditions\n" + "are met:\n"
+            + "\n" + "Redistributions of source code must retain the above copyright notice,\n" + "this list of conditions and the following disclaimer. Redistributions in\n"
+            + "binary form must reproduce the above copyright notice, this list of\n" + "conditions and the following disclaimer in the documentation and/or other\n"
+            + "materials provided with the distribution. The name of the author may not\n" + "be used to endorse or promote products derived from this software without\n"
+            + "specific prior written permission. \n" + " \n" + "THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR\n"
+            + "IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES\n" + "OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.\n"
+            + "IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,\n" + "INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT\n"
+            + "NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\n" + "DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\n"
+            + "THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n" + "(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n"
             + "OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.";
+
     private static Map<String, WebServerPlugin> mimeTypeHandlers = new HashMap<String, WebServerPlugin>();
+
     private final boolean quiet;
 
     protected List<File> rootDirs;
-
 
     public SimpleWebServer(String host, int port, File wwwroot, boolean quiet) {
         super(host, port);
@@ -146,9 +143,9 @@ public class SimpleWebServer extends NanoHTTPD {
         this.init();
     }
 
-	/**
-	 * Used to initialize and customize the server.
-	 */
+    /**
+     * Used to initialize and customize the server.
+     */
     public void init() {
     }
 
@@ -191,7 +188,7 @@ public class SimpleWebServer extends NanoHTTPD {
         }
 
         options.put("host", host);
-        options.put("port", ""+port);
+        options.put("port", "" + port);
         options.put("quiet", String.valueOf(quiet));
         StringBuilder sb = new StringBuilder();
         for (File dir : rootDirs) {
@@ -200,7 +197,8 @@ public class SimpleWebServer extends NanoHTTPD {
             }
             try {
                 sb.append(dir.getCanonicalPath());
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
         }
         options.put("home", sb.toString());
 
@@ -246,7 +244,8 @@ public class SimpleWebServer extends NanoHTTPD {
     }
 
     /**
-     * URL-encodes everything between "/"-characters. Encodes spaces as '%20' instead of '+'.
+     * URL-encodes everything between "/"-characters. Encodes spaces as '%20'
+     * instead of '+'.
      */
     private String encodeUri(String uri) {
         String newUri = "";
@@ -318,18 +317,19 @@ public class SimpleWebServer extends NanoHTTPD {
             return getNotFoundResponse();
         }
 
-        // Browsers get confused without '/' after the directory, send a redirect.
+        // Browsers get confused without '/' after the directory, send a
+        // redirect.
         File f = new File(homeDir, uri);
         if (f.isDirectory() && !uri.endsWith("/")) {
             uri += "/";
-            Response res = createResponse(Response.Status.REDIRECT, NanoHTTPD.MIME_HTML, "<html><body>Redirected: <a href=\"" +
-                uri + "\">" + uri + "</a></body></html>");
+            Response res = createResponse(Response.Status.REDIRECT, NanoHTTPD.MIME_HTML, "<html><body>Redirected: <a href=\"" + uri + "\">" + uri + "</a></body></html>");
             res.addHeader("Location", uri);
             return res;
         }
 
         if (f.isDirectory()) {
-            // First look for index files (index.html, index.htm, etc) and if none found, list the directory if readable.
+            // First look for index files (index.html, index.htm, etc) and if
+            // none found, list the directory if readable.
             String indexFile = findIndexFileInDirectory(f);
             if (indexFile == null) {
                 if (f.canRead()) {
@@ -359,18 +359,15 @@ public class SimpleWebServer extends NanoHTTPD {
     }
 
     protected Response getNotFoundResponse() {
-        return createResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT,
-            "Error 404, file not found.");
+        return createResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Error 404, file not found.");
     }
 
     protected Response getForbiddenResponse(String s) {
-        return createResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: "
-            + s);
+        return createResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: " + s);
     }
 
     protected Response getInternalErrorResponse(String s) {
-        return createResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
-            "INTERNAL ERROR: " + s);
+        return createResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "INTERNAL ERROR: " + s);
     }
 
     private boolean canServeUri(String uri, File homeDir) {
@@ -388,7 +385,8 @@ public class SimpleWebServer extends NanoHTTPD {
     }
 
     /**
-     * Serves file from homeDir and its' subdirectories (only). Uses only URI, ignores all headers and HTTP parameters.
+     * Serves file from homeDir and its' subdirectories (only). Uses only URI,
+     * ignores all headers and HTTP parameters.
      */
     Response serveFile(String uri, Map<String, String> header, File file, String mime) {
         Response res;
@@ -414,7 +412,8 @@ public class SimpleWebServer extends NanoHTTPD {
                 }
             }
 
-            // Change return code and add Content-Range header when skipping is requested
+            // Change return code and add Content-Range header when skipping is
+            // requested
             long fileLen = file.length();
             if (range != null && startFrom >= 0) {
                 if (startFrom >= fileLen) {
@@ -432,6 +431,7 @@ public class SimpleWebServer extends NanoHTTPD {
 
                     final long dataLen = newLen;
                     FileInputStream fis = new FileInputStream(file) {
+
                         @Override
                         public int available() throws IOException {
                             return (int) dataLen;
@@ -496,12 +496,9 @@ public class SimpleWebServer extends NanoHTTPD {
 
     protected String listDirectory(String uri, File f) {
         String heading = "Directory " + uri;
-        StringBuilder msg = new StringBuilder("<html><head><title>" + heading + "</title><style><!--\n" +
-            "span.dirname { font-weight: bold; }\n" +
-            "span.filesize { font-size: 75%; }\n" +
-            "// -->\n" +
-            "</style>" +
-            "</head><body><h1>" + heading + "</h1>");
+        StringBuilder msg =
+                new StringBuilder("<html><head><title>" + heading + "</title><style><!--\n" + "span.dirname { font-weight: bold; }\n" + "span.filesize { font-size: 75%; }\n"
+                        + "// -->\n" + "</style>" + "</head><body><h1>" + heading + "</h1>");
 
         String up = null;
         if (uri.length() > 1) {
@@ -513,6 +510,7 @@ public class SimpleWebServer extends NanoHTTPD {
         }
 
         List<String> files = Arrays.asList(f.list(new FilenameFilter() {
+
             @Override
             public boolean accept(File dir, String name) {
                 return new File(dir, name).isFile();
@@ -520,6 +518,7 @@ public class SimpleWebServer extends NanoHTTPD {
         }));
         Collections.sort(files);
         List<String> directories = Arrays.asList(f.list(new FilenameFilter() {
+
             @Override
             public boolean accept(File dir, String name) {
                 return new File(dir, name).isDirectory();
@@ -535,7 +534,8 @@ public class SimpleWebServer extends NanoHTTPD {
                 }
                 for (String directory : directories) {
                     String dir = directory + "/";
-                    msg.append("<li><a rel=\"directory\" href=\"").append(encodeUri(uri + dir)).append("\"><span class=\"dirname\">").append(dir).append("</span></a></b></li>");
+                    msg.append("<li><a rel=\"directory\" href=\"").append(encodeUri(uri + dir)).append("\"><span class=\"dirname\">").append(dir)
+                            .append("</span></a></b></li>");
                 }
                 msg.append("</section>");
             }

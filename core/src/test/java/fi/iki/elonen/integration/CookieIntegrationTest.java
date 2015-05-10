@@ -48,8 +48,7 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 /**
- * @author Paul S. Hawke (paul.hawke@gmail.com)
- *         On: 9/2/13 at 10:10 PM
+ * @author Paul S. Hawke (paul.hawke@gmail.com) On: 9/2/13 at 10:10 PM
  */
 public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegrationTest.CookieTestServer> {
 
@@ -92,19 +91,23 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
         assertTrue(testServer.cookiesReceived.get(0).getHTTPHeader().contains("name=value"));
     }
 
-    @Override public CookieTestServer createTestServer() {
+    @Override
+    public CookieTestServer createTestServer() {
         return new CookieTestServer();
     }
 
     public static class CookieTestServer extends NanoHTTPD {
+
         List<Cookie> cookiesReceived = new ArrayList<Cookie>();
+
         List<Cookie> cookiesToSend = new ArrayList<Cookie>();
 
         public CookieTestServer() {
             super(8192);
         }
 
-        @Override public Response serve(IHTTPSession session) {
+        @Override
+        public Response serve(IHTTPSession session) {
             CookieHandler cookies = session.getCookies();
             for (String cookieName : cookies) {
                 cookiesReceived.add(new Cookie(cookieName, cookies.read(cookieName)));

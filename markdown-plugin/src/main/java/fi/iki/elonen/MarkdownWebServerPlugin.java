@@ -47,26 +47,27 @@ import java.util.logging.Logger;
 import org.pegdown.PegDownProcessor;
 
 /**
- * @author Paul S. Hawke (paul.hawke@gmail.com)
- *         On: 9/13/13 at 4:03 AM
+ * @author Paul S. Hawke (paul.hawke@gmail.com) On: 9/13/13 at 4:03 AM
  */
 public class MarkdownWebServerPlugin implements WebServerPlugin {
-    
+
     /**
      * logger to log to.
      */
     private static Logger LOG = Logger.getLogger(MarkdownWebServerPlugin.class.getName());
-    
+
     private final PegDownProcessor processor;
 
     public MarkdownWebServerPlugin() {
         processor = new PegDownProcessor();
     }
 
-    @Override public void initialize(Map<String, String> commandLineOptions) {
+    @Override
+    public void initialize(Map<String, String> commandLineOptions) {
     }
 
-    @Override public boolean canServeUri(String uri, File rootDir) {
+    @Override
+    public boolean canServeUri(String uri, File rootDir) {
         File f = new File(rootDir, uri);
         return f.exists();
     }
@@ -74,8 +75,7 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
     @Override
     public NanoHTTPD.Response serveFile(String uri, Map<String, String> headers, NanoHTTPD.IHTTPSession session, File file, String mimeType) {
         String markdownSource = readSource(file);
-        return markdownSource == null ? null :
-            new NanoHTTPD.Response(OK, MIME_HTML, processor.markdownToHtml(markdownSource));
+        return markdownSource == null ? null : new NanoHTTPD.Response(OK, MIME_HTML, processor.markdownToHtml(markdownSource));
     }
 
     private String readSource(File file) {
@@ -95,7 +95,7 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
             reader.close();
             return sb.toString();
         } catch (Exception e) {
-            LOG.log(Level.SEVERE, "could not read source",e);
+            LOG.log(Level.SEVERE, "could not read source", e);
             return null;
         } finally {
             try {
@@ -106,7 +106,7 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
                     reader.close();
                 }
             } catch (IOException ignored) {
-                LOG.log(Level.FINEST, "close failed",ignored);
+                LOG.log(Level.FINEST, "close failed", ignored);
             }
         }
     }

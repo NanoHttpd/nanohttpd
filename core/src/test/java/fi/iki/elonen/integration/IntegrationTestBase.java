@@ -42,11 +42,12 @@ import org.junit.Before;
 import java.io.IOException;
 
 /**
- * @author Paul S. Hawke (paul.hawke@gmail.com)
- *         On: 9/2/13 at 10:02 PM
+ * @author Paul S. Hawke (paul.hawke@gmail.com) On: 9/2/13 at 10:02 PM
  */
 public abstract class IntegrationTestBase<T extends NanoHTTPD> {
+
     protected DefaultHttpClient httpclient;
+
     protected T testServer;
 
     @Before

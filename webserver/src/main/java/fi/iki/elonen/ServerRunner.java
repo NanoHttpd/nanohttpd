@@ -38,16 +38,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ServerRunner {
+
     /**
      * logger to log to.
      */
     private static Logger LOG = Logger.getLogger(ServerRunner.class.getName());
-    
+
     public static <T extends NanoHTTPD> void run(Class<T> serverClass) {
         try {
             executeInstance((NanoHTTPD) serverClass.newInstance());
         } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Cound nor create server",e);
+            LOG.log(Level.SEVERE, "Cound nor create server", e);
         }
     }
 

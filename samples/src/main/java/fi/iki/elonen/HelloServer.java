@@ -41,36 +41,34 @@ import java.util.logging.Logger;
  */
 public class HelloServer extends NanoHTTPD {
 
-	/**
-	 * logger to log to.
-	 */
-	private static Logger LOG = Logger.getLogger(HelloServer.class.getName());
+    /**
+     * logger to log to.
+     */
+    private static Logger LOG = Logger.getLogger(HelloServer.class.getName());
 
-	public HelloServer() {
-		super(8080);
-	}
+    public HelloServer() {
+        super(8080);
+    }
 
-	@Override
-	public Response serve(IHTTPSession session) {
-		Method method = session.getMethod();
-		String uri = session.getUri();
-		LOG.info(method + " '" + uri + "' ");
+    @Override
+    public Response serve(IHTTPSession session) {
+        Method method = session.getMethod();
+        String uri = session.getUri();
+        LOG.info(method + " '" + uri + "' ");
 
-		String msg = "<html><body><h1>Hello server</h1>\n";
-		Map<String, String> parms = session.getParms();
-		if (parms.get("username") == null)
-			msg += "<form action='?' method='get'>\n"
-					+ "  <p>Your name: <input type='text' name='username'></p>\n"
-					+ "</form>\n";
-		else
-			msg += "<p>Hello, " + parms.get("username") + "!</p>";
+        String msg = "<html><body><h1>Hello server</h1>\n";
+        Map<String, String> parms = session.getParms();
+        if (parms.get("username") == null)
+            msg += "<form action='?' method='get'>\n" + "  <p>Your name: <input type='text' name='username'></p>\n" + "</form>\n";
+        else
+            msg += "<p>Hello, " + parms.get("username") + "!</p>";
 
-		msg += "</body></html>\n";
+        msg += "</body></html>\n";
 
-		return new NanoHTTPD.Response(msg);
-	}
+        return new NanoHTTPD.Response(msg);
+    }
 
-	public static void main(String[] args) {
-		ServerRunner.run(HelloServer.class);
-	}
+    public static void main(String[] args) {
+        ServerRunner.run(HelloServer.class);
+    }
 }

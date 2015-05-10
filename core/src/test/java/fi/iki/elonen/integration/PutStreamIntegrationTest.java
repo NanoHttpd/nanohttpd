@@ -61,18 +61,19 @@ public class PutStreamIntegrationTest extends IntegrationTestBase<PutStreamInteg
         assertEquals("PUT:" + expected, responseBody);
     }
 
-    @Override public TestServer createTestServer() {
+    @Override
+    public TestServer createTestServer() {
         return new TestServer();
     }
 
     public static class TestServer extends NanoHTTPD {
+
         public TestServer() {
             super(8192);
         }
 
         @Override
-        public Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files)
-        {
+        public Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) {
             throw new UnsupportedOperationException();
         }
 
@@ -87,8 +88,7 @@ public class PutStreamIntegrationTest extends IntegrationTestBase<PutStreamInteg
                 DataInputStream dataInputStream = new DataInputStream(session.getInputStream());
                 body = new byte[contentLength];
                 dataInputStream.readFully(body, 0, contentLength);
-            }
-            catch(IOException e) {
+            } catch (IOException e) {
                 return new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, e.getMessage());
             }
 
