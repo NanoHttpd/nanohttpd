@@ -301,7 +301,7 @@ public abstract class NanoHTTPD {
                                     // stacktrace
                                     if (!(e instanceof SocketException && "NanoHttpd Shutdown".equals(e.getMessage())) &&
                                         !(e instanceof SocketTimeoutException)) {
-                                    	LOG.log(Level.SEVERE, "Communication with the client broken", e);
+                                    	LOG.log(Level.FINE, "Communication with the client broken", e);
                                     }
                                 } finally {
                                     safeClose(outputStream);
@@ -312,7 +312,7 @@ public abstract class NanoHTTPD {
                             }
                         });
                     } catch (IOException e) {
-                    	LOG.log(Level.SEVERE, "Communication with the client broken", e);
+                    	LOG.log(Level.FINE, "Communication with the client broken", e);
                     }
                 } while (!myServerSocket.isClosed());
             }
@@ -1217,14 +1217,15 @@ public abstract class NanoHTTPD {
                 // followed by HTTP headers. Ignore version but parse headers.
                 // NOTE: this now forces header names lower case since they are
                 // case insensitive and vary by client.
-                if (st.hasMoreTokens()) {
-                    String line = in.readLine();
-                    while (line != null && line.trim().length() > 0) {
-                        int p = line.indexOf(':');
-                        if (p >= 0)
-                            headers.put(line.substring(0, p).trim().toLowerCase(Locale.US), line.substring(p + 1).trim());
-                        line = in.readLine();
-                    }
+                if (!st.hasMoreTokens()) {
+                    LOG.log(Level.FINE, "no protocol version specified, strange..");
+                }
+                String line = in.readLine();
+                while (line != null && line.trim().length() > 0) {
+                    int p = line.indexOf(':');
+                    if (p >= 0)
+                        headers.put(line.substring(0, p).trim().toLowerCase(Locale.US), line.substring(p + 1).trim());
+                    line = in.readLine();
                 }
 
                 pre.put("uri", uri);
