@@ -1615,6 +1615,18 @@ public abstract class NanoHTTPD {
      *             if the socket is in use.
      */
     public void start() throws IOException {
+        start(NanoHTTPD.SOCKET_READ_TIMEOUT);
+    }
+
+    /**
+     * Start the server.
+     * 
+     * @param timeout
+     *            timeout to use for socket connections.
+     * @throws IOException
+     *             if the socket is in use.
+     */
+    public void start(final int timeout) throws IOException {
         if (this.sslServerSocketFactory != null) {
             SSLServerSocket ss = (SSLServerSocket) this.sslServerSocketFactory.createServerSocket();
             ss.setNeedClientAuth(false);
@@ -1633,7 +1645,7 @@ public abstract class NanoHTTPD {
                     try {
                         final Socket finalAccept = NanoHTTPD.this.myServerSocket.accept();
                         registerConnection(finalAccept);
-                        finalAccept.setSoTimeout(NanoHTTPD.SOCKET_READ_TIMEOUT);
+                        finalAccept.setSoTimeout(timeout);
                         final InputStream inputStream = finalAccept.getInputStream();
                         NanoHTTPD.this.asyncRunner.exec(new Runnable() {
 
