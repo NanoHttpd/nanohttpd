@@ -39,16 +39,16 @@ package fi.iki.elonen;
 public class MarkdownWebServerPluginInfo implements WebServerPluginInfo {
 
     @Override
-    public String[] getMimeTypes() {
+    public String[] getIndexFilesForMimeType(String mime) {
         return new String[]{
-            "text/markdown"
+            "index.md"
         };
     }
 
     @Override
-    public String[] getIndexFilesForMimeType(String mime) {
+    public String[] getMimeTypes() {
         return new String[]{
-            "index.md"
+            "text/markdown"
         };
     }
 

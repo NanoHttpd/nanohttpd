@@ -43,9 +43,9 @@ import fi.iki.elonen.NanoHTTPD.IHTTPSession;
  */
 public interface WebServerPlugin {
 
-    void initialize(Map<String, String> commandLineOptions);
-
     boolean canServeUri(String uri, File rootDir);
+
+    void initialize(Map<String, String> commandLineOptions);
 
     NanoHTTPD.Response serveFile(String uri, Map<String, String> headers, IHTTPSession session, File file, String mimeType);
 }

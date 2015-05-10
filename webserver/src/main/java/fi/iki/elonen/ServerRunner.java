@@ -44,14 +44,6 @@ public class ServerRunner {
      */
     private static Logger LOG = Logger.getLogger(ServerRunner.class.getName());
 
-    public static <T extends NanoHTTPD> void run(Class<T> serverClass) {
-        try {
-            executeInstance((NanoHTTPD) serverClass.newInstance());
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Cound nor create server", e);
-        }
-    }
-
     public static void executeInstance(NanoHTTPD server) {
         try {
             server.start();
@@ -69,5 +61,13 @@ public class ServerRunner {
 
         server.stop();
         System.out.println("Server stopped.\n");
+    }
+
+    public static <T extends NanoHTTPD> void run(Class<T> serverClass) {
+        try {
+            executeInstance(serverClass.newInstance());
+        } catch (Exception e) {
+            ServerRunner.LOG.log(Level.SEVERE, "Cound nor create server", e);
+        }
     }
 }

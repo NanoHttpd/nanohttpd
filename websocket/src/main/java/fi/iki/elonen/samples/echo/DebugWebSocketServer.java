@@ -57,9 +57,22 @@ public class DebugWebSocketServer extends NanoWebSocketServer {
     }
 
     @Override
-    protected void onPong(WebSocket socket, WebSocketFrame pongFrame) {
-        if (debug) {
-            System.out.println("P " + pongFrame);
+    protected void onClose(WebSocket socket, WebSocketFrame.CloseCode code, String reason, boolean initiatedByRemote) {
+        if (this.debug) {
+            System.out.println("C [" + (initiatedByRemote ? "Remote" : "Self") + "] " + (code != null ? code : "UnknownCloseCode[" + code + "]")
+                    + (reason != null && !reason.isEmpty() ? ": " + reason : ""));
+        }
+    }
+
+    @Override
+    protected void onException(WebSocket socket, IOException e) {
+        DebugWebSocketServer.LOG.log(Level.SEVERE, "exception occured", e);
+    }
+
+    @Override
+    protected void onFrameReceived(WebSocketFrame frame) {
+        if (this.debug) {
+            System.out.println("R " + frame);
         }
     }
 
@@ -74,28 +87,15 @@ public class DebugWebSocketServer extends NanoWebSocketServer {
     }
 
     @Override
-    protected void onClose(WebSocket socket, WebSocketFrame.CloseCode code, String reason, boolean initiatedByRemote) {
-        if (debug) {
-            System.out.println("C [" + (initiatedByRemote ? "Remote" : "Self") + "] " + (code != null ? code : "UnknownCloseCode[" + code + "]")
-                    + (reason != null && !reason.isEmpty() ? ": " + reason : ""));
-        }
-    }
-
-    @Override
-    protected void onException(WebSocket socket, IOException e) {
-        LOG.log(Level.SEVERE, "exception occured", e);
-    }
-
-    @Override
-    protected void onFrameReceived(WebSocketFrame frame) {
-        if (debug) {
-            System.out.println("R " + frame);
+    protected void onPong(WebSocket socket, WebSocketFrame pongFrame) {
+        if (this.debug) {
+            System.out.println("P " + pongFrame);
         }
     }
 
     @Override
     public void onSendFrame(WebSocketFrame frame) {
-        if (debug) {
+        if (this.debug) {
             System.out.println("S " + frame);
         }
     }

@@ -52,11 +52,11 @@ public class InternalRewrite extends Response {
         this.uri = uri;
     }
 
-    public String getUri() {
-        return uri;
+    public Map<String, String> getHeaders() {
+        return this.headers;
     }
 
-    public Map<String, String> getHeaders() {
-        return headers;
+    public String getUri() {
+        return this.uri;
     }
 }

@@ -38,9 +38,9 @@ package fi.iki.elonen;
  */
 public interface WebServerPluginInfo {
 
-    String[] getMimeTypes();
-
     String[] getIndexFilesForMimeType(String mime);
+
+    String[] getMimeTypes();
 
     WebServerPlugin getWebServerPlugin(String mimeType);
 }

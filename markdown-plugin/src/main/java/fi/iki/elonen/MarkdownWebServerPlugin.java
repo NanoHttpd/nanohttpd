@@ -33,7 +33,6 @@ package fi.iki.elonen;
  * #L%
  */
 
-import static fi.iki.elonen.NanoHTTPD.MIME_HTML;
 import static fi.iki.elonen.NanoHTTPD.Response.Status.OK;
 
 import java.io.BufferedReader;
@@ -59,11 +58,7 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
     private final PegDownProcessor processor;
 
     public MarkdownWebServerPlugin() {
-        processor = new PegDownProcessor();
-    }
-
-    @Override
-    public void initialize(Map<String, String> commandLineOptions) {
+        this.processor = new PegDownProcessor();
     }
 
     @Override
@@ -73,9 +68,7 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
     }
 
     @Override
-    public NanoHTTPD.Response serveFile(String uri, Map<String, String> headers, NanoHTTPD.IHTTPSession session, File file, String mimeType) {
-        String markdownSource = readSource(file);
-        return markdownSource == null ? null : new NanoHTTPD.Response(OK, MIME_HTML, processor.markdownToHtml(markdownSource));
+    public void initialize(Map<String, String> commandLineOptions) {
     }
 
     private String readSource(File file) {
@@ -95,7 +88,7 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
             reader.close();
             return sb.toString();
         } catch (Exception e) {
-            LOG.log(Level.SEVERE, "could not read source", e);
+            MarkdownWebServerPlugin.LOG.log(Level.SEVERE, "could not read source", e);
             return null;
         } finally {
             try {
@@ -106,8 +99,14 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
                     reader.close();
                 }
             } catch (IOException ignored) {
-                LOG.log(Level.FINEST, "close failed", ignored);
+                MarkdownWebServerPlugin.LOG.log(Level.FINEST, "close failed", ignored);
             }
         }
+    }
+
+    @Override
+    public NanoHTTPD.Response serveFile(String uri, Map<String, String> headers, NanoHTTPD.IHTTPSession session, File file, String mimeType) {
+        String markdownSource = readSource(file);
+        return markdownSource == null ? null : new NanoHTTPD.Response(OK, NanoHTTPD.MIME_HTML, this.processor.markdownToHtml(markdownSource));
     }
 }
