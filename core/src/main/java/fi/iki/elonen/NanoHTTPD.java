@@ -1021,6 +1021,8 @@ public abstract class NanoHTTPD {
          */
         private InputStream data;
 
+        private int contentLength;
+
         /**
          * Headers for the HTTP response. Use addHeader() to add lines.
          */
@@ -1037,24 +1039,50 @@ public abstract class NanoHTTPD {
         private boolean chunkedTransfer;
 
         /**
-         * Basic constructor.
+         * Create a response with known length.
          */
+        public static Response NewFixedLengthResponse(IStatus status, String mimeType, InputStream data, int totalBytes) {
+            Response r = new Response(status, mimeType, data);
+            r.contentLength = totalBytes;
+            r.chunkedTransfer = false;
+            return r;
+        }
+
+        /**
+         * Create a response with unknown length (using HTTP 1.1 chunking).
+         */
+        public static Response NewChunkedResponse(IStatus status, String mimeType, InputStream data) {
+            return new Response(status, mimeType, data);
+        }
+
+        /**
+         * Deprecated, use NewFixedLengthResponse or NewChunkedResponse instead.
+         */
+        @Deprecated
         public Response(IStatus status, String mimeType, InputStream data) {
             this.status = status;
             this.mimeType = mimeType;
             this.data = data;
+            this.contentLength = -1;
+            this.chunkedTransfer = true;
         }
 
+
         /**
-         * Convenience method that makes an InputStream out of given text.
+         * Convenience method that makes an InputStream out of a given UTF-8 string.
          */
         public Response(IStatus status, String mimeType, String txt) {
             this.status = status;
             this.mimeType = mimeType;
+            this.contentLength = 0;
             try {
                 this.data = txt != null ? new ByteArrayInputStream(txt.getBytes("UTF-8")) : null;
+                this.contentLength = (this.data != null) ? this.data.available() : 0;
             } catch (java.io.UnsupportedEncodingException uee) {
                 NanoHTTPD.LOG.log(Level.SEVERE, "encoding problem", uee);
+            }
+            catch (java.io.IOException ioe) {
+                NanoHTTPD.LOG.log(Level.SEVERE, "ByteArrayInputStream.available() failed?!?", ioe);
             }
         }
 
@@ -1136,7 +1164,7 @@ public abstract class NanoHTTPD {
                 if (this.requestMethod != Method.HEAD && this.chunkedTransfer) {
                     sendAsChunked(outputStream, pw);
                 } else {
-                    int pending = this.data != null ? this.data.available() : 0;
+                    int pending = this.data != null ? this.contentLength : 0;
                     pending = sendContentLengthHeaderIfNotAlreadyPresent(pw, this.header, pending);
                     pw.print("\r\n");
                     pw.flush();
