@@ -1042,22 +1042,16 @@ public abstract class NanoHTTPD {
          * Create a response with known length.
          */
         public static Response NewFixedLengthResponse(IStatus status, String mimeType, InputStream data, int totalBytes) {
-            Response r = new Response(status, mimeType, data);
-            r.contentLength = totalBytes;
-            r.chunkedTransfer = false;
-            return r;
+            return new Response(status, mimeType, data, totalBytes);
         }
 
         /**
          * Create a response with unknown length (using HTTP 1.1 chunking).
          */
         public static Response NewChunkedResponse(IStatus status, String mimeType, InputStream data) {
-            return new Response(status, mimeType, data);
+            return new Response(status, mimeType, data, -1);
         }
 
-        /**
-         * Deprecated, use NewFixedLengthResponse or NewChunkedResponse instead.
-         */
         @Deprecated
         public Response(IStatus status, String mimeType, InputStream data) {
             this.status = status;
@@ -1067,9 +1061,20 @@ public abstract class NanoHTTPD {
             this.chunkedTransfer = true;
         }
 
+        /**
+         * Creates a fixed length response if totalBytes>=0, otherwise chunked.
+         */
+        protected Response(IStatus status, String mimeType, InputStream data, int totalBytes) {
+            this.status = status;
+            this.mimeType = mimeType;
+            this.data = data;
+            this.contentLength = totalBytes;
+            this.chunkedTransfer = totalBytes < 0;
+        }
 
         /**
-         * Convenience method that makes an InputStream out of a given UTF-8 string.
+         * Convenience method that makes an InputStream out of a given UTF-8
+         * string.
          */
         public Response(IStatus status, String mimeType, String txt) {
             this.status = status;
@@ -1080,8 +1085,7 @@ public abstract class NanoHTTPD {
                 this.contentLength = (this.data != null) ? this.data.available() : 0;
             } catch (java.io.UnsupportedEncodingException uee) {
                 NanoHTTPD.LOG.log(Level.SEVERE, "encoding problem", uee);
-            }
-            catch (java.io.IOException ioe) {
+            } catch (java.io.IOException ioe) {
                 NanoHTTPD.LOG.log(Level.SEVERE, "ByteArrayInputStream.available() failed?!?", ioe);
             }
         }

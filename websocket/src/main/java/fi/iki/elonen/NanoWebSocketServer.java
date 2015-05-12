@@ -76,7 +76,7 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
 
         private final NanoHTTPD.IHTTPSession handshakeRequest;
 
-        private final NanoHTTPD.Response handshakeResponse = new NanoHTTPD.Response(NanoHTTPD.Response.Status.SWITCH_PROTOCOL, null, (InputStream) null) {
+        private final NanoHTTPD.Response handshakeResponse = new NanoHTTPD.Response(NanoHTTPD.Response.Status.SWITCH_PROTOCOL, null, (InputStream) null, 0) {
 
             @Override
             protected void send(OutputStream out) {
