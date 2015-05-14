@@ -60,14 +60,13 @@ import java.security.KeyStore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.logging.Level;
@@ -138,7 +137,60 @@ public abstract class NanoHTTPD {
      */
     public interface AsyncRunner {
 
-        void exec(Runnable code);
+        void closeAll();
+
+        void closed(ClientHandler clientHandler);
+
+        void exec(ClientHandler code);
+    }
+
+    /**
+     * The runnable that will be used for every new client connection.
+     */
+    public class ClientHandler implements Runnable {
+
+        private final InputStream inputStream;
+
+        private final Socket acceptSocket;
+
+        private ClientHandler(InputStream inputStream, Socket acceptSocket) {
+            this.inputStream = inputStream;
+            this.acceptSocket = acceptSocket;
+        }
+
+        public void close() {
+            safeClose(this.inputStream);
+            safeClose(this.acceptSocket);
+        }
+
+        @Override
+        public void run() {
+            OutputStream outputStream = null;
+            try {
+                outputStream = this.acceptSocket.getOutputStream();
+                TempFileManager tempFileManager = NanoHTTPD.this.tempFileManagerFactory.create();
+                HTTPSession session = new HTTPSession(tempFileManager, this.inputStream, outputStream, this.acceptSocket.getInetAddress());
+                while (!this.acceptSocket.isClosed()) {
+                    session.execute();
+                }
+            } catch (Exception e) {
+                // When the socket is closed by the client,
+                // we throw our own SocketException
+                // to break the "keep alive" loop above. If
+                // the exception was anything other
+                // than the expected SocketException OR a
+                // SocketTimeoutException, print the
+                // stacktrace
+                if (!(e instanceof SocketException && "NanoHttpd Shutdown".equals(e.getMessage())) && !(e instanceof SocketTimeoutException)) {
+                    NanoHTTPD.LOG.log(Level.FINE, "Communication with the client broken", e);
+                }
+            } finally {
+                safeClose(outputStream);
+                safeClose(this.inputStream);
+                safeClose(this.acceptSocket);
+                NanoHTTPD.this.asyncRunner.closed(this);
+            }
+        }
     }
 
     public static class Cookie {
@@ -274,12 +326,28 @@ public abstract class NanoHTTPD {
 
         private long requestCount;
 
+        private final List<ClientHandler> running = Collections.synchronizedList(new ArrayList<NanoHTTPD.ClientHandler>());
+
         @Override
-        public void exec(Runnable code) {
+        public void closeAll() {
+            // copy of the list for concurrency
+            for (ClientHandler clientHandler : new ArrayList<ClientHandler>(this.running)) {
+                clientHandler.close();
+            }
+        }
+
+        @Override
+        public void closed(ClientHandler clientHandler) {
+            this.running.remove(clientHandler);
+        }
+
+        @Override
+        public void exec(ClientHandler clientHandler) {
             ++this.requestCount;
-            Thread t = new Thread(code);
+            Thread t = new Thread(clientHandler);
             t.setDaemon(true);
             t.setName("NanoHttpd Request Processor (#" + this.requestCount + ")");
+            this.running.add(clientHandler);
             t.start();
         }
     }
@@ -1244,6 +1312,32 @@ public abstract class NanoHTTPD {
     }
 
     /**
+     * The runnable that will be used for the main listening thread.
+     */
+    public class ServerRunnable implements Runnable {
+
+        private final int timeout;
+
+        private ServerRunnable(int timeout) {
+            this.timeout = timeout;
+        }
+
+        @Override
+        public void run() {
+            do {
+                try {
+                    final Socket finalAccept = NanoHTTPD.this.myServerSocket.accept();
+                    finalAccept.setSoTimeout(this.timeout);
+                    final InputStream inputStream = finalAccept.getInputStream();
+                    NanoHTTPD.this.asyncRunner.exec(createClientHandler(finalAccept, inputStream));
+                } catch (IOException e) {
+                    NanoHTTPD.LOG.log(Level.FINE, "Communication with the client broken", e);
+                }
+            } while (!NanoHTTPD.this.myServerSocket.isClosed());
+        }
+    }
+
+    /**
      * A temp file.
      * <p/>
      * <p>
@@ -1388,8 +1482,6 @@ public abstract class NanoHTTPD {
 
     private ServerSocket myServerSocket;
 
-    private final Set<Socket> openConnections = new HashSet<Socket>();
-
     private SSLServerSocketFactory sslServerSocketFactory;
 
     private Thread myThread;
@@ -1429,21 +1521,37 @@ public abstract class NanoHTTPD {
         setAsyncRunner(new DefaultAsyncRunner());
     }
 
-    // -------------------------------------------------------------------------------
-    // //
-    //
-    // Temp file handling strategy.
-    //
-    // -------------------------------------------------------------------------------
-    // //
-
     /**
      * Forcibly closes all connections that are open.
      */
     public synchronized void closeAllConnections() {
-        for (Socket socket : this.openConnections) {
-            safeClose(socket);
-        }
+        stop();
+    }
+
+    /**
+     * create a instance of the client handler, subclasses can return a subclass
+     * of the ClientHandler.
+     * 
+     * @param finalAccept
+     *            the socket the cleint is connected to
+     * @param inputStream
+     *            the input stream
+     * @return the client handler
+     */
+    protected ClientHandler createClientHandler(final Socket finalAccept, final InputStream inputStream) {
+        return new ClientHandler(inputStream, finalAccept);
+    }
+
+    /**
+     * Instantiate the server runnable, can be overwritten by subclasses to
+     * provide a subclass of the ServerRunnable.
+     * 
+     * @param timeout
+     *            the socet timeout to use.
+     * @return the server runnable.
+     */
+    protected ServerRunnable createServerRunnable(final int timeout) {
+        return new ServerRunnable(timeout);
     }
 
     /**
@@ -1460,6 +1568,9 @@ public abstract class NanoHTTPD {
     protected Map<String, List<String>> decodeParameters(Map<String, String> parms) {
         return this.decodeParameters(parms.get(NanoHTTPD.QUERY_STRING_PARAMETER));
     }
+
+    // -------------------------------------------------------------------------------
+    // //
 
     /**
      * Decode parameters from a URL, handing the case where a single parameter
@@ -1509,9 +1620,6 @@ public abstract class NanoHTTPD {
         return decoded;
     }
 
-    // -------------------------------------------------------------------------------
-    // //
-
     public final int getListeningPort() {
         return this.myServerSocket == null ? -1 : this.myServerSocket.getLocalPort();
     }
@@ -1525,16 +1633,6 @@ public abstract class NanoHTTPD {
      */
     public void makeSecure(SSLServerSocketFactory sslServerSocketFactory) {
         this.sslServerSocketFactory = sslServerSocketFactory;
-    }
-
-    /**
-     * Registers that a new connection has been set up.
-     * 
-     * @param socket
-     *            the {@link Socket} for the connection.
-     */
-    public synchronized void registerConnection(Socket socket) {
-        this.openConnections.add(socket);
     }
 
     /**
@@ -1637,53 +1735,7 @@ public abstract class NanoHTTPD {
         this.myServerSocket.setReuseAddress(true);
         this.myServerSocket.bind(this.hostname != null ? new InetSocketAddress(this.hostname, this.myPort) : new InetSocketAddress(this.myPort));
 
-        this.myThread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                do {
-                    try {
-                        final Socket finalAccept = NanoHTTPD.this.myServerSocket.accept();
-                        registerConnection(finalAccept);
-                        finalAccept.setSoTimeout(timeout);
-                        final InputStream inputStream = finalAccept.getInputStream();
-                        NanoHTTPD.this.asyncRunner.exec(new Runnable() {
-
-                            @Override
-                            public void run() {
-                                OutputStream outputStream = null;
-                                try {
-                                    outputStream = finalAccept.getOutputStream();
-                                    TempFileManager tempFileManager = NanoHTTPD.this.tempFileManagerFactory.create();
-                                    HTTPSession session = new HTTPSession(tempFileManager, inputStream, outputStream, finalAccept.getInetAddress());
-                                    while (!finalAccept.isClosed()) {
-                                        session.execute();
-                                    }
-                                } catch (Exception e) {
-                                    // When the socket is closed by the client,
-                                    // we throw our own SocketException
-                                    // to break the "keep alive" loop above. If
-                                    // the exception was anything other
-                                    // than the expected SocketException OR a
-                                    // SocketTimeoutException, print the
-                                    // stacktrace
-                                    if (!(e instanceof SocketException && "NanoHttpd Shutdown".equals(e.getMessage())) && !(e instanceof SocketTimeoutException)) {
-                                        NanoHTTPD.LOG.log(Level.FINE, "Communication with the client broken", e);
-                                    }
-                                } finally {
-                                    safeClose(outputStream);
-                                    safeClose(inputStream);
-                                    safeClose(finalAccept);
-                                    unRegisterConnection(finalAccept);
-                                }
-                            }
-                        });
-                    } catch (IOException e) {
-                        NanoHTTPD.LOG.log(Level.FINE, "Communication with the client broken", e);
-                    }
-                } while (!NanoHTTPD.this.myServerSocket.isClosed());
-            }
-        });
+        this.myThread = new Thread(createServerRunnable(timeout));
         this.myThread.setDaemon(true);
         this.myThread.setName("NanoHttpd Main Listener");
         this.myThread.start();
@@ -1695,23 +1747,13 @@ public abstract class NanoHTTPD {
     public void stop() {
         try {
             safeClose(this.myServerSocket);
-            closeAllConnections();
+            this.asyncRunner.closeAll();
             if (this.myThread != null) {
                 this.myThread.join();
             }
         } catch (Exception e) {
             NanoHTTPD.LOG.log(Level.SEVERE, "Could not stop all connections", e);
         }
-    }
-
-    /**
-     * Registers that a connection has been closed
-     * 
-     * @param socket
-     *            the {@link Socket} for the connection.
-     */
-    public synchronized void unRegisterConnection(Socket socket) {
-        this.openConnections.remove(socket);
     }
 
     public final boolean wasStarted() {
