@@ -8,18 +8,18 @@ package fi.iki.elonen;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,16 +33,15 @@ package fi.iki.elonen;
  * #L%
  */
 
-import org.junit.Test;
+import static junit.framework.Assert.assertEquals;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static junit.framework.Assert.assertEquals;
+import org.junit.Test;
 
 public class HttpPostRequestTest extends HttpServerTest {
 
@@ -60,103 +59,9 @@ public class HttpPostRequestTest extends HttpServerTest {
 
     public static final String VALUE_TEST_SIMPLE_RAW_DATA_WITH_AMPHASIS = "Test raw data & Result value";
 
-    @Test
-    public void testSimpleRawPostData() throws Exception {
-        String header = "POST " + URI + " HTTP/1.1\n";
-        String content = VALUE_TEST_SIMPLE_RAW_DATA_WITH_AMPHASIS + "\n";
-        int size = content.length() + header.length();
-        int contentLengthHeaderValueSize = String.valueOf(size).length();
-        int contentLength = size + contentLengthHeaderValueSize + CONTENT_LENGTH.length();
-        String input = header + CONTENT_LENGTH + (contentLength + 4) + "\r\n\r\n" + content;
-        invokeServer(input);
-        assertEquals(0, testServer.parms.size());
-        assertEquals(1, testServer.files.size());
-        assertEquals(VALUE_TEST_SIMPLE_RAW_DATA_WITH_AMPHASIS, testServer.files.get(POST_RAW_CONTENT_FILE_ENTRY));
-    }
-
-    @Test
-    public void testSimplePostWithSingleMultipartFormField() throws Exception {
-        String divider = UUID.randomUUID().toString();
-        String header = "POST " + URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\n";
-        String content = "--" + divider + "\n" + "Content-Disposition: form-data; name=\"" + FIELD + "\"\n" + "\n" + VALUE + "\n" + "--" + divider + "--\n";
-        int size = content.length() + header.length();
-        int contentLengthHeaderValueSize = String.valueOf(size).length();
-        int contentLength = size + contentLengthHeaderValueSize + CONTENT_LENGTH.length();
-        String input = header + CONTENT_LENGTH + (contentLength + 4) + "\r\n\r\n" + content;
-        invokeServer(input);
-
-        assertEquals(1, testServer.parms.size());
-        assertEquals(VALUE, testServer.parms.get(FIELD));
-    }
-
-    @Test
-    public void testPostWithMultipleMultipartFormFields() throws Exception {
-        String divider = UUID.randomUUID().toString();
-        String header = "POST " + URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\n";
-        String content =
-                "--" + divider + "\n" + "Content-Disposition: form-data; name=\"" + FIELD + "\"\n" + "\n" + VALUE + "\n" + "--" + divider + "\n"
-                        + "Content-Disposition: form-data; name=\"" + FIELD2 + "\"\n" + "\n" + VALUE2 + "\n" + "--" + divider + "--\n";
-        int size = content.length() + header.length();
-        int contentLengthHeaderValueSize = String.valueOf(size).length();
-        int contentLength = size + contentLengthHeaderValueSize + CONTENT_LENGTH.length();
-        String input = header + CONTENT_LENGTH + (contentLength + 4) + "\r\n\r\n" + content;
-        invokeServer(input);
-
-        assertEquals(2, testServer.parms.size());
-        assertEquals(VALUE, testServer.parms.get(FIELD));
-        assertEquals(VALUE2, testServer.parms.get(FIELD2));
-    }
-
-    @Test
-    public void testPostWithMultipleMultipartFormFieldsWhereContentTypeWasSeparatedByComma() throws Exception {
-        String divider = UUID.randomUUID().toString();
-        String header = "POST " + URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data, boundary=" + divider + "\n";
-        String content =
-                "--" + divider + "\n" + "Content-Disposition: form-data; name=\"" + FIELD + "\"\n" + "\n" + VALUE + "\n" + "--" + divider + "\n"
-                        + "Content-Disposition: form-data; name=\"" + FIELD2 + "\"\n" + "\n" + VALUE2 + "\n" + "--" + divider + "--\n";
-        int size = content.length() + header.length();
-        int contentLengthHeaderValueSize = String.valueOf(size).length();
-        int contentLength = size + contentLengthHeaderValueSize + CONTENT_LENGTH.length();
-        String input = header + CONTENT_LENGTH + (contentLength + 4) + "\r\n\r\n" + content;
-        invokeServer(input);
-
-        assertEquals(2, testServer.parms.size());
-        assertEquals(VALUE, testServer.parms.get(FIELD));
-        assertEquals(VALUE2, testServer.parms.get(FIELD2));
-    }
-
-    @Test
-    public void testPostWithMultipartFormUpload() throws Exception {
-        String filename = "GrandCanyon.txt";
-        String fileContent = VALUE;
-        String input = preparePostWithMultipartForm(filename, fileContent);
-
-        invokeServer(input);
-
-        assertEquals(1, testServer.parms.size());
-        BufferedReader reader = new BufferedReader(new FileReader(testServer.files.get(FIELD)));
-        List<String> lines = readLinesFromFile(reader);
-        assertLinesOfText(new String[]{
-            fileContent
-        }, lines);
-    }
-
-    @Test
-    public void testPostWithMultipartFormUploadFilenameHasSpaces() throws Exception {
-        String fileNameWithSpace = "Grand Canyon.txt";
-        String fileContent = VALUE;
-        String input = preparePostWithMultipartForm(fileNameWithSpace, fileContent);
-
-        invokeServer(input);
-
-        String fileNameAfter = new ArrayList<String>(testServer.parms.values()).get(0);
-
-        assertEquals(fileNameWithSpace, fileNameAfter);
-    }
-
     /**
      * contains common preparation steps for testing POST with Multipart Form
-     * 
+     *
      * @param fileName
      *            Name of file to be uploaded
      * @param fileContent
@@ -166,16 +71,114 @@ public class HttpPostRequestTest extends HttpServerTest {
      */
     private String preparePostWithMultipartForm(String fileName, String fileContent) {
         String divider = UUID.randomUUID().toString();
-        String header = "POST " + URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data, boundary=" + divider + "\n";
+        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data, boundary=" + divider + "\n";
         String content =
-                "--" + divider + "\n" + "Content-Disposition: form-data; name=\"" + FIELD + "\"; filename=\"" + fileName + "\"\n" + "Content-Type: image/jpeg\r\n" + "\r\n"
-                        + fileContent + "\r\n" + "--" + divider + "--\n";
+                "--" + divider + "\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"; filename=\"" + fileName + "\"\n"
+                        + "Content-Type: image/jpeg\r\n" + "\r\n" + fileContent + "\r\n" + "--" + divider + "--\n";
         int size = content.length() + header.length();
         int contentLengthHeaderValueSize = String.valueOf(size).length();
-        int contentLength = size + contentLengthHeaderValueSize + CONTENT_LENGTH.length();
-        String input = header + CONTENT_LENGTH + (contentLength + 5) + "\r\n\r\n" + content;
+        int contentLength = size + contentLengthHeaderValueSize + HttpPostRequestTest.CONTENT_LENGTH.length();
+        String input = header + HttpPostRequestTest.CONTENT_LENGTH + (contentLength + 5) + "\r\n\r\n" + content;
 
         return input;
+    }
+
+    @Test
+    public void testPostWithMultipartFormUpload() throws Exception {
+        String filename = "GrandCanyon.txt";
+        String fileContent = HttpPostRequestTest.VALUE;
+        String input = preparePostWithMultipartForm(filename, fileContent);
+
+        invokeServer(input);
+
+        assertEquals(1, this.testServer.parms.size());
+        BufferedReader reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
+        List<String> lines = readLinesFromFile(reader);
+        assertLinesOfText(new String[]{
+            fileContent
+        }, lines);
+    }
+
+    @Test
+    public void testPostWithMultipartFormUploadFilenameHasSpaces() throws Exception {
+        String fileNameWithSpace = "Grand Canyon.txt";
+        String fileContent = HttpPostRequestTest.VALUE;
+        String input = preparePostWithMultipartForm(fileNameWithSpace, fileContent);
+
+        invokeServer(input);
+
+        String fileNameAfter = new ArrayList<String>(this.testServer.parms.values()).get(0);
+
+        assertEquals(fileNameWithSpace, fileNameAfter);
+    }
+
+    @Test
+    public void testPostWithMultipleMultipartFormFields() throws Exception {
+        String divider = UUID.randomUUID().toString();
+        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\n";
+        String content =
+                "--" + divider + "\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"\n" + "\n" + HttpPostRequestTest.VALUE + "\n" + "--"
+                        + divider + "\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD2 + "\"\n" + "\n" + HttpPostRequestTest.VALUE2 + "\n" + "--"
+                        + divider + "--\n";
+        int size = content.length() + header.length();
+        int contentLengthHeaderValueSize = String.valueOf(size).length();
+        int contentLength = size + contentLengthHeaderValueSize + HttpPostRequestTest.CONTENT_LENGTH.length();
+        String input = header + HttpPostRequestTest.CONTENT_LENGTH + (contentLength + 4) + "\r\n\r\n" + content;
+        invokeServer(input);
+
+        assertEquals(2, this.testServer.parms.size());
+        assertEquals(HttpPostRequestTest.VALUE, this.testServer.parms.get(HttpPostRequestTest.FIELD));
+        assertEquals(HttpPostRequestTest.VALUE2, this.testServer.parms.get(HttpPostRequestTest.FIELD2));
+    }
+
+    @Test
+    public void testPostWithMultipleMultipartFormFieldsWhereContentTypeWasSeparatedByComma() throws Exception {
+        String divider = UUID.randomUUID().toString();
+        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data, boundary=" + divider + "\n";
+        String content =
+                "--" + divider + "\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"\n" + "\n" + HttpPostRequestTest.VALUE + "\n" + "--"
+                        + divider + "\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD2 + "\"\n" + "\n" + HttpPostRequestTest.VALUE2 + "\n" + "--"
+                        + divider + "--\n";
+        int size = content.length() + header.length();
+        int contentLengthHeaderValueSize = String.valueOf(size).length();
+        int contentLength = size + contentLengthHeaderValueSize + HttpPostRequestTest.CONTENT_LENGTH.length();
+        String input = header + HttpPostRequestTest.CONTENT_LENGTH + (contentLength + 4) + "\r\n\r\n" + content;
+        invokeServer(input);
+
+        assertEquals(2, this.testServer.parms.size());
+        assertEquals(HttpPostRequestTest.VALUE, this.testServer.parms.get(HttpPostRequestTest.FIELD));
+        assertEquals(HttpPostRequestTest.VALUE2, this.testServer.parms.get(HttpPostRequestTest.FIELD2));
+    }
+
+    @Test
+    public void testSimplePostWithSingleMultipartFormField() throws Exception {
+        String divider = UUID.randomUUID().toString();
+        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\n";
+        String content =
+                "--" + divider + "\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"\n" + "\n" + HttpPostRequestTest.VALUE + "\n" + "--"
+                        + divider + "--\n";
+        int size = content.length() + header.length();
+        int contentLengthHeaderValueSize = String.valueOf(size).length();
+        int contentLength = size + contentLengthHeaderValueSize + HttpPostRequestTest.CONTENT_LENGTH.length();
+        String input = header + HttpPostRequestTest.CONTENT_LENGTH + (contentLength + 4) + "\r\n\r\n" + content;
+        invokeServer(input);
+
+        assertEquals(1, this.testServer.parms.size());
+        assertEquals(HttpPostRequestTest.VALUE, this.testServer.parms.get(HttpPostRequestTest.FIELD));
+    }
+
+    @Test
+    public void testSimpleRawPostData() throws Exception {
+        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\n";
+        String content = HttpPostRequestTest.VALUE_TEST_SIMPLE_RAW_DATA_WITH_AMPHASIS + "\n";
+        int size = content.length() + header.length();
+        int contentLengthHeaderValueSize = String.valueOf(size).length();
+        int contentLength = size + contentLengthHeaderValueSize + HttpPostRequestTest.CONTENT_LENGTH.length();
+        String input = header + HttpPostRequestTest.CONTENT_LENGTH + (contentLength + 4) + "\r\n\r\n" + content;
+        invokeServer(input);
+        assertEquals(0, this.testServer.parms.size());
+        assertEquals(1, this.testServer.files.size());
+        assertEquals(HttpPostRequestTest.VALUE_TEST_SIMPLE_RAW_DATA_WITH_AMPHASIS, this.testServer.files.get(HttpPostRequestTest.POST_RAW_CONTENT_FILE_ENTRY));
     }
 
 }

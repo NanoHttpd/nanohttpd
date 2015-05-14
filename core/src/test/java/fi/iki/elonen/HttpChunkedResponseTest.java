@@ -8,18 +8,18 @@ package fi.iki.elonen;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,13 +33,33 @@ package fi.iki.elonen;
  * #L%
  */
 
+import static fi.iki.elonen.NanoHTTPD.Response.Status.OK;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PipedInputStream;
 
-import static fi.iki.elonen.NanoHTTPD.Response.Status.OK;
-
 public class HttpChunkedResponseTest extends HttpServerTest {
+
+    private static class ChunkedInputStream extends PipedInputStream {
+
+        int chunk = 0;
+
+        String[] chunks;
+
+        private ChunkedInputStream(String[] chunks) {
+            this.chunks = chunks;
+        }
+
+        @Override
+        public synchronized int read(byte[] buffer) throws IOException {
+            // Too implementation-linked, but...
+            for (int i = 0; i < this.chunks[this.chunk].length(); ++i) {
+                buffer[i] = (byte) this.chunks[this.chunk].charAt(i);
+            }
+            return this.chunks[this.chunk++].length();
+        }
+    }
 
     @org.junit.Test
     public void thatChunkedContentIsChunked() throws Exception {
@@ -65,31 +85,12 @@ public class HttpChunkedResponseTest extends HttpServerTest {
             "0",
             ""
         };
-        testServer.response = new NanoHTTPD.Response(OK, "what/ever", pipedInputStream);
-        testServer.response.setChunkedTransfer(true);
+        this.testServer.response = new NanoHTTPD(0) {
+        }.newChunkedResponse(OK, "what/ever", pipedInputStream);
+        this.testServer.response.setChunkedTransfer(true);
 
         ByteArrayOutputStream byteArrayOutputStream = invokeServer("GET / HTTP/1.0");
 
         assertResponse(byteArrayOutputStream, expected);
-    }
-
-    private static class ChunkedInputStream extends PipedInputStream {
-
-        int chunk = 0;
-
-        String[] chunks;
-
-        private ChunkedInputStream(String[] chunks) {
-            this.chunks = chunks;
-        }
-
-        @Override
-        public synchronized int read(byte[] buffer) throws IOException {
-            // Too implementation-linked, but...
-            for (int i = 0; i < chunks[chunk].length(); ++i) {
-                buffer[i] = (byte) chunks[chunk].charAt(i);
-            }
-            return chunks[chunk++].length();
-        }
     }
 }

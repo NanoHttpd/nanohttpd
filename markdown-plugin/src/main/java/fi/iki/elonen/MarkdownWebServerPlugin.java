@@ -8,18 +8,18 @@ package fi.iki.elonen;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -36,9 +36,11 @@ package fi.iki.elonen;
 import static fi.iki.elonen.NanoHTTPD.Response.Status.OK;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -107,6 +109,13 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
     @Override
     public NanoHTTPD.Response serveFile(String uri, Map<String, String> headers, NanoHTTPD.IHTTPSession session, File file, String mimeType) {
         String markdownSource = readSource(file);
-        return markdownSource == null ? null : new NanoHTTPD.Response(OK, NanoHTTPD.MIME_HTML, this.processor.markdownToHtml(markdownSource));
+        byte[] bytes;
+        try {
+            bytes = this.processor.markdownToHtml(markdownSource).getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            MarkdownWebServerPlugin.LOG.log(Level.SEVERE, "encoding problem, responding nothing", e);
+            bytes = new byte[0];
+        }
+        return markdownSource == null ? null : new NanoHTTPD.Response(OK, NanoHTTPD.MIME_HTML, new ByteArrayInputStream(bytes), bytes.length);
     }
 }

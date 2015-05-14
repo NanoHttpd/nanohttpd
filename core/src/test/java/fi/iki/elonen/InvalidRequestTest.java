@@ -8,18 +8,18 @@ package fi.iki.elonen;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -32,48 +32,48 @@ package fi.iki.elonen;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-import org.junit.Test;
-
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
+
+import org.junit.Test;
 
 public class InvalidRequestTest extends HttpServerTest {
 
     @Test
     public void testGetRequestWithoutProtocol() {
-        invokeServer("GET " + URI + "\r\nX-Important-Header: foo");
+        invokeServer("GET " + HttpServerTest.URI + "\r\nX-Important-Header: foo");
 
-        assertNotNull(testServer.parms);
-        assertTrue(testServer.header.size() > 0);
-        assertNotNull(testServer.files);
-        assertNotNull(testServer.uri);
-    }
-
-    @Test
-    public void testPostRequestWithoutProtocol() {
-        invokeServer("POST " + URI + "\r\nContent-Length: 123");
-        assertNotNull(testServer.parms);
-        assertTrue(testServer.header.size() > 0);
-        assertNotNull(testServer.files);
-        assertNotNull(testServer.uri);
+        assertNotNull(this.testServer.parms);
+        assertTrue(this.testServer.header.size() > 0);
+        assertNotNull(this.testServer.files);
+        assertNotNull(this.testServer.uri);
     }
 
     @Test
     public void testGetRequestWithProtocol() {
-        invokeServer("GET " + URI + " HTTP/1.1\r\nX-Important-Header: foo");
+        invokeServer("GET " + HttpServerTest.URI + " HTTP/1.1\r\nX-Important-Header: foo");
 
-        assertNotNull(testServer.parms);
-        assertTrue(testServer.header.size() > 0);
-        assertNotNull(testServer.files);
-        assertNotNull(testServer.uri);
+        assertNotNull(this.testServer.parms);
+        assertTrue(this.testServer.header.size() > 0);
+        assertNotNull(this.testServer.files);
+        assertNotNull(this.testServer.uri);
+    }
+
+    @Test
+    public void testPostRequestWithoutProtocol() {
+        invokeServer("POST " + HttpServerTest.URI + "\r\nContent-Length: 123");
+        assertNotNull(this.testServer.parms);
+        assertTrue(this.testServer.header.size() > 0);
+        assertNotNull(this.testServer.files);
+        assertNotNull(this.testServer.uri);
     }
 
     @Test
     public void testPostRequestWithProtocol() {
-        invokeServer("POST " + URI + " HTTP/1.1\r\nContent-Length: 123");
-        assertNotNull(testServer.parms);
-        assertTrue(testServer.header.size() > 0);
-        assertNotNull(testServer.files);
-        assertNotNull(testServer.uri);
+        invokeServer("POST " + HttpServerTest.URI + " HTTP/1.1\r\nContent-Length: 123");
+        assertNotNull(this.testServer.parms);
+        assertTrue(this.testServer.header.size() > 0);
+        assertNotNull(this.testServer.files);
+        assertNotNull(this.testServer.uri);
     }
 }

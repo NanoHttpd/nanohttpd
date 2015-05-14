@@ -8,18 +8,18 @@ package fi.iki.elonen;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,8 +33,10 @@ package fi.iki.elonen;
  * #L%
  */
 
-import static junit.framework.Assert.*;
-import static org.mockito.Mockito.*;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -61,21 +63,29 @@ public class WebSocketResponseHandlerTest {
 
     @Before
     public void setUp() {
-        nanoWebSocketServer = Mockito.mock(NanoWebSocketServer.class, Mockito.CALLS_REAL_METHODS);
+        this.nanoWebSocketServer = Mockito.mock(NanoWebSocketServer.class, Mockito.CALLS_REAL_METHODS);
 
-        headers = new HashMap<String, String>();
-        headers.put("upgrade", "websocket");
-        headers.put("connection", "Upgrade");
-        headers.put("sec-websocket-key", "x3JJHMbDL1EzLkh9GBhXDw==");
-        headers.put("sec-websocket-protocol", "chat, superchat");
-        headers.put("sec-websocket-version", "13");
+        this.headers = new HashMap<String, String>();
+        this.headers.put("upgrade", "websocket");
+        this.headers.put("connection", "Upgrade");
+        this.headers.put("sec-websocket-key", "x3JJHMbDL1EzLkh9GBhXDw==");
+        this.headers.put("sec-websocket-protocol", "chat, superchat");
+        this.headers.put("sec-websocket-version", "13");
 
-        when(session.getHeaders()).thenReturn(headers);
+        when(this.session.getHeaders()).thenReturn(this.headers);
+    }
+
+    @Test
+    public void testConnectionHeaderHandlesKeepAlive_FixingFirefoxConnectIssue() {
+        this.headers.put("connection", "keep-alive, Upgrade");
+        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
+
+        assertNotNull(handshakeResponse);
     }
 
     @Test
     public void testHandshakeReturnsResponseWithExpectedHeaders() {
-        Response handshakeResponse = nanoWebSocketServer.serve(session);
+        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
 
         assertNotNull(handshakeResponse);
 
@@ -84,44 +94,36 @@ public class WebSocketResponseHandlerTest {
     }
 
     @Test
-    public void testWrongWebsocketVersionReturnsErrorResponse() {
-        headers.put("sec-websocket-version", "12");
-
-        Response handshakeResponse = nanoWebSocketServer.serve(session);
-
-        assertNotNull(handshakeResponse);
-        assertEquals(Response.Status.BAD_REQUEST, handshakeResponse.getStatus());
-    }
-
-    @Test
     public void testMissingKeyReturnsErrorResponse() {
-        headers.remove("sec-websocket-key");
+        this.headers.remove("sec-websocket-key");
 
-        Response handshakeResponse = nanoWebSocketServer.serve(session);
+        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
 
         assertNotNull(handshakeResponse);
         assertEquals(Response.Status.BAD_REQUEST, handshakeResponse.getStatus());
-    }
-
-    @Test
-    public void testWrongUpgradeHeaderReturnsNullResponse() {
-        headers.put("upgrade", "not a websocket");
-        Response handshakeResponse = nanoWebSocketServer.serve(session);
-        assertNull(handshakeResponse.getHeader(NanoWebSocketServer.HEADER_UPGRADE));
     }
 
     @Test
     public void testWrongConnectionHeaderReturnsNullResponse() {
-        headers.put("connection", "Junk");
-        Response handshakeResponse = nanoWebSocketServer.serve(session);
+        this.headers.put("connection", "Junk");
+        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
         assertNull(handshakeResponse.getHeader(NanoWebSocketServer.HEADER_UPGRADE));
     }
 
     @Test
-    public void testConnectionHeaderHandlesKeepAlive_FixingFirefoxConnectIssue() {
-        headers.put("connection", "keep-alive, Upgrade");
-        Response handshakeResponse = nanoWebSocketServer.serve(session);
+    public void testWrongUpgradeHeaderReturnsNullResponse() {
+        this.headers.put("upgrade", "not a websocket");
+        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
+        assertNull(handshakeResponse.getHeader(NanoWebSocketServer.HEADER_UPGRADE));
+    }
+
+    @Test
+    public void testWrongWebsocketVersionReturnsErrorResponse() {
+        this.headers.put("sec-websocket-version", "12");
+
+        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
 
         assertNotNull(handshakeResponse);
+        assertEquals(Response.Status.BAD_REQUEST, handshakeResponse.getStatus());
     }
 }

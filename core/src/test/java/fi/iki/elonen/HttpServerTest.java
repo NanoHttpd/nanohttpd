@@ -8,18 +8,18 @@ package fi.iki.elonen;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,104 +33,35 @@ package fi.iki.elonen;
  * #L%
  */
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.StringReader;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static junit.framework.Assert.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 3/10/13 at 8:32 PM
  */
 public class HttpServerTest {
 
-    public static final String URI = "http://www.myserver.org/pub/WWW/someFile.html";
-
-    protected TestServer testServer;
-
-    private TestTempFileManager tempFileManager;
-
-    @Before
-    public void setUp() {
-        testServer = new TestServer();
-        tempFileManager = new TestTempFileManager();
-    }
-
-    @After
-    public void tearDown() {
-        tempFileManager._clear();
-    }
-
-    @Test
-    public void testServerExists() {
-        assertNotNull(testServer);
-    }
-
-    protected void assertResponse(ByteArrayOutputStream outputStream, String[] expected) throws IOException {
-        List<String> lines = getOutputLines(outputStream);
-        assertLinesOfText(expected, lines);
-    }
-
-    protected void assertLinesOfText(String[] expected, List<String> lines) {
-        // assertEquals(expected.length, lines.size());
-        for (int i = 0; i < expected.length; i++) {
-            String line = lines.get(i);
-            assertTrue("Output line " + i + " doesn't match expectation.\n" + "  Output: " + line + "\n" + "Expected: " + expected[i], line.matches(expected[i]));
-        }
-    }
-
-    protected ByteArrayOutputStream invokeServer(String request) {
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getBytes());
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        NanoHTTPD.HTTPSession session = testServer.createSession(tempFileManager, inputStream, outputStream);
-        try {
-            session.execute();
-        } catch (IOException e) {
-            fail("" + e);
-            e.printStackTrace();
-        }
-        return outputStream;
-    }
-
-    protected List<String> getOutputLines(ByteArrayOutputStream outputStream) throws IOException {
-        BufferedReader reader = new BufferedReader(new StringReader(outputStream.toString()));
-        return readLinesFromFile(reader);
-    }
-
-    protected List<String> readLinesFromFile(BufferedReader reader) throws IOException {
-        List<String> lines = new ArrayList<String>();
-        String line = "";
-        while (line != null) {
-            line = reader.readLine();
-            if (line != null) {
-                lines.add(line.trim());
-            }
-        }
-        return lines;
-    }
-
-    public static class TestTempFileManager extends NanoHTTPD.DefaultTempFileManager {
-
-        public void _clear() {
-            super.clear();
-        }
-
-        @Override
-        public void clear() {
-            // ignore
-        }
-    }
-
     public static class TestServer extends NanoHTTPD {
 
-        public Response response = new Response("");
+        public Response response = newFixedLengthResponse("");
 
         public String uri;
 
@@ -161,6 +92,11 @@ public class HttpServerTest {
         }
 
         @Override
+        public String decodePercent(String str) {
+            return super.decodePercent(str);
+        }
+
+        @Override
         public Response serve(IHTTPSession session) {
             this.uri = session.getUri();
             this.method = session.getMethod();
@@ -168,19 +104,91 @@ public class HttpServerTest {
             this.parms = session.getParms();
             this.files = new HashMap<String, String>();
             try {
-                session.parseBody(files);
+                session.parseBody(this.files);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            queryParameterString = session.getQueryParameterString();
-            this.decodedParamtersFromParameter = decodeParameters(queryParameterString);
+            this.queryParameterString = session.getQueryParameterString();
+            this.decodedParamtersFromParameter = decodeParameters(this.queryParameterString);
             this.decodedParamters = decodeParameters(session.getQueryParameterString());
-            return response;
+            return this.response;
+        }
+    }
+
+    public static class TestTempFileManager extends NanoHTTPD.DefaultTempFileManager {
+
+        public void _clear() {
+            super.clear();
         }
 
         @Override
-        public String decodePercent(String str) {
-            return super.decodePercent(str);
+        public void clear() {
+            // ignore
         }
+    }
+
+    public static final String URI = "http://www.myserver.org/pub/WWW/someFile.html";
+
+    protected TestServer testServer;
+
+    private TestTempFileManager tempFileManager;
+
+    protected void assertLinesOfText(String[] expected, List<String> lines) {
+        // assertEquals(expected.length, lines.size());
+        for (int i = 0; i < expected.length; i++) {
+            String line = lines.get(i);
+            assertTrue("Output line " + i + " doesn't match expectation.\n" + "  Output: " + line + "\n" + "Expected: " + expected[i], line.matches(expected[i]));
+        }
+    }
+
+    protected void assertResponse(ByteArrayOutputStream outputStream, String[] expected) throws IOException {
+        List<String> lines = getOutputLines(outputStream);
+        assertLinesOfText(expected, lines);
+    }
+
+    protected List<String> getOutputLines(ByteArrayOutputStream outputStream) throws IOException {
+        BufferedReader reader = new BufferedReader(new StringReader(outputStream.toString()));
+        return readLinesFromFile(reader);
+    }
+
+    protected ByteArrayOutputStream invokeServer(String request) {
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getBytes());
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        NanoHTTPD.HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
+        try {
+            session.execute();
+        } catch (IOException e) {
+            fail("" + e);
+            e.printStackTrace();
+        }
+        return outputStream;
+    }
+
+    protected List<String> readLinesFromFile(BufferedReader reader) throws IOException {
+        List<String> lines = new ArrayList<String>();
+        String line = "";
+        while (line != null) {
+            line = reader.readLine();
+            if (line != null) {
+                lines.add(line.trim());
+            }
+        }
+        return lines;
+    }
+
+    @Before
+    public void setUp() {
+        this.testServer = new TestServer();
+        this.tempFileManager = new TestTempFileManager();
+    }
+
+    @After
+    public void tearDown() {
+        this.tempFileManager._clear();
+    }
+
+    @Test
+    public void testServerExists() {
+        assertNotNull(this.testServer);
     }
 }

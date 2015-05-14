@@ -8,18 +8,18 @@ package fi.iki.elonen.samples.echo;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -54,20 +54,9 @@ public class SimpleEchoSocket {
 
     private final List<String> receivedMessages = new ArrayList<String>();
 
-    public List<String> getReceivedMessages() {
-        return receivedMessages;
-    }
-
-    public List<String> getToSendMessages() {
-        return toSendMessages;
-    }
-
     private final List<String> toSendMessages = new ArrayList<String>();
 
     private final CountDownLatch closeLatch;
-
-    @SuppressWarnings("unused")
-    private Session session;
 
     public SimpleEchoSocket() {
         this.closeLatch = new CountDownLatch(1);
@@ -77,21 +66,27 @@ public class SimpleEchoSocket {
         return this.closeLatch.await(duration, unit);
     }
 
+    public List<String> getReceivedMessages() {
+        return this.receivedMessages;
+    }
+
+    public List<String> getToSendMessages() {
+        return this.toSendMessages;
+    }
+
     @OnWebSocketClose
     public void onClose(int statusCode, String reason) {
         System.out.printf("Connection closed: %d - %s%n", statusCode, reason);
-        this.session = null;
         this.closeLatch.countDown();
     }
 
     @OnWebSocketConnect
     public void onConnect(Session session) {
         System.out.printf("Got connect: %s%n", session);
-        this.session = session;
         try {
             Future<Void> fut;
 
-            for (String message : toSendMessages) {
+            for (String message : this.toSendMessages) {
                 fut = session.getRemote().sendStringByFuture(message);
                 fut.get(5, TimeUnit.SECONDS);
             }
@@ -104,6 +99,6 @@ public class SimpleEchoSocket {
     @OnWebSocketMessage
     public void onMessage(String msg) {
         System.out.printf("Got msg: %s%n", msg);
-        receivedMessages.add(msg);
+        this.receivedMessages.add(msg);
     }
 }

@@ -8,18 +8,18 @@ package fi.iki.elonen;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,20 +33,20 @@ package fi.iki.elonen;
  * #L%
  */
 
-import org.junit.Test;
+import static junit.framework.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.FileReader;
 import java.util.List;
 
-import static junit.framework.Assert.*;
+import org.junit.Test;
 
 public class HttpPutRequestTest extends HttpServerTest {
 
     @Test
     public void testPutRequestSendsContent() throws Exception {
-        ByteArrayOutputStream outputStream = invokeServer("PUT " + URI + " HTTP/1.1\r\n\r\nBodyData 1\nLine 2");
+        ByteArrayOutputStream outputStream = invokeServer("PUT " + HttpServerTest.URI + " HTTP/1.1\r\n\r\nBodyData 1\nLine 2");
 
         String[] expectedOutput = {
             "HTTP/1.1 200 OK",
@@ -59,14 +59,14 @@ public class HttpPutRequestTest extends HttpServerTest {
 
         assertResponse(outputStream, expectedOutput);
 
-        assertTrue(testServer.files.containsKey("content"));
+        assertTrue(this.testServer.files.containsKey("content"));
         BufferedReader reader = null;
         try {
             String[] expectedInputToServeMethodViaFile = {
                 "BodyData 1",
                 "Line 2"
             };
-            reader = new BufferedReader(new FileReader(testServer.files.get("content")));
+            reader = new BufferedReader(new FileReader(this.testServer.files.get("content")));
             List<String> lines = readLinesFromFile(reader);
             assertLinesOfText(expectedInputToServeMethodViaFile, lines);
         } finally {

@@ -8,18 +8,18 @@ package fi.iki.elonen;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -43,9 +43,11 @@ import org.junit.Test;
 
 public class HttpKeepAliveTest extends HttpServerTest {
 
+    private Throwable error = null;
+
     @Test
     public void testManyGetRequests() throws Exception {
-        String request = "GET " + URI + " HTTP/1.1\r\n\r\n";
+        String request = "GET " + HttpServerTest.URI + " HTTP/1.1\r\n\r\n";
         String[] expected = {
             "HTTP/1.1 200 OK",
             "Content-Type: text/html",
@@ -60,7 +62,7 @@ public class HttpKeepAliveTest extends HttpServerTest {
     @Test
     public void testManyPutRequests() throws Exception {
         String data = "BodyData 1\nLine 2";
-        String request = "PUT " + URI + " HTTP/1.1\r\nContent-Length: " + data.length() + "\r\n\r\n" + data;
+        String request = "PUT " + HttpServerTest.URI + " HTTP/1.1\r\nContent-Length: " + data.length() + "\r\n\r\n" + data;
         String[] expected = {
             "HTTP/1.1 200 OK",
             "Content-Type: text/html",
@@ -72,13 +74,11 @@ public class HttpKeepAliveTest extends HttpServerTest {
         testManyRequests(request, expected);
     }
 
-    private Throwable error = null;
-
     /**
      * Issue the given request many times to check whether an error occurs. For
      * this test, a small stack size is used, since a stack overflow is among
      * the possible errors.
-     * 
+     *
      * @param request
      *            The request to issue
      * @param expected
@@ -87,6 +87,7 @@ public class HttpKeepAliveTest extends HttpServerTest {
     public void testManyRequests(final String request, final String[] expected) throws Exception {
         Runnable r = new Runnable() {
 
+            @Override
             public void run() {
                 try {
                     PipedOutputStream requestStream = new PipedOutputStream();
@@ -94,7 +95,7 @@ public class HttpKeepAliveTest extends HttpServerTest {
                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                     NanoHTTPD.DefaultTempFileManager tempFileManager = new NanoHTTPD.DefaultTempFileManager();
                     try {
-                        NanoHTTPD.HTTPSession session = testServer.createSession(tempFileManager, inputStream, outputStream);
+                        NanoHTTPD.HTTPSession session = HttpKeepAliveTest.this.testServer.createSession(tempFileManager, inputStream, outputStream);
                         for (int i = 0; i < 2048; i++) {
                             requestStream.write(request.getBytes());
                             requestStream.flush();
@@ -105,16 +106,16 @@ public class HttpKeepAliveTest extends HttpServerTest {
                         tempFileManager.clear();
                     }
                 } catch (Throwable t) {
-                    error = t;
+                    HttpKeepAliveTest.this.error = t;
                 }
             }
         };
         Thread t = new Thread(null, r, "Request Thread", 1 << 17);
         t.start();
         t.join();
-        if (error != null) {
-            fail("" + error);
-            error.printStackTrace();
+        if (this.error != null) {
+            fail("" + this.error);
+            this.error.printStackTrace();
         }
     }
 }

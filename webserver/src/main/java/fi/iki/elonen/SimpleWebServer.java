@@ -8,18 +8,18 @@ package fi.iki.elonen;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -37,7 +37,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -49,6 +48,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.StringTokenizer;
+
+import fi.iki.elonen.NanoHTTPD.Response.IStatus;
 
 public class SimpleWebServer extends NanoHTTPD {
 
@@ -251,20 +252,6 @@ public class SimpleWebServer extends NanoHTTPD {
         return canServeUri;
     }
 
-    // Announce that the file server accepts partial content requests
-    private Response createResponse(Response.Status status, String mimeType, InputStream message) {
-        Response res = new Response(status, mimeType, message);
-        res.addHeader("Accept-Ranges", "bytes");
-        return res;
-    }
-
-    // Announce that the file server accepts partial content requests
-    private Response createResponse(Response.Status status, String mimeType, String message) {
-        Response res = new Response(status, mimeType, message);
-        res.addHeader("Accept-Ranges", "bytes");
-        return res;
-    }
-
     /**
      * URL-encodes everything between "/"-characters. Encodes spaces as '%20'
      * instead of '+'.
@@ -299,11 +286,11 @@ public class SimpleWebServer extends NanoHTTPD {
     }
 
     protected Response getForbiddenResponse(String s) {
-        return createResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: " + s);
+        return newFixedLengthResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: " + s);
     }
 
     protected Response getInternalErrorResponse(String s) {
-        return createResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "INTERNAL ERROR: " + s);
+        return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "INTERNAL ERROR: " + s);
     }
 
     // Get MIME type from file name extension, if possible
@@ -317,7 +304,7 @@ public class SimpleWebServer extends NanoHTTPD {
     }
 
     protected Response getNotFoundResponse() {
-        return createResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Error 404, file not found.");
+        return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Error 404, file not found.");
     }
 
     /**
@@ -395,6 +382,13 @@ public class SimpleWebServer extends NanoHTTPD {
         return msg.toString();
     }
 
+    @Override
+    public Response newFixedLengthResponse(IStatus status, String mimeType, String message) {
+        Response response = super.newFixedLengthResponse(status, mimeType, message);
+        response.addHeader("Accept-Ranges", "bytes");
+        return response;
+    }
+
     private Response respond(Map<String, String> headers, IHTTPSession session, String uri) {
         // Remove URL arguments
         uri = uri.trim().replace(File.separatorChar, '/');
@@ -422,7 +416,8 @@ public class SimpleWebServer extends NanoHTTPD {
         File f = new File(homeDir, uri);
         if (f.isDirectory() && !uri.endsWith("/")) {
             uri += "/";
-            Response res = createResponse(Response.Status.REDIRECT, NanoHTTPD.MIME_HTML, "<html><body>Redirected: <a href=\"" + uri + "\">" + uri + "</a></body></html>");
+            Response res =
+                    newFixedLengthResponse(Response.Status.REDIRECT, NanoHTTPD.MIME_HTML, "<html><body>Redirected: <a href=\"" + uri + "\">" + uri + "</a></body></html>");
             res.addHeader("Location", uri);
             return res;
         }
@@ -434,7 +429,7 @@ public class SimpleWebServer extends NanoHTTPD {
             if (indexFile == null) {
                 if (f.canRead()) {
                     // No index file, list the directory if it is readable
-                    return createResponse(Response.Status.OK, NanoHTTPD.MIME_HTML, listDirectory(uri, f));
+                    return newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_HTML, listDirectory(uri, f));
                 } else {
                     return getForbiddenResponse("No directory listing.");
                 }
@@ -521,7 +516,7 @@ public class SimpleWebServer extends NanoHTTPD {
             long fileLen = file.length();
             if (range != null && startFrom >= 0) {
                 if (startFrom >= fileLen) {
-                    res = createResponse(Response.Status.RANGE_NOT_SATISFIABLE, NanoHTTPD.MIME_PLAINTEXT, "");
+                    res = newFixedLengthResponse(Response.Status.RANGE_NOT_SATISFIABLE, NanoHTTPD.MIME_PLAINTEXT, "");
                     res.addHeader("Content-Range", "bytes 0-0/" + fileLen);
                     res.addHeader("ETag", etag);
                 } else {
@@ -543,16 +538,18 @@ public class SimpleWebServer extends NanoHTTPD {
                     };
                     fis.skip(startFrom);
 
-                    res = createResponse(Response.Status.PARTIAL_CONTENT, mime, fis);
+                    res = newFixedLengthResponse(Response.Status.PARTIAL_CONTENT, mime, fis, (int) file.length());
+                    res.addHeader("Accept-Ranges", "bytes");
                     res.addHeader("Content-Length", "" + dataLen);
                     res.addHeader("Content-Range", "bytes " + startFrom + "-" + endAt + "/" + fileLen);
                     res.addHeader("ETag", etag);
                 }
             } else {
                 if (etag.equals(header.get("if-none-match"))) {
-                    res = createResponse(Response.Status.NOT_MODIFIED, mime, "");
+                    res = newFixedLengthResponse(Response.Status.NOT_MODIFIED, mime, "");
                 } else {
-                    res = createResponse(Response.Status.OK, mime, new FileInputStream(file));
+                    res = newFixedLengthResponse(Response.Status.OK, mime, new FileInputStream(file), (int) file.length());
+                    res.addHeader("Accept-Ranges", "bytes");
                     res.addHeader("Content-Length", "" + fileLen);
                     res.addHeader("ETag", etag);
                 }

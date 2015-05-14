@@ -8,18 +8,18 @@ package fi.iki.elonen;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -46,6 +46,10 @@ public class HelloServer extends NanoHTTPD {
      */
     private static final Logger LOG = Logger.getLogger(HelloServer.class.getName());
 
+    public static void main(String[] args) {
+        ServerRunner.run(HelloServer.class);
+    }
+
     public HelloServer() {
         super(8080);
     }
@@ -54,21 +58,18 @@ public class HelloServer extends NanoHTTPD {
     public Response serve(IHTTPSession session) {
         Method method = session.getMethod();
         String uri = session.getUri();
-        LOG.info(method + " '" + uri + "' ");
+        HelloServer.LOG.info(method + " '" + uri + "' ");
 
         String msg = "<html><body><h1>Hello server</h1>\n";
         Map<String, String> parms = session.getParms();
-        if (parms.get("username") == null)
+        if (parms.get("username") == null) {
             msg += "<form action='?' method='get'>\n" + "  <p>Your name: <input type='text' name='username'></p>\n" + "</form>\n";
-        else
+        } else {
             msg += "<p>Hello, " + parms.get("username") + "!</p>";
+        }
 
         msg += "</body></html>\n";
 
-        return new NanoHTTPD.Response(msg);
-    }
-
-    public static void main(String[] args) {
-        ServerRunner.run(HelloServer.class);
+        return newFixedLengthResponse(msg);
     }
 }

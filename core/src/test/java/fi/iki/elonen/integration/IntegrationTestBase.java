@@ -8,18 +8,18 @@ package fi.iki.elonen.integration;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,13 +33,13 @@ package fi.iki.elonen.integration;
  * #L%
  */
 
-import fi.iki.elonen.NanoHTTPD;
-import org.apache.http.client.HttpClient;
+import java.io.IOException;
+
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.junit.After;
 import org.junit.Before;
 
-import java.io.IOException;
+import fi.iki.elonen.NanoHTTPD;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 9/2/13 at 10:02 PM
@@ -50,12 +50,14 @@ public abstract class IntegrationTestBase<T extends NanoHTTPD> {
 
     protected T testServer;
 
+    public abstract T createTestServer();
+
     @Before
     public void setUp() {
-        testServer = createTestServer();
-        httpclient = new DefaultHttpClient();
+        this.testServer = createTestServer();
+        this.httpclient = new DefaultHttpClient();
         try {
-            testServer.start();
+            this.testServer.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -63,9 +65,7 @@ public abstract class IntegrationTestBase<T extends NanoHTTPD> {
 
     @After
     public void tearDown() {
-        httpclient.getConnectionManager().shutdown();
-        testServer.stop();
+        this.httpclient.getConnectionManager().shutdown();
+        this.testServer.stop();
     }
-
-    public abstract T createTestServer();
 }

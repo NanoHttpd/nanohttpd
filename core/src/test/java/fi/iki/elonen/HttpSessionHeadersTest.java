@@ -8,18 +8,18 @@ package fi.iki.elonen;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,14 +33,14 @@ package fi.iki.elonen;
  * #L%
  */
 
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Ignore;
+import org.junit.Test;
 
 public class HttpSessionHeadersTest extends HttpServerTest {
 
@@ -56,7 +56,7 @@ public class HttpSessionHeadersTest extends HttpServerTest {
     @Test
     @Ignore
     public void testHeadersRemoteIp() throws Exception {
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(DUMMY_REQUEST_CONTENT.getBytes());
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(HttpSessionHeadersTest.DUMMY_REQUEST_CONTENT.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         String[] ipAddresses = {
             "127.0.0.1",
@@ -65,7 +65,7 @@ public class HttpSessionHeadersTest extends HttpServerTest {
         };
         for (String ipAddress : ipAddresses) {
             InetAddress inetAddress = InetAddress.getByName(ipAddress);
-            NanoHTTPD.HTTPSession session = testServer.createSession(TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
+            NanoHTTPD.HTTPSession session = this.testServer.createSession(HttpSessionHeadersTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
             assertEquals(ipAddress, session.getHeaders().get("remote-addr"));
             assertEquals(ipAddress, session.getHeaders().get("http-client-ip"));
         }

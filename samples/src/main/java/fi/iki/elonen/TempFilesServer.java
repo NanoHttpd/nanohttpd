@@ -8,18 +8,18 @@ package fi.iki.elonen;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -43,10 +43,39 @@ import fi.iki.elonen.debug.DebugServer;
  */
 public class TempFilesServer extends DebugServer {
 
-    public static void main(String[] args) {
-        TempFilesServer server = new TempFilesServer();
-        server.setTempFileManagerFactory(new ExampleManagerFactory());
-        ServerRunner.executeInstance(server);
+    private static class ExampleManager implements TempFileManager {
+
+        private final String tmpdir;
+
+        private final List<TempFile> tempFiles;
+
+        private ExampleManager() {
+            this.tmpdir = System.getProperty("java.io.tmpdir");
+            this.tempFiles = new ArrayList<TempFile>();
+        }
+
+        @Override
+        public void clear() {
+            if (!this.tempFiles.isEmpty()) {
+                System.out.println("Cleaning up:");
+            }
+            for (TempFile file : this.tempFiles) {
+                try {
+                    System.out.println("   " + file.getName());
+                    file.delete();
+                } catch (Exception ignored) {
+                }
+            }
+            this.tempFiles.clear();
+        }
+
+        @Override
+        public TempFile createTempFile() throws Exception {
+            DefaultTempFile tempFile = new DefaultTempFile(this.tmpdir);
+            this.tempFiles.add(tempFile);
+            System.out.println("Created tempFile: " + tempFile.getName());
+            return tempFile;
+        }
     }
 
     private static class ExampleManagerFactory implements TempFileManagerFactory {
@@ -57,38 +86,9 @@ public class TempFilesServer extends DebugServer {
         }
     }
 
-    private static class ExampleManager implements TempFileManager {
-
-        private final String tmpdir;
-
-        private final List<TempFile> tempFiles;
-
-        private ExampleManager() {
-            tmpdir = System.getProperty("java.io.tmpdir");
-            tempFiles = new ArrayList<TempFile>();
-        }
-
-        @Override
-        public TempFile createTempFile() throws Exception {
-            DefaultTempFile tempFile = new DefaultTempFile(tmpdir);
-            tempFiles.add(tempFile);
-            System.out.println("Created tempFile: " + tempFile.getName());
-            return tempFile;
-        }
-
-        @Override
-        public void clear() {
-            if (!tempFiles.isEmpty()) {
-                System.out.println("Cleaning up:");
-            }
-            for (TempFile file : tempFiles) {
-                try {
-                    System.out.println("   " + file.getName());
-                    file.delete();
-                } catch (Exception ignored) {
-                }
-            }
-            tempFiles.clear();
-        }
+    public static void main(String[] args) {
+        TempFilesServer server = new TempFilesServer();
+        server.setTempFileManagerFactory(new ExampleManagerFactory());
+        ServerRunner.executeInstance(server);
     }
 }

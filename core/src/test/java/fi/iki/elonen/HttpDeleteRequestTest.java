@@ -8,18 +8,18 @@ package fi.iki.elonen;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,39 +33,19 @@ package fi.iki.elonen;
  * #L%
  */
 
-import org.junit.Test;
-
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.util.List;
 
-import static junit.framework.Assert.*;
+import org.junit.Test;
 
 public class HttpDeleteRequestTest extends HttpServerTest {
 
     @Test
     public void testDeleteRequestThatDoesntSendBackResponseBody_EmptyString() throws Exception {
-        testServer.response = new NanoHTTPD.Response(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_HTML, "");
+        this.testServer.response = new NanoHTTPD(0) {
+        }.newFixedLengthResponse(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_HTML, "");
 
-        ByteArrayOutputStream outputStream = invokeServer("DELETE " + URI + " HTTP/1.1");
-
-        String[] expected = {
-            "HTTP/1.1 204 No Content",
-            "Content-Type: text/html",
-            "Date: .*",
-            "Connection: keep-alive",
-            "Content-Length: 0",
-            ""
-        };
-
-        assertResponse(outputStream, expected);
-    }
-
-    @Test
-    public void testDeleteRequestThatDoesntSendBackResponseBody_NullString() throws Exception {
-        testServer.response = new NanoHTTPD.Response(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_HTML, (String) null);
-
-        ByteArrayOutputStream outputStream = invokeServer("DELETE " + URI + " HTTP/1.1");
+        ByteArrayOutputStream outputStream = invokeServer("DELETE " + HttpServerTest.URI + " HTTP/1.1");
 
         String[] expected = {
             "HTTP/1.1 204 No Content",
@@ -81,9 +61,10 @@ public class HttpDeleteRequestTest extends HttpServerTest {
 
     @Test
     public void testDeleteRequestThatDoesntSendBackResponseBody_NullInputStream() throws Exception {
-        testServer.response = new NanoHTTPD.Response(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_HTML, (InputStream) null);
+        this.testServer.response = new NanoHTTPD(0) {
+        }.newChunkedResponse(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_HTML, (InputStream) null);
 
-        ByteArrayOutputStream outputStream = invokeServer("DELETE " + URI + " HTTP/1.1");
+        ByteArrayOutputStream outputStream = invokeServer("DELETE " + HttpServerTest.URI + " HTTP/1.1");
 
         String[] expected = {
             "HTTP/1.1 204 No Content",
@@ -98,13 +79,33 @@ public class HttpDeleteRequestTest extends HttpServerTest {
     }
 
     @Test
-    public void testDeleteRequestThatSendsBackResponseBody_Success() throws Exception {
-        testServer.response = new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, "application/xml", "<body />");
+    public void testDeleteRequestThatDoesntSendBackResponseBody_NullString() throws Exception {
+        this.testServer.response = new NanoHTTPD(0) {
+        }.newFixedLengthResponse(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_HTML, (String) null);
 
-        ByteArrayOutputStream outputStream = invokeServer("DELETE " + URI + " HTTP/1.1");
+        ByteArrayOutputStream outputStream = invokeServer("DELETE " + HttpServerTest.URI + " HTTP/1.1");
 
         String[] expected = {
-            "HTTP/1.1 200 OK",
+            "HTTP/1.1 204 No Content",
+            "Content-Type: text/html",
+            "Date: .*",
+            "Connection: keep-alive",
+            "Content-Length: 0",
+            ""
+        };
+
+        assertResponse(outputStream, expected);
+    }
+
+    @Test
+    public void testDeleteRequestThatSendsBackResponseBody_Accepted() throws Exception {
+        this.testServer.response = new NanoHTTPD(0) {
+        }.newFixedLengthResponse(NanoHTTPD.Response.Status.ACCEPTED, "application/xml", "<body />");
+
+        ByteArrayOutputStream outputStream = invokeServer("DELETE " + HttpServerTest.URI + " HTTP/1.1");
+
+        String[] expected = {
+            "HTTP/1.1 202 Accepted",
             "Content-Type: application/xml",
             "Date: .*",
             "Connection: keep-alive",
@@ -117,13 +118,14 @@ public class HttpDeleteRequestTest extends HttpServerTest {
     }
 
     @Test
-    public void testDeleteRequestThatSendsBackResponseBody_Accepted() throws Exception {
-        testServer.response = new NanoHTTPD.Response(NanoHTTPD.Response.Status.ACCEPTED, "application/xml", "<body />");
+    public void testDeleteRequestThatSendsBackResponseBody_Success() throws Exception {
+        this.testServer.response = new NanoHTTPD(0) {
+        }.newFixedLengthResponse(NanoHTTPD.Response.Status.OK, "application/xml", "<body />");
 
-        ByteArrayOutputStream outputStream = invokeServer("DELETE " + URI + " HTTP/1.1");
+        ByteArrayOutputStream outputStream = invokeServer("DELETE " + HttpServerTest.URI + " HTTP/1.1");
 
         String[] expected = {
-            "HTTP/1.1 202 Accepted",
+            "HTTP/1.1 200 OK",
             "Content-Type: application/xml",
             "Date: .*",
             "Connection: keep-alive",

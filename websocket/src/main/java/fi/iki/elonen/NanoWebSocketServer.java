@@ -8,18 +8,18 @@ package fi.iki.elonen;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -739,7 +739,7 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
      * hast java.util.Base64, I have this from stackoverflow:
      * http://stackoverflow.com/a/4265472
      * </p>
-     * 
+     *
      * @param buf
      *            the byte array (not null)
      * @return the translated Base64 string (not null)
@@ -825,12 +825,12 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
         Map<String, String> headers = session.getHeaders();
         if (isWebsocketRequested(session)) {
             if (!NanoWebSocketServer.HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(NanoWebSocketServer.HEADER_WEBSOCKET_VERSION))) {
-                return new Response(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Invalid Websocket-Version "
-                        + headers.get(NanoWebSocketServer.HEADER_WEBSOCKET_VERSION));
+                return newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+                        "Invalid Websocket-Version " + headers.get(NanoWebSocketServer.HEADER_WEBSOCKET_VERSION));
             }
 
             if (!headers.containsKey(NanoWebSocketServer.HEADER_WEBSOCKET_KEY)) {
-                return new Response(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key");
+                return newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key");
             }
 
             WebSocket webSocket = openWebSocket(session);
@@ -838,7 +838,8 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
             try {
                 handshakeResponse.addHeader(NanoWebSocketServer.HEADER_WEBSOCKET_ACCEPT, makeAcceptKey(headers.get(NanoWebSocketServer.HEADER_WEBSOCKET_KEY)));
             } catch (NoSuchAlgorithmException e) {
-                return new Response(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "The SHA-1 Algorithm required for websockets is not available on the server.");
+                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+                        "The SHA-1 Algorithm required for websockets is not available on the server.");
             }
 
             if (headers.containsKey(NanoWebSocketServer.HEADER_WEBSOCKET_PROTOCOL)) {
