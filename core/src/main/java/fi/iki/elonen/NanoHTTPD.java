@@ -8,18 +8,18 @@ package fi.iki.elonen;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
+ * 
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- *
+ * 
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- *
+ * 
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -236,7 +236,7 @@ public abstract class NanoHTTPD {
      * Provides rudimentary support for cookies. Doesn't support 'path',
      * 'secure' nor 'httpOnly'. Feel free to improve it and/or add unsupported
      * features.
-     *
+     * 
      * @author LordFokas
      */
     public class CookieHandler implements Iterable<String> {
@@ -261,7 +261,7 @@ public abstract class NanoHTTPD {
         /**
          * Set a cookie with an expiration date from a month ago, effectively
          * deleting it on the client side.
-         *
+         * 
          * @param name
          *            The cookie name.
          */
@@ -276,7 +276,7 @@ public abstract class NanoHTTPD {
 
         /**
          * Read a cookie from the HTTP Headers.
-         *
+         * 
          * @param name
          *            The cookie's name.
          * @return The cookie's value if it exists, null otherwise.
@@ -291,7 +291,7 @@ public abstract class NanoHTTPD {
 
         /**
          * Sets a cookie.
-         *
+         * 
          * @param name
          *            The cookie's name.
          * @param value
@@ -306,7 +306,7 @@ public abstract class NanoHTTPD {
         /**
          * Internally used by the webserver to add all queued cookies into the
          * Response's HTTP Headers.
-         *
+         * 
          * @param response
          *            The Response object to which headers the queued cookies
          *            will be added.
@@ -1005,7 +1005,7 @@ public abstract class NanoHTTPD {
 
         /**
          * Adds the files in the request body to the files map.
-         *
+         * 
          * @param files
          *            map to modify
          */
@@ -1101,7 +1101,7 @@ public abstract class NanoHTTPD {
          */
         private InputStream data;
 
-        private int contentLength;
+        private long contentLength;
 
         /**
          * Headers for the HTTP response. Use addHeader() to add lines.
@@ -1121,12 +1121,12 @@ public abstract class NanoHTTPD {
         /**
          * Creates a fixed length response if totalBytes>=0, otherwise chunked.
          */
-        protected Response(IStatus status, String mimeType, InputStream data, int totalBytes) {
+        protected Response(IStatus status, String mimeType, InputStream data, long totalBytes) {
             this.status = status;
             this.mimeType = mimeType;
             if (data == null) {
                 this.data = new ByteArrayInputStream(new byte[0]);
-                this.contentLength = 0;
+                this.contentLength = 0L;
             } else {
                 this.data = data;
                 this.contentLength = totalBytes;
@@ -1204,7 +1204,7 @@ public abstract class NanoHTTPD {
                 if (this.requestMethod != Method.HEAD && this.chunkedTransfer) {
                     sendAsChunked(outputStream, pw);
                 } else {
-                    int pending = this.data != null ? this.contentLength : 0;
+                    long pending = this.data != null ? this.contentLength : 0;
                     pending = sendContentLengthHeaderIfNotAlreadyPresent(pw, this.header, pending);
                     pw.print("\r\n");
                     pw.flush();
@@ -1233,12 +1233,12 @@ public abstract class NanoHTTPD {
             outputStream.write(String.format("0\r\n\r\n").getBytes());
         }
 
-        private void sendAsFixedLength(OutputStream outputStream, int pending) throws IOException {
+        private void sendAsFixedLength(OutputStream outputStream, long pending) throws IOException {
             if (this.requestMethod != Method.HEAD && this.data != null) {
-                int BUFFER_SIZE = 16 * 1024;
-                byte[] buff = new byte[BUFFER_SIZE];
+                long BUFFER_SIZE = 16 * 1024;
+                byte[] buff = new byte[(int) BUFFER_SIZE];
                 while (pending > 0) {
-                    int read = this.data.read(buff, 0, pending > BUFFER_SIZE ? BUFFER_SIZE : pending);
+                    int read = this.data.read(buff, 0, (int) (pending > BUFFER_SIZE ? BUFFER_SIZE : pending));
                     if (read <= 0) {
                         break;
                     }
@@ -1254,11 +1254,11 @@ public abstract class NanoHTTPD {
             }
         }
 
-        protected int sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header, int size) {
+        protected long sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header, long size) {
             for (String headerName : header.keySet()) {
                 if (headerName.equalsIgnoreCase("content-length")) {
                     try {
-                        return Integer.parseInt(header.get(headerName));
+                        return Long.parseLong(header.get(headerName));
                     } catch (NumberFormatException ex) {
                         return size;
                     }
@@ -1533,7 +1533,7 @@ public abstract class NanoHTTPD {
     /**
      * create a instance of the client handler, subclasses can return a subclass
      * of the ClientHandler.
-     *
+     * 
      * @param finalAccept
      *            the socket the cleint is connected to
      * @param inputStream
@@ -1547,7 +1547,7 @@ public abstract class NanoHTTPD {
     /**
      * Instantiate the server runnable, can be overwritten by subclasses to
      * provide a subclass of the ServerRunnable.
-     *
+     * 
      * @param timeout
      *            the socet timeout to use.
      * @return the server runnable.
@@ -1560,7 +1560,7 @@ public abstract class NanoHTTPD {
      * Decode parameters from a URL, handing the case where a single parameter
      * name might have been supplied several times, by return lists of values.
      * In general these lists will contain a single element.
-     *
+     * 
      * @param parms
      *            original <b>NanoHTTPD</b> parameters values, as passed to the
      *            <code>serve()</code> method.
@@ -1578,7 +1578,7 @@ public abstract class NanoHTTPD {
      * Decode parameters from a URL, handing the case where a single parameter
      * name might have been supplied several times, by return lists of values.
      * In general these lists will contain a single element.
-     *
+     * 
      * @param queryString
      *            a query string pulled from the URL.
      * @return a map of <code>String</code> (parameter name) to
@@ -1606,7 +1606,7 @@ public abstract class NanoHTTPD {
 
     /**
      * Decode percent encoded <code>String</code> values.
-     *
+     * 
      * @param str
      *            the percent encoded <code>String</code>
      * @return expanded form of the input, for example "foo%20bar" becomes
@@ -1647,7 +1647,7 @@ public abstract class NanoHTTPD {
     /**
      * Create a response with known length.
      */
-    public Response newFixedLengthResponse(IStatus status, String mimeType, InputStream data, int totalBytes) {
+    public Response newFixedLengthResponse(IStatus status, String mimeType, InputStream data, long totalBytes) {
         return new Response(status, mimeType, data, totalBytes);
     }
 
@@ -1681,7 +1681,7 @@ public abstract class NanoHTTPD {
      * <p/>
      * <p/>
      * (By default, this returns a 404 "Not Found" plain text error response.)
-     *
+     * 
      * @param session
      *            The HTTP session
      * @return HTTP response, see class Response for details
@@ -1709,7 +1709,7 @@ public abstract class NanoHTTPD {
      * <p/>
      * <p/>
      * (By default, this returns a 404 "Not Found" plain text error response.)
-     *
+     * 
      * @param uri
      *            Percent-decoded URI without parameters, for example
      *            "/index.cgi"
@@ -1729,7 +1729,7 @@ public abstract class NanoHTTPD {
 
     /**
      * Pluggable strategy for asynchronously executing requests.
-     *
+     * 
      * @param asyncRunner
      *            new strategy for handling threads.
      */
@@ -1739,7 +1739,7 @@ public abstract class NanoHTTPD {
 
     /**
      * Pluggable strategy for creating and cleaning up temporary files.
-     *
+     * 
      * @param tempFileManagerFactory
      *            new strategy for handling temp files.
      */
@@ -1749,7 +1749,7 @@ public abstract class NanoHTTPD {
 
     /**
      * Start the server.
-     *
+     * 
      * @throws IOException
      *             if the socket is in use.
      */
@@ -1759,7 +1759,7 @@ public abstract class NanoHTTPD {
 
     /**
      * Start the server.
-     *
+     * 
      * @param timeout
      *            timeout to use for socket connections.
      * @throws IOException

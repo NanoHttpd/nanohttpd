@@ -8,18 +8,18 @@ package fi.iki.elonen;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
+ * 
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- *
+ * 
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- *
+ * 
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -35,6 +35,7 @@ package fi.iki.elonen;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -511,13 +512,27 @@ public class SimpleWebServer extends NanoHTTPD {
                 }
             }
 
+            // get if-range header. If present, it must match etag or else we
+            // should ignore the range request
+            String ifRange = header.get("if-range");
+            boolean headerIfRangeMissingOrMatching = (ifRange == null || etag.equals(ifRange));
+
+            String ifNoneMatch = header.get("if-none-match");
+            boolean headerIfNoneMatchPresentAndMatching = ifNoneMatch != null && (ifNoneMatch.equals("*") || ifNoneMatch.equals(etag));
+
             // Change return code and add Content-Range header when skipping is
             // requested
             long fileLen = file.length();
-            if (range != null && startFrom >= 0) {
-                if (startFrom >= fileLen) {
-                    res = newFixedLengthResponse(Response.Status.RANGE_NOT_SATISFIABLE, NanoHTTPD.MIME_PLAINTEXT, "");
-                    res.addHeader("Content-Range", "bytes 0-0/" + fileLen);
+
+            if (headerIfRangeMissingOrMatching && range != null && startFrom >= 0 && startFrom < fileLen) {
+                // range request that matches current etag
+                // and the startFrom of the range is satisfiable
+                if (headerIfNoneMatchPresentAndMatching) {
+                    // range request that matches current etag
+                    // and the startFrom of the range is satisfiable
+                    // would return range from file
+                    // respond with not-modified
+                    res = newFixedLengthResponse(Response.Status.NOT_MODIFIED, mime, "");
                     res.addHeader("ETag", etag);
                 } else {
                     if (endAt < 0) {
@@ -528,28 +543,39 @@ public class SimpleWebServer extends NanoHTTPD {
                         newLen = 0;
                     }
 
-                    final long dataLen = newLen;
-                    FileInputStream fis = new FileInputStream(file) {
-
-                        @Override
-                        public int available() throws IOException {
-                            return (int) dataLen;
-                        }
-                    };
+                    FileInputStream fis = new FileInputStream(file);
                     fis.skip(startFrom);
 
-                    res = newFixedLengthResponse(Response.Status.PARTIAL_CONTENT, mime, fis, (int) file.length());
+                    res = newFixedLengthResponse(Response.Status.PARTIAL_CONTENT, mime, fis, newLen);
                     res.addHeader("Accept-Ranges", "bytes");
-                    res.addHeader("Content-Length", "" + dataLen);
+                    res.addHeader("Content-Length", "" + newLen);
                     res.addHeader("Content-Range", "bytes " + startFrom + "-" + endAt + "/" + fileLen);
                     res.addHeader("ETag", etag);
                 }
             } else {
-                if (etag.equals(header.get("if-none-match"))) {
+
+                if (headerIfRangeMissingOrMatching && range != null && startFrom >= fileLen) {
+                    // return the size of the file
+                    // 4xx responses are not trumped by if-none-match
+                    res = newFixedLengthResponse(Response.Status.RANGE_NOT_SATISFIABLE, NanoHTTPD.MIME_PLAINTEXT, "");
+                    res.addHeader("Content-Range", "bytes */" + fileLen);
+                    res.addHeader("ETag", etag);
+                } else if (range == null && headerIfNoneMatchPresentAndMatching) {
+                    // full-file-fetch request
+                    // would return entire file
+                    // respond with not-modified
                     res = newFixedLengthResponse(Response.Status.NOT_MODIFIED, mime, "");
+                    res.addHeader("ETag", etag);
+                } else if (!headerIfRangeMissingOrMatching && headerIfNoneMatchPresentAndMatching) {
+                    // range request that doesn't match current etag
+                    // would return entire (different) file
+                    // respond with not-modified
+
+                    res = newFixedLengthResponse(Response.Status.NOT_MODIFIED, mime, "");
+                    res.addHeader("ETag", etag);
                 } else {
-                    res = newFixedLengthResponse(Response.Status.OK, mime, new FileInputStream(file), (int) file.length());
-                    res.addHeader("Accept-Ranges", "bytes");
+                    // supply the file
+                    res = newFixedFileResponse(file, mime);
                     res.addHeader("Content-Length", "" + fileLen);
                     res.addHeader("ETag", etag);
                 }
@@ -558,6 +584,13 @@ public class SimpleWebServer extends NanoHTTPD {
             res = getForbiddenResponse("Reading file failed.");
         }
 
+        return res;
+    }
+
+    private Response newFixedFileResponse(File file, String mime) throws FileNotFoundException {
+        Response res;
+        res = newFixedLengthResponse(Response.Status.OK, mime, new FileInputStream(file), (int) file.length());
+        res.addHeader("Accept-Ranges", "bytes");
         return res;
     }
 }
