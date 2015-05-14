@@ -901,7 +901,7 @@ public abstract class NanoHTTPD {
                         StringBuilder postLineBuffer = new StringBuilder();
                         char pbuf[] = new char[512];
                         int read = in.read(pbuf);
-                        while (read >= 0 && !postLine.endsWith("\r\n")) {
+                        while (read >= 0) {
                             postLine = String.valueOf(pbuf, 0, read);
                             postLineBuffer.append(postLine);
                             read = in.read(pbuf);
