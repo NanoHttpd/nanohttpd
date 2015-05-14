@@ -1320,7 +1320,9 @@ public abstract class NanoHTTPD {
             do {
                 try {
                     final Socket finalAccept = NanoHTTPD.this.myServerSocket.accept();
-                    finalAccept.setSoTimeout(this.timeout);
+                    if (this.timeout > 0) {
+                        finalAccept.setSoTimeout(this.timeout);
+                    }
                     final InputStream inputStream = finalAccept.getInputStream();
                     NanoHTTPD.this.asyncRunner.exec(createClientHandler(finalAccept, inputStream));
                 } catch (IOException e) {
