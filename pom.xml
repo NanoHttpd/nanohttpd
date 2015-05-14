@@ -233,19 +233,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.eluder.coveralls</groupId>
-				<artifactId>coveralls-maven-plugin</artifactId>
-				<version>3.1.0</version>
-				<configuration>
-					<jacocoReports>
-						<jacocoReport>core/target/site/jacoco/jacoco.xml</jacocoReport>
-						<jacocoReport>module1/target/site/markdown-plugin/jacoco.xml</jacocoReport>
-						<jacocoReport>module1/target/site/webserver/jacoco.xml</jacocoReport>
-						<jacocoReport>module1/target/site/websocket/jacoco.xml</jacocoReport>
-					</jacocoReports>
-				</configuration>
-			</plugin>
 		</plugins>
 	</build>
 	<reporting>
@@ -418,6 +405,47 @@
 					</plugin>
 				</plugins>
 			</reporting>
+		</profile>
+		<profile>
+			<id>parent-build</id>
+			<activation>
+				<file>
+					<exists>core/pom.xml</exists>
+				</file>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>0.7.4.201502262128</version>
+						<executions>
+							<execution>
+								<id>merge-report</id>
+								<phase>package</phase>
+								<goals>
+									<goal>merge</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<fileSets>
+								<fileSet>
+									<directory>${project.basedir}/..</directory>
+									<includes>
+										<include>*.exec</include>
+									</includes>
+								</fileSet>
+							</fileSets>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.eluder.coveralls</groupId>
+						<artifactId>coveralls-maven-plugin</artifactId>
+						<version>3.1.0</version>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 	</profiles>
 </project>
