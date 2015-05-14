@@ -83,7 +83,7 @@ public class TestHttpServer {
     @AfterClass
     public static void tearDown() throws Exception {
         stdIn.write("\n\n".getBytes());
-        serverStartThread.join(500);
+        serverStartThread.join(2000);
         Assert.assertFalse(serverStartThread.isAlive());
     }
 
