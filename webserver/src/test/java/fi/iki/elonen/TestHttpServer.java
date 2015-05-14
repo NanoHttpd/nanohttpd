@@ -33,13 +33,140 @@ package fi.iki.elonen;
  * #L%
  */
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class TestHttpServer {
 
-    @Test
-    public void doSomeBasicTest() {
+    private static PipedOutputStream stdIn;
 
+    private static Thread serverStartThread;
+
+    @BeforeClass
+    public static void setUp() throws Exception {
+        stdIn = new PipedOutputStream();
+        System.setIn(new PipedInputStream(stdIn));
+        serverStartThread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                String[] args = {
+                    "--host",
+                    "localhost",
+                    "--port",
+                    "9090",
+                    "--dir",
+                    "src/test/resources"
+                };
+                SimpleWebServer.main(args);
+            }
+        });
+        serverStartThread.start();
+        // give the server some tine to start.
+        Thread.sleep(100);
+    }
+
+    @AfterClass
+    public static void tearDown() throws Exception {
+        stdIn.write("\n\n".getBytes());
+        serverStartThread.join(500);
+        Assert.assertFalse(serverStartThread.isAlive());
+    }
+
+    @Test
+    public void doTest404() throws Exception {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        HttpGet httpget = new HttpGet("http://localhost:9090/xxx/yyy.html");
+        CloseableHttpResponse response = httpclient.execute(httpget);
+        Assert.assertEquals(404, response.getStatusLine().getStatusCode());
+        response.close();
+    }
+
+    @Test
+    public void doPlugin() throws Exception {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        HttpGet httpget = new HttpGet("http://localhost:9090/index.xml");
+        CloseableHttpResponse response = httpclient.execute(httpget);
+        String string = new String(readContents(response.getEntity()), "UTF-8");
+        Assert.assertEquals("<xml/>", string);
+        response.close();
+
+        httpget = new HttpGet("http://localhost:9090/testdir/testdir/different.xml");
+        response = httpclient.execute(httpget);
+        string = new String(readContents(response.getEntity()), "UTF-8");
+        Assert.assertEquals("<xml/>", string);
+        response.close();
+    }
+
+    @Test
+    public void doSomeBasicTest() throws Exception {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        HttpGet httpget = new HttpGet("http://localhost:9090/testdir/test.html");
+        CloseableHttpResponse response = httpclient.execute(httpget);
+        HttpEntity entity = response.getEntity();
+        String string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals("<html>\n<head>\n<title>dummy</title>\n</head>\n<body>\n\t<h1>it works</h1>\n</body>\n</html>", string);
+        response.close();
+
+        httpget = new HttpGet("http://localhost:9090/");
+        response = httpclient.execute(httpget);
+        entity = response.getEntity();
+        string = new String(readContents(entity), "UTF-8");
+        Assert.assertTrue(string.indexOf("testdir") > 0);
+        response.close();
+
+        httpget = new HttpGet("http://localhost:9090/testdir");
+        response = httpclient.execute(httpget);
+        entity = response.getEntity();
+        string = new String(readContents(entity), "UTF-8");
+        Assert.assertTrue(string.indexOf("test.html") > 0);
+        response.close();
+
+        httpget = new HttpGet("http://localhost:9090/testdir/testpdf.pdf");
+        response = httpclient.execute(httpget);
+        entity = response.getEntity();
+
+        byte[] actual = readContents(entity);
+        byte[] expected = readContents(new FileInputStream("src/test/resources/testdir/testpdf.pdf"));
+        Assert.assertArrayEquals(expected, actual);
+        response.close();
+
+    }
+
+    private byte[] readContents(HttpEntity entity) throws IOException {
+        InputStream instream = entity.getContent();
+        return readContents(instream);
+    }
+
+    private byte[] readContents(InputStream instream) throws IOException {
+        byte[] bytes;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        try {
+            byte[] buffer = new byte[1024];
+            int count;
+            while ((count = instream.read(buffer)) >= 0) {
+                out.write(buffer, 0, count);
+            }
+            bytes = out.toByteArray();
+        } finally {
+            instream.close();
+        }
+        return bytes;
     }
 
 }
