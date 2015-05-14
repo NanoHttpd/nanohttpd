@@ -333,6 +333,13 @@ public abstract class NanoHTTPD {
 
         private final List<ClientHandler> running = Collections.synchronizedList(new ArrayList<NanoHTTPD.ClientHandler>());
 
+        /**
+         * @return a list with currently running clients.
+         */
+        public List<ClientHandler> getRunning() {
+            return running;
+        }
+
         @Override
         public void closeAll() {
             // copy of the list for concurrency
@@ -1484,7 +1491,7 @@ public abstract class NanoHTTPD {
     /**
      * Pluggable strategy for asynchronously executing requests.
      */
-    private AsyncRunner asyncRunner;
+    protected AsyncRunner asyncRunner;
 
     /**
      * Pluggable strategy for creating and cleaning up temporary files.
