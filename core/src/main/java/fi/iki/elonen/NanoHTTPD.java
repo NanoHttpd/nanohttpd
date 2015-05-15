@@ -386,7 +386,9 @@ public abstract class NanoHTTPD {
         @Override
         public void delete() throws Exception {
             safeClose(this.fstream);
-            this.file.delete();
+            if (!this.file.delete()) {
+                throw new Exception("could not delete temporary file");
+            }
         }
 
         @Override
