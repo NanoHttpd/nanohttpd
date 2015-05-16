@@ -279,7 +279,7 @@ public class SimpleWebServer extends NanoHTTPD {
     private String findIndexFileInDirectory(File directory) {
         for (String fileName : SimpleWebServer.INDEX_FILE_NAMES) {
             File indexFile = new File(directory, fileName);
-            if (indexFile.exists()) {
+            if (indexFile.isFile()) {
                 return fileName;
             }
         }
@@ -398,7 +398,7 @@ public class SimpleWebServer extends NanoHTTPD {
         }
 
         // Prohibit getting out of current directory
-        if (uri.startsWith("src/main") || uri.endsWith("src/main") || uri.contains("../")) {
+        if (uri.contains("../")) {
             return getForbiddenResponse("Won't serve ../ for security reasons.");
         }
 

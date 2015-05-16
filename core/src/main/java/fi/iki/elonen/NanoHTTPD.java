@@ -533,7 +533,11 @@ public abstract class NanoHTTPD {
                 // followed by HTTP headers. Ignore version but parse headers.
                 // NOTE: this now forces header names lower case since they are
                 // case insensitive and vary by client.
-                if (!st.hasMoreTokens()) {
+                if (st.hasMoreTokens()) {
+                    if (!st.nextToken().equals("HTTP/1.1")) {
+                        throw new ResponseException(Response.Status.UNSUPPORTED_HTTP_VERSION, "Only HTTP/1.1 is supported.");
+                    }
+                } else {
                     NanoHTTPD.LOG.log(Level.FINE, "no protocol version specified, strange..");
                 }
                 String line = in.readLine();
@@ -1081,7 +1085,8 @@ public abstract class NanoHTTPD {
             NOT_FOUND(404, "Not Found"),
             METHOD_NOT_ALLOWED(405, "Method Not Allowed"),
             RANGE_NOT_SATISFIABLE(416, "Requested Range Not Satisfiable"),
-            INTERNAL_ERROR(500, "Internal Server Error");
+            INTERNAL_ERROR(500, "Internal Server Error"),
+            UNSUPPORTED_HTTP_VERSION(505, "HTTP Version Not Supported");
 
             private final int requestStatus;
 

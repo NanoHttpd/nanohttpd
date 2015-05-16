@@ -89,7 +89,7 @@ public class HttpChunkedResponseTest extends HttpServerTest {
         }.newChunkedResponse(OK, "what/ever", pipedInputStream);
         this.testServer.response.setChunkedTransfer(true);
 
-        ByteArrayOutputStream byteArrayOutputStream = invokeServer("GET / HTTP/1.0");
+        ByteArrayOutputStream byteArrayOutputStream = invokeServer("GET / HTTP/1.1");
 
         assertResponse(byteArrayOutputStream, expected);
     }
