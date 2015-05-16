@@ -398,7 +398,7 @@ public class SimpleWebServer extends NanoHTTPD {
         }
 
         // Prohibit getting out of current directory
-        if (uri.startsWith("src/main") || uri.endsWith("src/main") || uri.contains("../")) {
+        if (uri.contains("../")) {
             return getForbiddenResponse("Won't serve ../ for security reasons.");
         }
 
