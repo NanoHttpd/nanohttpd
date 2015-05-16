@@ -279,7 +279,7 @@ public class SimpleWebServer extends NanoHTTPD {
     private String findIndexFileInDirectory(File directory) {
         for (String fileName : SimpleWebServer.INDEX_FILE_NAMES) {
             File indexFile = new File(directory, fileName);
-            if (indexFile.exists()) {
+            if (indexFile.isFile()) {
                 return fileName;
             }
         }
