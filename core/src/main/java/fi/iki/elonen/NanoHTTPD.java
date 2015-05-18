@@ -776,34 +776,49 @@ public abstract class NanoHTTPD {
         }
 
         /**
-         * Find the byte positions where multipart boundaries start.
+         * Find the byte positions where multipart boundaries start. This reads
+         * a large block at a time and uses a temporary buffer to optimize
+         * (memory mapped) file access.
          */
         private int[] getBoundaryPositions(ByteBuffer b, byte[] boundary) {
-            int matchcount = 0;
-            int matchbyte = -1;
-            List<Integer> matchbytes = new ArrayList<Integer>();
-            for (int i = 0; i < b.limit(); i++) {
-                if (b.get(i) == boundary[matchcount]) {
-                    if (matchcount == 0) {
-                        matchbyte = i;
+            int[] res = new int[0];
+            if (b.remaining() < boundary.length) {
+                return res;
+            }
+
+            int search_window_pos = 0;
+            byte[] search_window = new byte[4 * 1024 + boundary.length];
+
+            int first_fill = (b.remaining() < search_window.length) ? b.remaining() : search_window.length;
+            b.get(search_window, 0, first_fill);
+            int new_bytes = first_fill - boundary.length;
+
+            do {
+                // Search the search_window
+                for (int j = 0; j < new_bytes; j++) {
+                    for (int i = 0; i < boundary.length; i++) {
+                        if (search_window[j + i] != boundary[i])
+                            break;
+                        if (i == boundary.length - 1) {
+                            // Match found, add it to results
+                            int[] new_res = new int[res.length + 1];
+                            System.arraycopy(res, 0, new_res, 0, res.length);
+                            new_res[res.length] = search_window_pos + j;
+                            res = new_res;
+                        }
                     }
-                    matchcount++;
-                    if (matchcount == boundary.length) {
-                        matchbytes.add(matchbyte);
-                        matchcount = 0;
-                        matchbyte = -1;
-                    }
-                } else {
-                    i -= matchcount;
-                    matchcount = 0;
-                    matchbyte = -1;
                 }
-            }
-            int[] ret = new int[matchbytes.size()];
-            for (int i = 0; i < ret.length; i++) {
-                ret[i] = matchbytes.get(i);
-            }
-            return ret;
+                search_window_pos += new_bytes;
+
+                // Copy the end of the buffer to the start
+                System.arraycopy(search_window, search_window.length - boundary.length, search_window, 0, boundary.length);
+
+                // Refill search_window
+                new_bytes = search_window.length - boundary.length;
+                new_bytes = (b.remaining() < new_bytes) ? b.remaining() : new_bytes;
+                b.get(search_window, boundary.length, new_bytes);
+            } while (new_bytes > 0);
+            return res;
         }
 
         @Override
