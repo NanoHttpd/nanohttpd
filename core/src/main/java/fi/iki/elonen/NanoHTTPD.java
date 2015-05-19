@@ -33,22 +33,7 @@ package fi.iki.elonen;
  * #L%
  */
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.PushbackInputStream;
-import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -73,6 +58,7 @@ import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -735,8 +721,10 @@ public abstract class NanoHTTPD {
                 if (r == null) {
                     throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
                 } else {
+                    String acceptEncoding = this.headers.get("accept-encoding");
                     this.cookies.unloadQueue(r);
                     r.setRequestMethod(this.method);
+                    r.setGzipEncoding(acceptEncoding != null && acceptEncoding.contains("gzip"));
                     r.send(this.outputStream);
                 }
             } catch (SocketException e) {
@@ -1106,6 +1094,46 @@ public abstract class NanoHTTPD {
             public int getRequestStatus() {
                 return this.requestStatus;
             }
+
+        }
+
+        /**
+         * Output stream that will automatically send every write to the wrapped
+         * OutputStream according to chunked transfer:
+         * http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.6.1
+         */
+        private static class ChunkedOutputStream extends FilterOutputStream {
+
+            public ChunkedOutputStream(OutputStream out) {
+                super(out);
+            }
+
+            @Override
+            public void write(int b) throws IOException {
+                byte[] data = {
+                    (byte) b
+                };
+                write(data, 0, 1);
+            }
+
+            @Override
+            public void write(byte[] b) throws IOException {
+                write(b, 0, b.length);
+            }
+
+            @Override
+            public void write(byte[] b, int off, int len) throws IOException {
+                if (len == 0)
+                    return;
+                out.write(String.format("%x\r\n", len).getBytes());
+                out.write(b, off, len);
+                out.write("\r\n".getBytes());
+            }
+
+            public void finish() throws IOException {
+                out.write("0\r\n\r\n".getBytes());
+            }
+
         }
 
         /**
@@ -1139,6 +1167,8 @@ public abstract class NanoHTTPD {
          * Use chunkedTransfer
          */
         private boolean chunkedTransfer;
+
+        private boolean encodeAsGzip;
 
         /**
          * Creates a fixed length response if totalBytes>=0, otherwise chunked.
@@ -1183,6 +1213,10 @@ public abstract class NanoHTTPD {
             return this.status;
         }
 
+        public void setGzipEncoding(boolean encodeAsGzip) {
+            this.encodeAsGzip = encodeAsGzip;
+        }
+
         private boolean headerAlreadySent(Map<String, String> header, String name) {
             boolean alreadySent = false;
             for (String headerName : header.keySet()) {
@@ -1223,15 +1257,23 @@ public abstract class NanoHTTPD {
 
                 sendConnectionHeaderIfNotAlreadyPresent(pw, this.header);
 
-                if (this.requestMethod != Method.HEAD && this.chunkedTransfer) {
-                    sendAsChunked(outputStream, pw);
-                } else {
-                    long pending = this.data != null ? this.contentLength : 0;
-                    pending = sendContentLengthHeaderIfNotAlreadyPresent(pw, this.header, pending);
-                    pw.print("\r\n");
-                    pw.flush();
-                    sendAsFixedLength(outputStream, pending);
+                if (headerAlreadySent(this.header, "content-length")) {
+                    encodeAsGzip = false;
                 }
+
+                if (encodeAsGzip) {
+                    pw.print("Content-Encoding: gzip\r\n");
+                }
+
+                long pending = this.data != null ? this.contentLength : 0;
+                if (this.requestMethod != Method.HEAD && this.chunkedTransfer) {
+                    pw.print("Transfer-Encoding: chunked\r\n");
+                } else if (!encodeAsGzip) {
+                    pending = sendContentLengthHeaderIfNotAlreadyPresent(pw, this.header, pending);
+                }
+                pw.print("\r\n");
+                pw.flush();
+                sendBodyWithCorrectTransferAndEncoding(outputStream, pending);
                 outputStream.flush();
                 safeClose(this.data);
             } catch (IOException ioe) {
@@ -1239,32 +1281,51 @@ public abstract class NanoHTTPD {
             }
         }
 
-        private void sendAsChunked(OutputStream outputStream, PrintWriter pw) throws IOException {
-            pw.print("Transfer-Encoding: chunked\r\n");
-            pw.print("\r\n");
-            pw.flush();
-            int BUFFER_SIZE = 16 * 1024;
-            byte[] CRLF = "\r\n".getBytes();
-            byte[] buff = new byte[BUFFER_SIZE];
-            int read;
-            while ((read = this.data.read(buff)) > 0) {
-                outputStream.write(String.format("%x\r\n", read).getBytes());
-                outputStream.write(buff, 0, read);
-                outputStream.write(CRLF);
+        private void sendBodyWithCorrectTransferAndEncoding(OutputStream outputStream, long pending) throws IOException {
+            if (this.requestMethod != Method.HEAD && this.chunkedTransfer) {
+                ChunkedOutputStream chunkedOutputStream = new ChunkedOutputStream(outputStream);
+                sendBodyWithCorrectEncoding(chunkedOutputStream, -1);
+                chunkedOutputStream.finish();
+            } else {
+                sendBodyWithCorrectEncoding(outputStream, pending);
             }
-            outputStream.write(String.format("0\r\n\r\n").getBytes());
         }
 
-        private void sendAsFixedLength(OutputStream outputStream, long pending) throws IOException {
-            if (this.requestMethod != Method.HEAD && this.data != null) {
-                long BUFFER_SIZE = 16 * 1024;
-                byte[] buff = new byte[(int) BUFFER_SIZE];
-                while (pending > 0) {
-                    int read = this.data.read(buff, 0, (int) (pending > BUFFER_SIZE ? BUFFER_SIZE : pending));
-                    if (read <= 0) {
-                        break;
-                    }
-                    outputStream.write(buff, 0, read);
+        private void sendBodyWithCorrectEncoding(OutputStream outputStream, long pending) throws IOException {
+            if (encodeAsGzip) {
+                GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream, true);
+                sendBody(gzipOutputStream, -1);
+                gzipOutputStream.finish();
+            } else {
+                sendBody(outputStream, pending);
+            }
+        }
+
+        /**
+         * Sends the body to the specified OutputStream. The pending parameter
+         * limits the maximum amounts of bytes sent unless it is -1, in which
+         * case everything is sent.
+         * 
+         * @param outputStream
+         *            the OutputStream to send data to
+         * @param pending
+         *            -1 to send everything, otherwise sets a max limit to the
+         *            number of bytes sent
+         * @throws IOException
+         *             if something goes wrong while sending the data.
+         */
+        private void sendBody(OutputStream outputStream, long pending) throws IOException {
+            long BUFFER_SIZE = 16 * 1024;
+            byte[] buff = new byte[(int) BUFFER_SIZE];
+            boolean sendEverything = pending == -1;
+            while (pending > 0 || sendEverything) {
+                long bytesToRead = sendEverything ? BUFFER_SIZE : Math.min(pending, BUFFER_SIZE);
+                int read = this.data.read(buff, 0, (int) bytesToRead);
+                if (read <= 0) {
+                    break;
+                }
+                outputStream.write(buff, 0, read);
+                if (!sendEverything) {
                     pending -= read;
                 }
             }
