@@ -1340,12 +1340,23 @@ public abstract class NanoHTTPD {
 
         private final int timeout;
 
+        private IOException bindException;
+
+        private boolean hasBinded = false;
+
         private ServerRunnable(int timeout) {
             this.timeout = timeout;
         }
 
         @Override
         public void run() {
+            try {
+                myServerSocket.bind(hostname != null ? new InetSocketAddress(hostname, myPort) : new InetSocketAddress(myPort));
+                hasBinded = true;
+            } catch (IOException e) {
+                this.bindException = e;
+                return;
+            }
             do {
                 try {
                     final Socket finalAccept = NanoHTTPD.this.myServerSocket.accept();
@@ -1802,12 +1813,24 @@ public abstract class NanoHTTPD {
             this.myServerSocket = new ServerSocket();
         }
         this.myServerSocket.setReuseAddress(true);
-        this.myServerSocket.bind(this.hostname != null ? new InetSocketAddress(this.hostname, this.myPort) : new InetSocketAddress(this.myPort));
 
-        this.myThread = new Thread(createServerRunnable(timeout));
+        ServerRunnable serverRunnable = createServerRunnable(timeout);
+        this.myThread = new Thread(serverRunnable);
         this.myThread.setDaemon(true);
         this.myThread.setName("NanoHttpd Main Listener");
         this.myThread.start();
+        while (!serverRunnable.hasBinded && serverRunnable.bindException == null) {
+            try {
+                Thread.sleep(10L);
+            } catch (Throwable e) {
+                // on android this may not be allowed, that's why we
+                // catch throwable the wait should be very short because we are
+                // just waiting for the bind of the socket
+            }
+        }
+        if (serverRunnable.bindException != null) {
+            throw serverRunnable.bindException;
+        }
     }
 
     /**
