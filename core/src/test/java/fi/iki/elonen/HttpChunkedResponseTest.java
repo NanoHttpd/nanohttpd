@@ -52,7 +52,7 @@ public class HttpChunkedResponseTest extends HttpServerTest {
         }
 
         @Override
-        public synchronized int read(byte[] buffer) throws IOException {
+        public synchronized int read(byte[] buffer, int off, int len) throws IOException {
             // Too implementation-linked, but...
             for (int i = 0; i < this.chunks[this.chunk].length(); ++i) {
                 buffer[i] = (byte) this.chunks[this.chunk].charAt(i);
