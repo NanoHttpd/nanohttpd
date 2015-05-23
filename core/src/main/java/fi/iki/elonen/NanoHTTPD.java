@@ -1490,13 +1490,19 @@ public abstract class NanoHTTPD {
         return res;
     }
 
-    private static final void safeClose(Closeable closeable) {
-        if (closeable != null) {
-            try {
-                closeable.close();
-            } catch (IOException e) {
-                NanoHTTPD.LOG.log(Level.SEVERE, "Could not close", e);
+    private static final void safeClose(Object closeable) {
+        try {
+            if (closeable instanceof Closeable) {
+                ((Closeable) closeable).close();
+            } else if (closeable instanceof Socket) {
+                ((Socket) closeable).close();
+            } else if (closeable instanceof ServerSocket) {
+                ((ServerSocket) closeable).close();
+            } else {
+                throw new IllegalArgumentException("Unknown object to close");
             }
+        } catch (IOException e) {
+            NanoHTTPD.LOG.log(Level.SEVERE, "Could not close", e);
         }
     }
 

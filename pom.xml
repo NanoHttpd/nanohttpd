@@ -292,7 +292,7 @@
 				<configuration>
 					<linkXref>true</linkXref>
 					<sourceEncoding>UTF-8</sourceEncoding>
-					<targetJdk>1.7</targetJdk>
+					<targetJdk>1.6</targetJdk>
 					<skipEmptyReport>false</skipEmptyReport>
 					<minimumTokens>50</minimumTokens>
 				</configuration>
