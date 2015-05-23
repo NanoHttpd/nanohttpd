@@ -109,7 +109,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.3</version>
 				<configuration>
 					<source>1.6</source>
 					<target>1.6</target>
@@ -443,6 +443,30 @@
 						<groupId>org.eluder.coveralls</groupId>
 						<artifactId>coveralls-maven-plugin</artifactId>
 						<version>3.1.0</version>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>use 1.6 compiler</id>
+			<activation>
+				<file>
+					<exists>/usr/lib/jvm/java-6-openjdk-amd64/bin/javac</exists>
+				</file>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<version>3.3</version>
+						<configuration>
+							<source>1.6</source>
+							<target>1.6</target>
+							<verbose>true</verbose>
+							<fork>true</fork>
+							<executable>/usr/lib/jvm/java-6-openjdk-amd64/bin/javac</executable>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>
