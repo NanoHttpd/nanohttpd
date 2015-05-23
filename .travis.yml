@@ -1,11 +1,8 @@
 language: java
 jdk:
-- openjdk6
 - oraclejdk7
 
 install:
-  - ls /usr/lib/jvm/java-6-openjdk-amd64/bin/
-  - ls /usr/lib/jvm/java-6-openjdk-amd64/jre/bin/
   - mvn install -DskipTests=true
 
 script: mvn test
