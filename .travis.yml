@@ -1,6 +1,6 @@
 language: java
 jdk:
-- oraclejdk6
+- openjdk6
 
 install:
   - mvn install -DskipTests=true
