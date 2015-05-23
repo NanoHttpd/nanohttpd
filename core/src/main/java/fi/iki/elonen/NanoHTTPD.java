@@ -1506,6 +1506,28 @@ public abstract class NanoHTTPD {
         }
     }
 
+    // ServerSocket does not implement Closeable on Android < 4.4 and Java < 7
+    private static final void safeClose(ServerSocket closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (IOException e) {
+                NanoHTTPD.LOG.log(Level.SEVERE, "Could not close Socket", e);
+            }
+        }
+    }
+
+    // Socket does not implement Closeable on Android < 4.4 and Java < 7
+    private static final void safeClose(Socket closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (IOException e) {
+                NanoHTTPD.LOG.log(Level.SEVERE, "Could not close Socket", e);
+            }
+        }
+    }
+
     private final String hostname;
 
     private final int myPort;
