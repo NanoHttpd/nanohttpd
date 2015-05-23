@@ -1293,7 +1293,7 @@ public abstract class NanoHTTPD {
 
         private void sendBodyWithCorrectEncoding(OutputStream outputStream, long pending) throws IOException {
             if (encodeAsGzip) {
-                GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream, true);
+                GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream);
                 sendBody(gzipOutputStream, -1);
                 gzipOutputStream.finish();
             } else {
