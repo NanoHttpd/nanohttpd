@@ -9,3 +9,9 @@ script: mvn test
 
 after_success:
   - mvn clean test jacoco:report coveralls:report
+  
+ 
+notifications:
+  email:
+    - richard.vannieuwenhoven@adesso.at
+    - elonen@iki.fi
