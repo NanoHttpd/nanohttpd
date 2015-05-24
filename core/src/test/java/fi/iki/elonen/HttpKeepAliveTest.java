@@ -99,9 +99,26 @@ public class HttpKeepAliveTest extends HttpServerTest {
                         for (int i = 0; i < 2048; i++) {
                             requestStream.write(request.getBytes());
                             requestStream.flush();
+                            outputStream.reset();
                             session.execute();
                             assertResponse(outputStream, expected);
                         }
+
+                        // Finally, try "Connection: Close"
+                        String closeReq = request.replaceAll("HTTP/1.1", "HTTP/1.1\r\nConnection: Close");
+                        expected[3] = "Connection: close";
+                        requestStream.write(closeReq.getBytes());
+                        outputStream.reset();
+                        requestStream.flush();
+                        // Server should now close the socket by throwing a
+                        // SocketException:
+                        try {
+                            session.execute();
+                        } catch (java.net.SocketException se) {
+                            junit.framework.Assert.assertEquals(se.getMessage(), "NanoHttpd Shutdown");
+                        }
+                        assertResponse(outputStream, expected);
+
                     } finally {
                         tempFileManager.clear();
                     }

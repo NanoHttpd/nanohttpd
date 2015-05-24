@@ -468,6 +468,8 @@ public abstract class NanoHTTPD {
 
         private String remoteIp;
 
+        private String protocolVersion;
+
         public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
             this.tempFileManager = tempFileManager;
             this.inputStream = new PushbackInputStream(inputStream, HTTPSession.BUFSIZE);
@@ -516,15 +518,14 @@ public abstract class NanoHTTPD {
                 }
 
                 // If there's another token, its protocol version,
-                // followed by HTTP headers. Ignore version but parse headers.
+                // followed by HTTP headers.
                 // NOTE: this now forces header names lower case since they are
                 // case insensitive and vary by client.
                 if (st.hasMoreTokens()) {
-                    if (!st.nextToken().equals("HTTP/1.1")) {
-                        throw new ResponseException(Response.Status.UNSUPPORTED_HTTP_VERSION, "Only HTTP/1.1 is supported.");
-                    }
+                    protocolVersion = st.nextToken();
                 } else {
-                    NanoHTTPD.LOG.log(Level.FINE, "no protocol version specified, strange..");
+                    protocolVersion = "HTTP/1.1";
+                    NanoHTTPD.LOG.log(Level.FINE, "no protocol version specified, strange. Assuming HTTP/1.1.");
                 }
                 String line = in.readLine();
                 while (line != null && line.trim().length() > 0) {
@@ -716,6 +717,9 @@ public abstract class NanoHTTPD {
 
                 this.cookies = new CookieHandler(this.headers);
 
+                String connection = this.headers.get("connection");
+                boolean keepAlive = protocolVersion.equals("HTTP/1.1") && (connection == null || !connection.matches("(?i).*close.*"));
+
                 // Ok, now do the serve()
                 Response r = serve(this);
                 if (r == null) {
@@ -725,7 +729,11 @@ public abstract class NanoHTTPD {
                     this.cookies.unloadQueue(r);
                     r.setRequestMethod(this.method);
                     r.setGzipEncoding(acceptEncoding != null && acceptEncoding.contains("gzip"));
+                    r.setKeepAlive(keepAlive);
                     r.send(this.outputStream);
+                }
+                if (!keepAlive || "close".equalsIgnoreCase(r.getHeader("connection"))) {
+                    throw new SocketException("NanoHttpd Shutdown");
                 }
             } catch (SocketException e) {
                 // throw it out to close socket object (finalAccept)
@@ -1170,6 +1178,8 @@ public abstract class NanoHTTPD {
 
         private boolean encodeAsGzip;
 
+        private boolean keepAlive;
+
         /**
          * Creates a fixed length response if totalBytes>=0, otherwise chunked.
          */
@@ -1184,6 +1194,7 @@ public abstract class NanoHTTPD {
                 this.contentLength = totalBytes;
             }
             this.chunkedTransfer = this.contentLength < 0;
+            keepAlive = true;
         }
 
         /**
@@ -1198,7 +1209,12 @@ public abstract class NanoHTTPD {
         }
 
         public String getHeader(String name) {
-            return this.header.get(name);
+            for (String headerName : header.keySet()) {
+                if (headerName.equalsIgnoreCase(name)) {
+                    return header.get(headerName);
+                }
+            }
+            return null;
         }
 
         public String getMimeType() {
@@ -1215,6 +1231,10 @@ public abstract class NanoHTTPD {
 
         public void setGzipEncoding(boolean encodeAsGzip) {
             this.encodeAsGzip = encodeAsGzip;
+        }
+
+        public void setKeepAlive(boolean useKeepAlive) {
+            this.keepAlive = useKeepAlive;
         }
 
         private boolean headerAlreadySent(Map<String, String> header, String name) {
@@ -1255,7 +1275,9 @@ public abstract class NanoHTTPD {
                     }
                 }
 
-                sendConnectionHeaderIfNotAlreadyPresent(pw, this.header);
+                if (!headerAlreadySent(header, "connection")) {
+                    pw.print("Connection: " + (this.keepAlive ? "keep-alive" : "close") + "\r\n");
+                }
 
                 if (headerAlreadySent(this.header, "content-length")) {
                     encodeAsGzip = false;
@@ -1328,12 +1350,6 @@ public abstract class NanoHTTPD {
                 if (!sendEverything) {
                     pending -= read;
                 }
-            }
-        }
-
-        protected void sendConnectionHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header) {
-            if (!headerAlreadySent(header, "connection")) {
-                pw.print("Connection: keep-alive\r\n");
             }
         }
 
