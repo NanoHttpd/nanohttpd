@@ -71,10 +71,10 @@ public class HttpPostRequestTest extends HttpServerTest {
      */
     private String preparePostWithMultipartForm(String fileName, String fileContent) {
         String divider = UUID.randomUUID().toString();
-        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data, boundary=" + divider + "\n";
+        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data, boundary=" + divider + "\r\n";
         String content =
-                "--" + divider + "\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"; filename=\"" + fileName + "\"\n"
-                        + "Content-Type: image/jpeg\r\n" + "\r\n" + fileContent + "\r\n" + "--" + divider + "--\n";
+                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"; filename=\"" + fileName + "\"\r\n"
+                        + "Content-Type: image/jpeg\r\n" + "\r\n" + fileContent + "\r\n" + "--" + divider + "--\r\n";
         int size = content.length() + header.length();
         int contentLengthHeaderValueSize = String.valueOf(size).length();
         int contentLength = size + contentLengthHeaderValueSize + HttpPostRequestTest.CONTENT_LENGTH.length();
@@ -117,9 +117,9 @@ public class HttpPostRequestTest extends HttpServerTest {
         String divider = UUID.randomUUID().toString();
         String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\n";
         String content =
-                "--" + divider + "\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"\n" + "\n" + HttpPostRequestTest.VALUE + "\n" + "--"
-                        + divider + "\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD2 + "\"\n" + "\n" + HttpPostRequestTest.VALUE2 + "\n" + "--"
-                        + divider + "--\n";
+                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"\r\n" + "\r\n" + HttpPostRequestTest.VALUE + "\r\n"
+                        + "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD2 + "\"\r\n" + "\r\n" + HttpPostRequestTest.VALUE2
+                        + "\r\n" + "--" + divider + "--\r\n";
         int size = content.length() + header.length();
         int contentLengthHeaderValueSize = String.valueOf(size).length();
         int contentLength = size + contentLengthHeaderValueSize + HttpPostRequestTest.CONTENT_LENGTH.length();
@@ -134,11 +134,11 @@ public class HttpPostRequestTest extends HttpServerTest {
     @Test
     public void testPostWithMultipleMultipartFormFieldsWhereContentTypeWasSeparatedByComma() throws Exception {
         String divider = UUID.randomUUID().toString();
-        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data, boundary=" + divider + "\n";
+        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data, boundary=" + divider + "\r\n";
         String content =
-                "--" + divider + "\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"\n" + "\n" + HttpPostRequestTest.VALUE + "\n" + "--"
-                        + divider + "\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD2 + "\"\n" + "\n" + HttpPostRequestTest.VALUE2 + "\n" + "--"
-                        + divider + "--\n";
+                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"\r\n" + "\r\n" + HttpPostRequestTest.VALUE + "\r\n"
+                        + "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD2 + "\"\r\n" + "\r\n" + HttpPostRequestTest.VALUE2
+                        + "\r\n" + "--" + divider + "--\r\n";
         int size = content.length() + header.length();
         int contentLengthHeaderValueSize = String.valueOf(size).length();
         int contentLength = size + contentLengthHeaderValueSize + HttpPostRequestTest.CONTENT_LENGTH.length();
@@ -153,10 +153,10 @@ public class HttpPostRequestTest extends HttpServerTest {
     @Test
     public void testSimplePostWithSingleMultipartFormField() throws Exception {
         String divider = UUID.randomUUID().toString();
-        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\n";
+        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\r\n";
         String content =
-                "--" + divider + "\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"\n" + "\n" + HttpPostRequestTest.VALUE + "\n" + "--"
-                        + divider + "--\n";
+                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"\r\n" + "\r\n" + HttpPostRequestTest.VALUE + "\r\n"
+                        + "--" + divider + "--\r\n";
         int size = content.length() + header.length();
         int contentLengthHeaderValueSize = String.valueOf(size).length();
         int contentLength = size + contentLengthHeaderValueSize + HttpPostRequestTest.CONTENT_LENGTH.length();
@@ -170,7 +170,7 @@ public class HttpPostRequestTest extends HttpServerTest {
     @Test
     public void testSimpleRawPostData() throws Exception {
         String header = "POST " + HttpServerTest.URI + " HTTP/1.1\n";
-        String content = HttpPostRequestTest.VALUE_TEST_SIMPLE_RAW_DATA_WITH_AMPHASIS + "\n";
+        String content = HttpPostRequestTest.VALUE_TEST_SIMPLE_RAW_DATA_WITH_AMPHASIS + "\r\n";
         int size = content.length() + header.length();
         int contentLengthHeaderValueSize = String.valueOf(size).length();
         int contentLength = size + contentLengthHeaderValueSize + HttpPostRequestTest.CONTENT_LENGTH.length();

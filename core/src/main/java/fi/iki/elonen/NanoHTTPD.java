@@ -545,83 +545,97 @@ public abstract class NanoHTTPD {
         /**
          * Decodes the Multipart Body data and put it into Key/Value pairs.
          */
-        private void decodeMultipartData(String boundary, ByteBuffer fbuf, BufferedReader in, Map<String, String> parms, Map<String, String> files) throws ResponseException {
+        private void decodeMultipartFormData(String boundary, ByteBuffer fbuf, Map<String, String> parms, Map<String, String> files) throws ResponseException {
             try {
-                int[] bpositions = getBoundaryPositions(fbuf, boundary.getBytes());
-                int boundarycount = 1;
-                String mpline = in.readLine();
-                while (mpline != null) {
+                int[] boundary_idxs = getBoundaryPositions(fbuf, boundary.getBytes());
+                if (boundary_idxs.length < 2) {
+                    throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but contains less than two boundary strings.");
+                }
+
+                int BUFFER_SIZE = 1024;
+                byte[] part_header_buff = new byte[BUFFER_SIZE];
+                for (int bi = 0; bi < boundary_idxs.length - 1; bi++) {
+                    fbuf.position(boundary_idxs[bi]);
+                    int len = (fbuf.remaining() < BUFFER_SIZE) ? fbuf.remaining() : BUFFER_SIZE;
+                    fbuf.get(part_header_buff, 0, len);
+                    ByteArrayInputStream bais = new ByteArrayInputStream(part_header_buff, 0, len);
+                    BufferedReader in = new BufferedReader(new InputStreamReader(bais));
+
+                    // First line is boundary string
+                    String mpline = in.readLine();
                     if (!mpline.contains(boundary)) {
-                        throw new ResponseException(Response.Status.BAD_REQUEST,
-                                "BAD REQUEST: Content type is multipart/form-data but next chunk does not start with boundary. Usage: GET /example/file.html");
+                        throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but chunk does not start with boundary.");
                     }
-                    boundarycount++;
-                    Map<String, String> item = new HashMap<String, String>();
+
+                    String part_name = null, file_name = null, content_type = null;
+
+                    // Parse the reset of the header lines
                     mpline = in.readLine();
                     while (mpline != null && mpline.trim().length() > 0) {
-                        int p = mpline.indexOf(':');
-                        if (p != -1) {
-                            item.put(mpline.substring(0, p).trim().toLowerCase(Locale.US), mpline.substring(p + 1).trim());
+                        int hdr_sep_i = mpline.indexOf(':');
+                        if (hdr_sep_i != -1) {
+                            String key = mpline.substring(0, hdr_sep_i).trim().toLowerCase(Locale.US);
+                            String value = mpline.substring(hdr_sep_i + 1).trim();
+
+                            // Parse content-disposition. Example:
+                            // Content-Disposition: form-data; name="file1";
+                            // filename="a.txt"
+                            if (key.equals("content-disposition")) {
+                                StringTokenizer st = new StringTokenizer(value, ";");
+                                while (st.hasMoreTokens()) {
+                                    String token = st.nextToken().trim();
+                                    int cd_sep_i = token.indexOf('=');
+                                    if (cd_sep_i != -1) {
+                                        String cd_key = token.substring(0, cd_sep_i).trim().toLowerCase(Locale.US);
+                                        String cd_val = token.substring(cd_sep_i + 1).trim();
+                                        String cd_val_no_quotes = cd_val.substring(1, cd_val.length() - 1);
+                                        if (cd_key.equals("name")) {
+                                            part_name = cd_val_no_quotes;
+                                        } else if (cd_key.equals("filename")) {
+                                            file_name = cd_val_no_quotes;
+                                        }
+                                    }
+                                }
+                            } else if (key.equals("content-type")) {
+                                content_type = value;
+                            }
                         }
                         mpline = in.readLine();
                     }
-                    if (mpline != null) {
-                        String contentDisposition = item.get("content-disposition");
-                        if (contentDisposition == null) {
-                            throw new ResponseException(Response.Status.BAD_REQUEST,
-                                    "BAD REQUEST: Content type is multipart/form-data but no content-disposition info found. Usage: GET /example/file.html");
-                        }
-                        StringTokenizer st = new StringTokenizer(contentDisposition, ";");
-                        Map<String, String> disposition = new HashMap<String, String>();
-                        while (st.hasMoreTokens()) {
-                            String token = st.nextToken().trim();
-                            int p = token.indexOf('=');
-                            if (p != -1) {
-                                disposition.put(token.substring(0, p).trim().toLowerCase(Locale.US), token.substring(p + 1).trim());
-                            }
-                        }
-                        String pname = disposition.get("name");
-                        pname = pname.substring(1, pname.length() - 1);
 
-                        String value = "";
-                        if (item.get("content-type") == null) {
-                            while (mpline != null && !mpline.contains(boundary)) {
-                                mpline = in.readLine();
-                                if (mpline != null) {
-                                    int d = mpline.indexOf(boundary);
-                                    if (d == -1) {
-                                        value += mpline;
-                                    } else {
-                                        value += mpline.substring(0, d - 2);
-                                    }
-                                }
-                            }
+                    // Read the part data
+                    int part_header_len = len - (int) in.skip(BUFFER_SIZE);
+                    if (part_header_len >= len - 4) {
+                        throw new ResponseException(Response.Status.INTERNAL_ERROR, "Multipart header buffer exhausted.");
+                    }
+                    int part_data_start = boundary_idxs[bi] + part_header_len;
+                    int part_data_end = boundary_idxs[bi + 1] - 4;
+
+                    fbuf.position(part_data_start);
+                    if (content_type == null) {
+                        // Read the part into a string
+                        byte[] data_bytes = new byte[part_data_end - part_data_start];
+                        fbuf.get(data_bytes);
+                        parms.put(part_name, new String(data_bytes));
+                    } else {
+                        // Read it into a file
+                        String path = saveTmpFile(fbuf, part_data_start, part_data_end - part_data_start);
+                        if (!files.containsKey(part_name)) {
+                            files.put(part_name, path);
                         } else {
-                            if (boundarycount > bpositions.length) {
-                                throw new ResponseException(Response.Status.INTERNAL_ERROR, "Error processing request");
+                            int count = 2;
+                            while (files.containsKey(part_name + count)) {
+                                count++;
                             }
-                            int offset = stripMultipartHeaders(fbuf, bpositions[boundarycount - 2]);
-                            String path = saveTmpFile(fbuf, offset, bpositions[boundarycount - 1] - offset - 4);
-                            if (!files.containsKey(pname)) {
-                                files.put(pname, path);
-                            } else {
-                                int count = 2;
-                                while (files.containsKey(pname + count)) {
-                                    count++;
-                                }
-                                files.put(pname + count, path);
-                            }
-                            value = disposition.get("filename");
-                            value = value.substring(1, value.length() - 1);
-                            do {
-                                mpline = in.readLine();
-                            } while (mpline != null && !mpline.contains(boundary));
+                            files.put(part_name + count, path);
                         }
-                        parms.put(pname, value);
+                        parms.put(part_name, file_name);
                     }
                 }
-            } catch (IOException ioe) {
-                throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage(), ioe);
+            } catch (ResponseException re) {
+                throw re;
+            } catch (Exception e) {
+                throw new ResponseException(Response.Status.INTERNAL_ERROR, e.toString());
             }
         }
 
@@ -924,18 +938,11 @@ public abstract class NanoHTTPD {
                             boundary = boundary.substring(1, boundary.length() - 1);
                         }
 
-                        decodeMultipartData(boundary, fbuf, in, this.parms, files);
+                        decodeMultipartFormData(boundary, fbuf, this.parms, files);
                     } else {
-                        String postLine = "";
-                        StringBuilder postLineBuffer = new StringBuilder();
-                        char pbuf[] = new char[512];
-                        int read = in.read(pbuf);
-                        while (read >= 0) {
-                            postLine = String.valueOf(pbuf, 0, read);
-                            postLineBuffer.append(postLine);
-                            read = in.read(pbuf);
-                        }
-                        postLine = postLineBuffer.toString().trim();
+                        byte[] postBytes = new byte[fbuf.remaining()];
+                        fbuf.get(postBytes);
+                        String postLine = new String(postBytes).trim();
                         // Handle application/x-www-form-urlencoded
                         if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType)) {
                             decodeParms(postLine, this.parms);
@@ -978,20 +985,6 @@ public abstract class NanoHTTPD {
                 }
             }
             return path;
-        }
-
-        /**
-         * It returns the offset separating multipart file headers from the
-         * file's data.
-         */
-        private int stripMultipartHeaders(ByteBuffer b, int offset) {
-            int i;
-            for (i = offset; i < b.limit(); i++) {
-                if (b.get(i) == '\r' && b.get(++i) == '\n' && b.get(++i) == '\r' && b.get(++i) == '\n') {
-                    break;
-                }
-            }
-            return i + 1;
         }
     }
 
