@@ -552,11 +552,11 @@ public abstract class NanoHTTPD {
                     throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but contains less than two boundary strings.");
                 }
 
-                int BUFFER_SIZE = 1024;
-                byte[] part_header_buff = new byte[BUFFER_SIZE];
+                final int MAX_HEADER_SIZE = 1024;
+                byte[] part_header_buff = new byte[MAX_HEADER_SIZE];
                 for (int bi = 0; bi < boundary_idxs.length - 1; bi++) {
                     fbuf.position(boundary_idxs[bi]);
-                    int len = (fbuf.remaining() < BUFFER_SIZE) ? fbuf.remaining() : BUFFER_SIZE;
+                    int len = (fbuf.remaining() < MAX_HEADER_SIZE) ? fbuf.remaining() : MAX_HEADER_SIZE;
                     fbuf.get(part_header_buff, 0, len);
                     ByteArrayInputStream bais = new ByteArrayInputStream(part_header_buff, 0, len);
                     BufferedReader in = new BufferedReader(new InputStreamReader(bais));
@@ -604,9 +604,9 @@ public abstract class NanoHTTPD {
                     }
 
                     // Read the part data
-                    int part_header_len = len - (int) in.skip(BUFFER_SIZE);
+                    int part_header_len = len - (int) in.skip(MAX_HEADER_SIZE);
                     if (part_header_len >= len - 4) {
-                        throw new ResponseException(Response.Status.INTERNAL_ERROR, "Multipart header buffer exhausted.");
+                        throw new ResponseException(Response.Status.INTERNAL_ERROR, "Multipart header size exceeds MAX_HEADER_SIZE.");
                     }
                     int part_data_start = boundary_idxs[bi] + part_header_len;
                     int part_data_end = boundary_idxs[bi + 1] - 4;
