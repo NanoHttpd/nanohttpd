@@ -906,10 +906,6 @@ public abstract class NanoHTTPD {
                 ByteBuffer fbuf = randomAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, randomAccessFile.length());
                 randomAccessFile.seek(0);
 
-                // Create a BufferedReader for easily reading it as string.
-                InputStream bin = new FileInputStream(randomAccessFile.getFD());
-                in = new BufferedReader(new InputStreamReader(bin));
-
                 // If the method is POST, there may be parameters
                 // in data section, too, read it:
                 if (Method.POST.equals(this.method)) {
@@ -958,7 +954,6 @@ public abstract class NanoHTTPD {
                 }
             } finally {
                 safeClose(randomAccessFile);
-                safeClose(in);
             }
         }
 
