@@ -58,6 +58,8 @@ import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 
 import javax.net.ssl.KeyManager;
@@ -440,6 +442,18 @@ public abstract class NanoHTTPD {
         }
     }
 
+    private static final String CONTENT_DISPOSITION_REGEX = "([ |\t]*Content-Disposition[ |\t]*:)(.*)";
+
+    private static final Pattern CONTENT_DISPOSITION_PATTERN = Pattern.compile(CONTENT_DISPOSITION_REGEX, Pattern.CASE_INSENSITIVE);
+
+    private static final String CONTENT_TYPE_REGEX = "([ |\t]*content-type[ |\t]*:)(.*)";
+
+    private static final Pattern CONTENT_TYPE_PATTERN = Pattern.compile(CONTENT_TYPE_REGEX, Pattern.CASE_INSENSITIVE);
+
+    private static final String CONTENT_DISPOSITION_ATTRIBUTE_REGEX = "[ |\t]*([a-zA-Z]*)[ |\t]*=[ |\t]*['|\"]([^\"^']*)['|\"]";
+
+    private static final Pattern CONTENT_DISPOSITION_ATTRIBUTE_PATTERN = Pattern.compile(CONTENT_DISPOSITION_ATTRIBUTE_REGEX);
+
     protected class HTTPSession implements IHTTPSession {
 
         public static final int BUFSIZE = 8192;
@@ -545,83 +559,85 @@ public abstract class NanoHTTPD {
         /**
          * Decodes the Multipart Body data and put it into Key/Value pairs.
          */
-        private void decodeMultipartData(String boundary, ByteBuffer fbuf, BufferedReader in, Map<String, String> parms, Map<String, String> files) throws ResponseException {
+        private void decodeMultipartFormData(String boundary, ByteBuffer fbuf, Map<String, String> parms, Map<String, String> files) throws ResponseException {
             try {
-                int[] bpositions = getBoundaryPositions(fbuf, boundary.getBytes());
-                int boundarycount = 1;
-                String mpline = in.readLine();
-                while (mpline != null) {
+                int[] boundary_idxs = getBoundaryPositions(fbuf, boundary.getBytes());
+                if (boundary_idxs.length < 2) {
+                    throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but contains less than two boundary strings.");
+                }
+
+                final int MAX_HEADER_SIZE = 1024;
+                byte[] part_header_buff = new byte[MAX_HEADER_SIZE];
+                for (int bi = 0; bi < boundary_idxs.length - 1; bi++) {
+                    fbuf.position(boundary_idxs[bi]);
+                    int len = (fbuf.remaining() < MAX_HEADER_SIZE) ? fbuf.remaining() : MAX_HEADER_SIZE;
+                    fbuf.get(part_header_buff, 0, len);
+                    ByteArrayInputStream bais = new ByteArrayInputStream(part_header_buff, 0, len);
+                    BufferedReader in = new BufferedReader(new InputStreamReader(bais));
+
+                    // First line is boundary string
+                    String mpline = in.readLine();
                     if (!mpline.contains(boundary)) {
-                        throw new ResponseException(Response.Status.BAD_REQUEST,
-                                "BAD REQUEST: Content type is multipart/form-data but next chunk does not start with boundary. Usage: GET /example/file.html");
+                        throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but chunk does not start with boundary.");
                     }
-                    boundarycount++;
-                    Map<String, String> item = new HashMap<String, String>();
+
+                    String part_name = null, file_name = null, content_type = null;
+                    // Parse the reset of the header lines
                     mpline = in.readLine();
                     while (mpline != null && mpline.trim().length() > 0) {
-                        int p = mpline.indexOf(':');
-                        if (p != -1) {
-                            item.put(mpline.substring(0, p).trim().toLowerCase(Locale.US), mpline.substring(p + 1).trim());
+                        Matcher matcher = CONTENT_DISPOSITION_PATTERN.matcher(mpline);
+                        if (matcher.matches()) {
+                            String attributeString = matcher.group(2);
+                            matcher = CONTENT_DISPOSITION_ATTRIBUTE_PATTERN.matcher(attributeString);
+                            while (matcher.find()) {
+                                String key = matcher.group(1);
+                                if (key.equalsIgnoreCase("name")) {
+                                    part_name = matcher.group(2);
+                                } else if (key.equalsIgnoreCase("filename")) {
+                                    file_name = matcher.group(2);
+                                }
+                            }
+                        }
+                        matcher = CONTENT_TYPE_PATTERN.matcher(mpline);
+                        if (matcher.matches()) {
+                            content_type = matcher.group(2).trim();
                         }
                         mpline = in.readLine();
                     }
-                    if (mpline != null) {
-                        String contentDisposition = item.get("content-disposition");
-                        if (contentDisposition == null) {
-                            throw new ResponseException(Response.Status.BAD_REQUEST,
-                                    "BAD REQUEST: Content type is multipart/form-data but no content-disposition info found. Usage: GET /example/file.html");
-                        }
-                        StringTokenizer st = new StringTokenizer(contentDisposition, ";");
-                        Map<String, String> disposition = new HashMap<String, String>();
-                        while (st.hasMoreTokens()) {
-                            String token = st.nextToken().trim();
-                            int p = token.indexOf('=');
-                            if (p != -1) {
-                                disposition.put(token.substring(0, p).trim().toLowerCase(Locale.US), token.substring(p + 1).trim());
-                            }
-                        }
-                        String pname = disposition.get("name");
-                        pname = pname.substring(1, pname.length() - 1);
 
-                        String value = "";
-                        if (item.get("content-type") == null) {
-                            while (mpline != null && !mpline.contains(boundary)) {
-                                mpline = in.readLine();
-                                if (mpline != null) {
-                                    int d = mpline.indexOf(boundary);
-                                    if (d == -1) {
-                                        value += mpline;
-                                    } else {
-                                        value += mpline.substring(0, d - 2);
-                                    }
-                                }
-                            }
+                    // Read the part data
+                    int part_header_len = len - (int) in.skip(MAX_HEADER_SIZE);
+                    if (part_header_len >= len - 4) {
+                        throw new ResponseException(Response.Status.INTERNAL_ERROR, "Multipart header size exceeds MAX_HEADER_SIZE.");
+                    }
+                    int part_data_start = boundary_idxs[bi] + part_header_len;
+                    int part_data_end = boundary_idxs[bi + 1] - 4;
+
+                    fbuf.position(part_data_start);
+                    if (content_type == null) {
+                        // Read the part into a string
+                        byte[] data_bytes = new byte[part_data_end - part_data_start];
+                        fbuf.get(data_bytes);
+                        parms.put(part_name, new String(data_bytes));
+                    } else {
+                        // Read it into a file
+                        String path = saveTmpFile(fbuf, part_data_start, part_data_end - part_data_start);
+                        if (!files.containsKey(part_name)) {
+                            files.put(part_name, path);
                         } else {
-                            if (boundarycount > bpositions.length) {
-                                throw new ResponseException(Response.Status.INTERNAL_ERROR, "Error processing request");
+                            int count = 2;
+                            while (files.containsKey(part_name + count)) {
+                                count++;
                             }
-                            int offset = stripMultipartHeaders(fbuf, bpositions[boundarycount - 2]);
-                            String path = saveTmpFile(fbuf, offset, bpositions[boundarycount - 1] - offset - 4);
-                            if (!files.containsKey(pname)) {
-                                files.put(pname, path);
-                            } else {
-                                int count = 2;
-                                while (files.containsKey(pname + count)) {
-                                    count++;
-                                }
-                                files.put(pname + count, path);
-                            }
-                            value = disposition.get("filename");
-                            value = value.substring(1, value.length() - 1);
-                            do {
-                                mpline = in.readLine();
-                            } while (mpline != null && !mpline.contains(boundary));
+                            files.put(part_name + count, path);
                         }
-                        parms.put(pname, value);
+                        parms.put(part_name, file_name);
                     }
                 }
-            } catch (IOException ioe) {
-                throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage(), ioe);
+            } catch (ResponseException re) {
+                throw re;
+            } catch (Exception e) {
+                throw new ResponseException(Response.Status.INTERNAL_ERROR, e.toString());
             }
         }
 
@@ -863,12 +879,10 @@ public abstract class NanoHTTPD {
 
         @Override
         public void parseBody(Map<String, String> files) throws IOException, ResponseException {
+            final int REQUEST_BUFFER_LEN = 512;
+            final int MEMORY_STORE_LIMIT = 1024;
             RandomAccessFile randomAccessFile = null;
-            BufferedReader in = null;
             try {
-
-                randomAccessFile = getTmpBucket();
-
                 long size;
                 if (this.headers.containsKey("content-length")) {
                     size = Integer.parseInt(this.headers.get("content-length"));
@@ -878,23 +892,35 @@ public abstract class NanoHTTPD {
                     size = 0;
                 }
 
-                // Now read all the body and write it to f
-                byte[] buf = new byte[512];
+                ByteArrayOutputStream baos = null;
+                DataOutput request_data_output = null;
+
+                // Store the request in memory or a file, depending on size
+                if (size < MEMORY_STORE_LIMIT) {
+                    baos = new ByteArrayOutputStream();
+                    request_data_output = new DataOutputStream(baos);
+                } else {
+                    randomAccessFile = getTmpBucket();
+                    request_data_output = randomAccessFile;
+                }
+
+                // Read all the body and write it to request_data_output
+                byte[] buf = new byte[REQUEST_BUFFER_LEN];
                 while (this.rlen >= 0 && size > 0) {
-                    this.rlen = this.inputStream.read(buf, 0, (int) Math.min(size, 512));
+                    this.rlen = this.inputStream.read(buf, 0, (int) Math.min(size, REQUEST_BUFFER_LEN));
                     size -= this.rlen;
                     if (this.rlen > 0) {
-                        randomAccessFile.write(buf, 0, this.rlen);
+                        request_data_output.write(buf, 0, this.rlen);
                     }
                 }
 
-                // Get the raw body as a byte []
-                ByteBuffer fbuf = randomAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, randomAccessFile.length());
-                randomAccessFile.seek(0);
-
-                // Create a BufferedReader for easily reading it as string.
-                InputStream bin = new FileInputStream(randomAccessFile.getFD());
-                in = new BufferedReader(new InputStreamReader(bin));
+                ByteBuffer fbuf = null;
+                if (baos != null) {
+                    fbuf = ByteBuffer.wrap(baos.toByteArray(), 0, baos.size());
+                } else {
+                    fbuf = randomAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, randomAccessFile.length());
+                    randomAccessFile.seek(0);
+                }
 
                 // If the method is POST, there may be parameters
                 // in data section, too, read it:
@@ -924,18 +950,11 @@ public abstract class NanoHTTPD {
                             boundary = boundary.substring(1, boundary.length() - 1);
                         }
 
-                        decodeMultipartData(boundary, fbuf, in, this.parms, files);
+                        decodeMultipartFormData(boundary, fbuf, this.parms, files);
                     } else {
-                        String postLine = "";
-                        StringBuilder postLineBuffer = new StringBuilder();
-                        char pbuf[] = new char[512];
-                        int read = in.read(pbuf);
-                        while (read >= 0) {
-                            postLine = String.valueOf(pbuf, 0, read);
-                            postLineBuffer.append(postLine);
-                            read = in.read(pbuf);
-                        }
-                        postLine = postLineBuffer.toString().trim();
+                        byte[] postBytes = new byte[fbuf.remaining()];
+                        fbuf.get(postBytes);
+                        String postLine = new String(postBytes).trim();
                         // Handle application/x-www-form-urlencoded
                         if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType)) {
                             decodeParms(postLine, this.parms);
@@ -951,7 +970,6 @@ public abstract class NanoHTTPD {
                 }
             } finally {
                 safeClose(randomAccessFile);
-                safeClose(in);
             }
         }
 
@@ -978,20 +996,6 @@ public abstract class NanoHTTPD {
                 }
             }
             return path;
-        }
-
-        /**
-         * It returns the offset separating multipart file headers from the
-         * file's data.
-         */
-        private int stripMultipartHeaders(ByteBuffer b, int offset) {
-            int i;
-            for (i = offset; i < b.limit(); i++) {
-                if (b.get(i) == '\r' && b.get(++i) == '\n' && b.get(++i) == '\r' && b.get(++i) == '\n') {
-                    break;
-                }
-            }
-            return i + 1;
         }
     }
 
@@ -1580,14 +1584,16 @@ public abstract class NanoHTTPD {
 
     private static final void safeClose(Object closeable) {
         try {
-            if (closeable instanceof Closeable) {
-                ((Closeable) closeable).close();
-            } else if (closeable instanceof Socket) {
-                ((Socket) closeable).close();
-            } else if (closeable instanceof ServerSocket) {
-                ((ServerSocket) closeable).close();
-            } else {
-                throw new IllegalArgumentException("Unknown object to close");
+            if (closeable != null) {
+                if (closeable instanceof Closeable) {
+                    ((Closeable) closeable).close();
+                } else if (closeable instanceof Socket) {
+                    ((Socket) closeable).close();
+                } else if (closeable instanceof ServerSocket) {
+                    ((ServerSocket) closeable).close();
+                } else {
+                    throw new IllegalArgumentException("Unknown object to close");
+                }
             }
         } catch (IOException e) {
             NanoHTTPD.LOG.log(Level.SEVERE, "Could not close", e);
