@@ -58,6 +58,8 @@ import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 
 import javax.net.ssl.KeyManager;
@@ -440,6 +442,18 @@ public abstract class NanoHTTPD {
         }
     }
 
+    private static final String CONTENT_DISPOSITION_REGEX = "([ |\t]*Content-Disposition[ |\t]*:)(.*)";
+
+    private static final Pattern CONTENT_DISPOSITION_PATTERN = Pattern.compile(CONTENT_DISPOSITION_REGEX, Pattern.CASE_INSENSITIVE);
+
+    private static final String CONTENT_TYPE_REGEX = "([ |\t]*content-type[ |\t]*:)(.*)";
+
+    private static final Pattern CONTENT_TYPE_PATTERN = Pattern.compile(CONTENT_TYPE_REGEX, Pattern.CASE_INSENSITIVE);
+
+    private static final String CONTENT_DISPOSITION_ATTRIBUTE_REGEX = "[ |\t]*([a-zA-Z]*)[ |\t]*=[ |\t]*['|\"]([^\"^']*)['|\"]";
+
+    private static final Pattern CONTENT_DISPOSITION_ATTRIBUTE_PATTERN = Pattern.compile(CONTENT_DISPOSITION_ATTRIBUTE_REGEX);
+
     protected class HTTPSession implements IHTTPSession {
 
         public static final int BUFSIZE = 8192;
@@ -568,37 +582,25 @@ public abstract class NanoHTTPD {
                     }
 
                     String part_name = null, file_name = null, content_type = null;
-
                     // Parse the reset of the header lines
                     mpline = in.readLine();
                     while (mpline != null && mpline.trim().length() > 0) {
-                        int hdr_sep_i = mpline.indexOf(':');
-                        if (hdr_sep_i != -1) {
-                            String key = mpline.substring(0, hdr_sep_i).trim().toLowerCase(Locale.US);
-                            String value = mpline.substring(hdr_sep_i + 1).trim();
-
-                            // Parse content-disposition. Example:
-                            // Content-Disposition: form-data; name="file1";
-                            // filename="a.txt"
-                            if (key.equals("content-disposition")) {
-                                StringTokenizer st = new StringTokenizer(value, ";");
-                                while (st.hasMoreTokens()) {
-                                    String token = st.nextToken().trim();
-                                    int cd_sep_i = token.indexOf('=');
-                                    if (cd_sep_i != -1) {
-                                        String cd_key = token.substring(0, cd_sep_i).trim().toLowerCase(Locale.US);
-                                        String cd_val = token.substring(cd_sep_i + 1).trim();
-                                        String cd_val_no_quotes = cd_val.substring(1, cd_val.length() - 1);
-                                        if (cd_key.equals("name")) {
-                                            part_name = cd_val_no_quotes;
-                                        } else if (cd_key.equals("filename")) {
-                                            file_name = cd_val_no_quotes;
-                                        }
-                                    }
+                        Matcher matcher = CONTENT_DISPOSITION_PATTERN.matcher(mpline);
+                        if (matcher.matches()) {
+                            String attributeString = matcher.group(2);
+                            matcher = CONTENT_DISPOSITION_ATTRIBUTE_PATTERN.matcher(attributeString);
+                            while (matcher.find()) {
+                                String key = matcher.group(1);
+                                if (key.equalsIgnoreCase("name")) {
+                                    part_name = matcher.group(2);
+                                } else if (key.equalsIgnoreCase("filename")) {
+                                    file_name = matcher.group(2);
                                 }
-                            } else if (key.equals("content-type")) {
-                                content_type = value;
                             }
+                        }
+                        matcher = CONTENT_TYPE_PATTERN.matcher(mpline);
+                        if (matcher.matches()) {
+                            content_type = matcher.group(2).trim();
                         }
                         mpline = in.readLine();
                     }
