@@ -879,12 +879,9 @@ public abstract class NanoHTTPD {
 
         @Override
         public void parseBody(Map<String, String> files) throws IOException, ResponseException {
+            final int REQUEST_BUFFER_LEN = 512;
             RandomAccessFile randomAccessFile = null;
-            BufferedReader in = null;
             try {
-
-                randomAccessFile = getTmpBucket();
-
                 long size;
                 if (this.headers.containsKey("content-length")) {
                     size = Integer.parseInt(this.headers.get("content-length"));
@@ -894,19 +891,35 @@ public abstract class NanoHTTPD {
                     size = 0;
                 }
 
-                // Now read all the body and write it to f
-                byte[] buf = new byte[512];
+                ByteArrayOutputStream baos = null;
+                DataOutput request_data_output = null;
+
+                // Store the request in memory or a file, depending on size
+                if (size < REQUEST_BUFFER_LEN) {
+                    baos = new ByteArrayOutputStream();
+                    request_data_output = new DataOutputStream(baos);
+                } else {
+                    randomAccessFile = getTmpBucket();
+                    request_data_output = randomAccessFile;
+                }
+
+                // Read all the body and write it to request_data_output
+                byte[] buf = new byte[REQUEST_BUFFER_LEN];
                 while (this.rlen >= 0 && size > 0) {
-                    this.rlen = this.inputStream.read(buf, 0, (int) Math.min(size, 512));
+                    this.rlen = this.inputStream.read(buf, 0, (int) Math.min(size, REQUEST_BUFFER_LEN));
                     size -= this.rlen;
                     if (this.rlen > 0) {
-                        randomAccessFile.write(buf, 0, this.rlen);
+                        request_data_output.write(buf, 0, this.rlen);
                     }
                 }
 
-                // Get the raw body as a byte []
-                ByteBuffer fbuf = randomAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, randomAccessFile.length());
-                randomAccessFile.seek(0);
+                ByteBuffer fbuf = null;
+                if (baos != null) {
+                    fbuf = ByteBuffer.wrap(baos.toByteArray(), 0, baos.size());
+                } else {
+                    fbuf = randomAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, randomAccessFile.length());
+                    randomAccessFile.seek(0);
+                }
 
                 // If the method is POST, there may be parameters
                 // in data section, too, read it:
@@ -1570,14 +1583,16 @@ public abstract class NanoHTTPD {
 
     private static final void safeClose(Object closeable) {
         try {
-            if (closeable instanceof Closeable) {
-                ((Closeable) closeable).close();
-            } else if (closeable instanceof Socket) {
-                ((Socket) closeable).close();
-            } else if (closeable instanceof ServerSocket) {
-                ((ServerSocket) closeable).close();
-            } else {
-                throw new IllegalArgumentException("Unknown object to close");
+            if (closeable != null) {
+                if (closeable instanceof Closeable) {
+                    ((Closeable) closeable).close();
+                } else if (closeable instanceof Socket) {
+                    ((Socket) closeable).close();
+                } else if (closeable instanceof ServerSocket) {
+                    ((ServerSocket) closeable).close();
+                } else {
+                    throw new IllegalArgumentException("Unknown object to close");
+                }
             }
         } catch (IOException e) {
             NanoHTTPD.LOG.log(Level.SEVERE, "Could not close", e);
