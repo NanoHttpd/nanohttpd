@@ -880,6 +880,7 @@ public abstract class NanoHTTPD {
         @Override
         public void parseBody(Map<String, String> files) throws IOException, ResponseException {
             final int REQUEST_BUFFER_LEN = 512;
+            final int MEMORY_STORE_LIMIT = 1024;
             RandomAccessFile randomAccessFile = null;
             try {
                 long size;
@@ -895,7 +896,7 @@ public abstract class NanoHTTPD {
                 DataOutput request_data_output = null;
 
                 // Store the request in memory or a file, depending on size
-                if (size < REQUEST_BUFFER_LEN) {
+                if (size < MEMORY_STORE_LIMIT) {
                     baos = new ByteArrayOutputStream();
                     request_data_output = new DataOutputStream(baos);
                 } else {
