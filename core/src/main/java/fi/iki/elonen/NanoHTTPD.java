@@ -744,7 +744,7 @@ public abstract class NanoHTTPD {
                     String acceptEncoding = this.headers.get("accept-encoding");
                     this.cookies.unloadQueue(r);
                     r.setRequestMethod(this.method);
-                    r.setGzipEncoding(acceptEncoding != null && acceptEncoding.contains("gzip"));
+                    r.setGzipEncoding(useGzipWhenAccepted() && acceptEncoding != null && acceptEncoding.contains("gzip"));
                     r.setKeepAlive(keepAlive);
                     r.send(this.outputStream);
                 }
@@ -1744,6 +1744,14 @@ public abstract class NanoHTTPD {
         return decoded;
     }
 
+    /**
+     * @return true if the gzip compression should be used if the client
+     *         accespts it.
+     */
+    protected boolean useGzipWhenAccepted() {
+        return true;
+    }
+
     public final int getListeningPort() {
         return this.myServerSocket == null ? -1 : this.myServerSocket.getLocalPort();
     }
@@ -1934,5 +1942,4 @@ public abstract class NanoHTTPD {
     public final boolean wasStarted() {
         return this.myServerSocket != null && this.myThread != null;
     }
-
 }
