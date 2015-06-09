@@ -104,6 +104,8 @@ public class SimpleWebServer extends NanoHTTPD {
             put("zip", "application/octet-stream");
             put("exe", "application/octet-stream");
             put("class", "application/octet-stream");
+            put("m3u8", "application/vnd.apple.mpegurl");
+            put("ts", " video/mp2t");
         }
     };
 
