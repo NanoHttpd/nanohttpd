@@ -1289,6 +1289,7 @@ public abstract class NanoHTTPD {
 
                 if (encodeAsGzip) {
                     pw.print("Content-Encoding: gzip\r\n");
+                    setChunkedTransfer(true);
                 }
 
                 long pending = this.data != null ? this.contentLength : 0;
