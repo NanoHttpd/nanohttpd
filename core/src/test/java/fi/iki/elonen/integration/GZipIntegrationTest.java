@@ -33,7 +33,17 @@ package fi.iki.elonen.integration;
  * #L%
  */
 
-import fi.iki.elonen.NanoHTTPD;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -41,10 +51,7 @@ import org.apache.http.impl.client.DecompressingHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 
-import java.io.*;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import fi.iki.elonen.NanoHTTPD;
 
 public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest.TestServer> {
 
@@ -59,6 +66,11 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
         @Override
         public Response serve(IHTTPSession session) {
             return response;
+        }
+
+        @Override
+        protected boolean useGzipWhenAccepted() {
+            return true;
         }
     }
 

@@ -1748,7 +1748,7 @@ public abstract class NanoHTTPD {
 
     /**
      * @return true if the gzip compression should be used if the client
-     *         accespts it.
+     *         accespts it. Default this option is tuned off.
      */
     protected boolean useGzipWhenAccepted() {
         return false;
