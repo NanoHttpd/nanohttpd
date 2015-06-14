@@ -43,6 +43,7 @@ import java.net.SocketTimeoutException;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.security.KeyStore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -573,7 +574,7 @@ public abstract class NanoHTTPD {
                     int len = (fbuf.remaining() < MAX_HEADER_SIZE) ? fbuf.remaining() : MAX_HEADER_SIZE;
                     fbuf.get(part_header_buff, 0, len);
                     ByteArrayInputStream bais = new ByteArrayInputStream(part_header_buff, 0, len);
-                    BufferedReader in = new BufferedReader(new InputStreamReader(bais));
+                    BufferedReader in = new BufferedReader(new InputStreamReader(bais, Charset.forName("US-ASCII")));
 
                     // First line is boundary string
                     String mpline = in.readLine();
@@ -1750,7 +1751,7 @@ public abstract class NanoHTTPD {
      *         accespts it.
      */
     protected boolean useGzipWhenAccepted() {
-        return true;
+        return false;
     }
 
     public final int getListeningPort() {
