@@ -69,7 +69,7 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
         }
 
         @Override
-        protected boolean useGzipWhenAccepted() {
+        protected boolean useGzipWhenAccepted(Response r) {
             return true;
         }
     }

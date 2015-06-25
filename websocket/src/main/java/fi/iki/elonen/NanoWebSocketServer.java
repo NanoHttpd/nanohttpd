@@ -856,7 +856,7 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
      * not all websockets implementations accept gzip compression.
      */
     @Override
-    protected boolean useGzipWhenAccepted() {
+    protected boolean useGzipWhenAccepted(Response r) {
         return false;
     }
 }
