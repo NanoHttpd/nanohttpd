@@ -4,9 +4,33 @@
 
 *NanoHttpd* has been released under a Modified BSD licence.
 
-current build status at https://travis-ci.org [![Build Status](https://api.travis-ci.org/NanoHttpd/nanohttpd.png)](https://travis-ci.org/NanoHttpd/nanohttpd)
+Build status: [![Build Status](https://api.travis-ci.org/NanoHttpd/nanohttpd.png)](https://travis-ci.org/NanoHttpd/nanohttpd)
 
-Test Coverage Status  [![Coverage Status](https://coveralls.io/repos/NanoHttpd/nanohttpd/badge.svg)](https://coveralls.io/r/NanoHttpd/nanohttpd)
+Coverage Status: [![Coverage Status](https://coveralls.io/repos/NanoHttpd/nanohttpd/badge.svg)](https://coveralls.io/r/NanoHttpd/nanohttpd)
+
+Current central released version: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.nanohttpd/nanohttpd/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.nanohttpd/nanohttpd)
+
+We are currently in the process of stabalising nanohttpd from the many pull requests and feature requests that were integrated over the last few months. The next release will come soon, and there will not be any more "intended" major changes before the next release. If you want to use the bleeding edge version of nanohttpd, you can get it from sonatype:
+
+	<dependencies>
+		<dependency>
+			<artifactId>nanohttpd</artifactId>
+			<groupId>org.nanohttpd</groupId>
+			<version>2.2.0-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
+	...
+	<repositories>
+		<repository>
+			<id>sonatype-snapshots</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>    
+
+The other artifacts are also available there.
 
 ## Core Features
 * Only one Java file, providing HTTP 1.1 support.
