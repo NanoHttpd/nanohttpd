@@ -669,6 +669,7 @@ public abstract class NanoHTTPD {
 
         @Override
         public void execute() throws IOException {
+            Response r = null;
             try {
                 // Read the first 8192 bytes.
                 // The full header should fit in here.
@@ -738,7 +739,7 @@ public abstract class NanoHTTPD {
                 boolean keepAlive = protocolVersion.equals("HTTP/1.1") && (connection == null || !connection.matches("(?i).*close.*"));
 
                 // Ok, now do the serve()
-                Response r = serve(this);
+                r = serve(this);
                 if (r == null) {
                     throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
                 } else {
@@ -761,14 +762,15 @@ public abstract class NanoHTTPD {
                 // exception up the call stack.
                 throw ste;
             } catch (IOException ioe) {
-                Response r = newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
-                r.send(this.outputStream);
+                Response resp = newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+                resp.send(this.outputStream);
                 safeClose(this.outputStream);
             } catch (ResponseException re) {
-                Response r = newFixedLengthResponse(re.getStatus(), NanoHTTPD.MIME_PLAINTEXT, re.getMessage());
-                r.send(this.outputStream);
+                Response resp = newFixedLengthResponse(re.getStatus(), NanoHTTPD.MIME_PLAINTEXT, re.getMessage());
+                resp.send(this.outputStream);
                 safeClose(this.outputStream);
             } finally {
+                safeClose(r);
                 this.tempFileManager.clear();
             }
         }
@@ -1059,7 +1061,7 @@ public abstract class NanoHTTPD {
     /**
      * HTTP response. Return one of these from serve().
      */
-    public static class Response {
+    public static class Response implements Closeable {
 
         public interface IStatus {
 
@@ -1200,6 +1202,13 @@ public abstract class NanoHTTPD {
             }
             this.chunkedTransfer = this.contentLength < 0;
             keepAlive = true;
+        }
+
+        @Override
+        public void close() throws IOException {
+            if (this.data != null) {
+                this.data.close();
+            }
         }
 
         /**
