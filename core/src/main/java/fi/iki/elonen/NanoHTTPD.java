@@ -1087,6 +1087,7 @@ public abstract class NanoHTTPD {
             FORBIDDEN(403, "Forbidden"),
             NOT_FOUND(404, "Not Found"),
             METHOD_NOT_ALLOWED(405, "Method Not Allowed"),
+            REQUEST_TIMEOUT(408, "Request Timeout"),
             RANGE_NOT_SATISFIABLE(416, "Requested Range Not Satisfiable"),
             INTERNAL_ERROR(500, "Internal Server Error"),
             UNSUPPORTED_HTTP_VERSION(505, "HTTP Version Not Supported");
