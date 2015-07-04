@@ -90,6 +90,7 @@ public class SimpleWebServer extends NanoHTTPD {
             put("jpg", "image/jpeg");
             put("jpeg", "image/jpeg");
             put("png", "image/png");
+            put("svg", "image/svg+xml");
             put("mp3", "audio/mpeg");
             put("m3u", "audio/mpeg-url");
             put("mp4", "video/mp4");
