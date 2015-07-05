@@ -8,7 +8,7 @@ install:
 script:
     - mvn test ; export MAVEN_RESULT=$?
     - if [ "$MAVEN_RESULT" -ne 0 ]; then exit 1; fi
-    - mvn clean deploy --quiet --settings settings.xml ; export MAVEN_RESULT=$?
+    - if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; mvn clean deploy --quiet --settings settings.xml ; fi
 
 after_success:
   - mvn clean test jacoco:report coveralls:report
