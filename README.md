@@ -10,7 +10,56 @@ It is being developed at Github and uses Apache Maven for builds & unit testing:
 
 ## Getting started
 
-*(TODO: list of commands to fetch from Maven, build and run Webserver and/or HelloServer here?)*
+NanoHTTPD is a maven based project and deployed to central, most development environments have means to access the central repository. The coordinates to use in maven are: 
+
+	<dependencies>
+		<dependency>
+			<groupId>org.nanohttpd</groupId>
+			<artifactId>nanohttpd</artifactId>
+			<version>CURRENT_VERSION</version>
+		</dependency>
+	</dependencies>
+
+The coordinates for your development environment should correspond to these. When looking for an older version take care because we switched groupId from com.nanohttpd to org.nanohttpd in mid 2015.
+
+Next it depends what you are useing nanohttpd for, there are tree main usages. 
+
+### develop your own specialized http based service.
+
+For a specialized http (https) based service you can use the module with artifactId nanohttpd.
+
+		<dependency>
+			<groupId>org.nanohttpd</groupId>
+			<artifactId>nanohttpd</artifactId>
+			<version>CURRENT_VERSION</version>
+		</dependency>
+		
+Here you write your own subclass of fi.iki.elonen.NanoHTTPD to configure and to serve the requests.
+  
+### develop a websocket based service    
+
+For a specialized websocket based service you can use the module with artifactId nanohttpd-websocket.
+
+		<dependency>
+			<groupId>org.nanohttpd</groupId>
+			<artifactId>nanohttpd-websocket</artifactId>
+			<version>CURRENT_VERSION</version>
+		</dependency>
+
+Here you write your own subclass of fi.iki.elonen.NanoWebSocketServer to configure and to serve the websocket requests. An small standard echo example is included as fi.iki.elonen.samples.echo.DebugWebSocketServer. This echo example you can use as a starting point to implement your services.
+
+### develop a webserver based service    
+
+For a more classic aproach and just create a http server serving mostly service files from your disk you can use the module with artifactId nanohttpd-webserver. 
+
+		<dependency>
+			<groupId>org.nanohttpd</groupId>
+			<artifactId>nanohttpd-webserver</artifactId>
+			<version>CURRENT_VERSION</version>
+		</dependency>
+
+The included class fi.iki.elonen.SimpleWebServer is intended to be used as a starting point for your own implementation but it also can be used as is. Staring the class as is will start a http server on port 8080 and publishing the current directory.  
+ 
 
 ## Status
 
@@ -20,7 +69,7 @@ We are currently in the process of stabilizing NanoHttpd from the many pull requ
 		<dependency>
 			<artifactId>nanohttpd</artifactId>
 			<groupId>org.nanohttpd</groupId>
-			<version>2.2.0-SNAPSHOT</version>
+			<version>XXXXX-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 	...
