@@ -24,7 +24,7 @@ Edit `pom.xml`, and add this between \<dependencies\>:
 	</dependency>
 
 Edit `src/main/java/com/example/App.java` and replace it with:
-
+```java
 	package com.example;
 
 	import java.util.Map;
@@ -60,7 +60,7 @@ Edit `src/main/java/com/example/App.java` and replace it with:
 	        return newFixedLengthResponse( msg + "</body></html>\n" );
 	    }
 	}
- 
+```
 
 Compile and run the server:
  
