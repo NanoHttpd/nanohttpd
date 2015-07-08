@@ -137,6 +137,7 @@ public class SimpleWebServer extends NanoHTTPD {
         String host = null; // bind to all interfaces by default
         List<File> rootDirs = new ArrayList<File>();
         boolean quiet = false;
+        boolean cors = false;
         Map<String, String> options = new HashMap<String, String>();
 
         // Parse command-line, with short and long versions of the options.
@@ -149,6 +150,8 @@ public class SimpleWebServer extends NanoHTTPD {
                 quiet = true;
             } else if (args[i].equalsIgnoreCase("-d") || args[i].equalsIgnoreCase("--dir")) {
                 rootDirs.add(new File(args[i + 1]).getAbsoluteFile());
+            } else if (args[i].equalsIgnoreCase("--cors")) {
+                cors = true;
             } else if (args[i].equalsIgnoreCase("--licence")) {
                 System.out.println(SimpleWebServer.LICENCE + "\n");
             } else if (args[i].startsWith("-X:")) {
@@ -199,7 +202,7 @@ public class SimpleWebServer extends NanoHTTPD {
             }
         }
 
-        ServerRunner.executeInstance(new SimpleWebServer(host, port, rootDirs, quiet));
+        ServerRunner.executeInstance(new SimpleWebServer(host, port, rootDirs, quiet, cors));
     }
 
     protected static void registerPluginForMimeType(String[] indexFiles, String mimeType, WebServerPlugin plugin, Map<String, String> commandLineOptions) {
@@ -223,20 +226,26 @@ public class SimpleWebServer extends NanoHTTPD {
 
     private final boolean quiet;
 
+    private final boolean cors;
+
     protected List<File> rootDirs;
 
-    public SimpleWebServer(String host, int port, File wwwroot, boolean quiet) {
-        super(host, port);
-        this.quiet = quiet;
-        this.rootDirs = new ArrayList<File>();
-        this.rootDirs.add(wwwroot);
+    public SimpleWebServer(String host, int port, File wwwroot, boolean quiet, boolean useCORS) {
+        this(host, port, Collections.singletonList(wwwroot), quiet, useCORS);
+    }
 
-        init();
+    public SimpleWebServer(String host, int port, File wwwroot, boolean quiet) {
+        this(host, port, Collections.singletonList(wwwroot), quiet, false);
     }
 
     public SimpleWebServer(String host, int port, List<File> wwwroots, boolean quiet) {
+        this(host, port, wwwroots, quiet, false);
+    }
+
+    public SimpleWebServer(String host, int port, List<File> wwwroots, boolean quiet, boolean useCORS) {
         super(host, port);
         this.quiet = quiet;
+        this.cors = useCORS;
         this.rootDirs = new ArrayList<File>(wwwroots);
 
         init();
@@ -394,6 +403,21 @@ public class SimpleWebServer extends NanoHTTPD {
     }
 
     private Response respond(Map<String, String> headers, IHTTPSession session, String uri) {
+        // First let's handle CORS OPTION query
+        Response r;
+        if (cors && Method.OPTIONS.equals(session.getMethod())) {
+            r = new NanoHTTPD.Response(Response.Status.OK, MIME_PLAINTEXT, null, 0);
+        } else {
+            r = defaultRespond(headers, session, uri);
+        }
+
+        if (cors) {
+            r = addCORSHeaders(headers, r);
+        }
+        return r;
+    }
+
+    private Response defaultRespond(Map<String, String> headers, IHTTPSession session, String uri) {
         // Remove URL arguments
         uri = uri.trim().replace(File.separatorChar, '/');
         if (uri.indexOf('?') >= 0) {
@@ -596,4 +620,31 @@ public class SimpleWebServer extends NanoHTTPD {
         res.addHeader("Accept-Ranges", "bytes");
         return res;
     }
+
+    private Response addCORSHeaders(Map<String, String> queryHeaders, Response resp) {
+        resp.addHeader("Access-Control-Allow-Origin", "*");
+        resp.addHeader("Access-Control-Allow-Headers", calculateAllowHeaders(queryHeaders));
+        resp.addHeader("Access-Control-Allow-Credentials", "true");
+        resp.addHeader("Access-Control-Allow-Methods", ALLOWED_METHODS);
+        resp.addHeader("Access-Control-Max-Age", "" + MAX_AGE);
+
+        return resp;
+    }
+
+    private String calculateAllowHeaders(Map<String, String> queryHeaders) {
+        // here we should use the given asked headers
+        // but NanoHttpd uses a Map whereas it is possible for requester to send
+        // several time the same header
+        // let's just use default values for this version
+        return System.getProperty(ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME, DEFAULT_ALLOWED_HEADERS);
+    }
+
+    private final static String ALLOWED_METHODS = "GET, POST, PUT, DELETE, OPTIONS, HEAD";
+
+    private final static int MAX_AGE = 42 * 60 * 60;
+
+    // explicitly relax visibility to package for tests purposes
+    final static String DEFAULT_ALLOWED_HEADERS = "origin,accept,content-type";
+
+    public final static String ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME = "AccessControlAllowHeader";
 }

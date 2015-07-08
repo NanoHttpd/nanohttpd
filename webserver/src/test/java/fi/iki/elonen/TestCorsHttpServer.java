@@ -43,6 +43,7 @@ import java.io.PipedOutputStream;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpOptions;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.junit.AfterClass;
@@ -50,7 +51,10 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class TestHttpServer extends AbstractTestHttpServer {
+/**
+ * @author Matthieu Brouillard [matthieu@brouillard.fr]
+ */
+public class TestCorsHttpServer extends AbstractTestHttpServer {
 
     private static PipedOutputStream stdIn;
 
@@ -70,7 +74,8 @@ public class TestHttpServer extends AbstractTestHttpServer {
                     "--port",
                     "9090",
                     "--dir",
-                    "src/test/resources"
+                    "src/test/resources",
+                    "--cors"
                 };
                 SimpleWebServer.main(args);
             }
@@ -88,27 +93,13 @@ public class TestHttpServer extends AbstractTestHttpServer {
     }
 
     @Test
-    public void doTest404() throws Exception {
+    public void doTestOption() throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
-        HttpGet httpget = new HttpGet("http://localhost:9090/xxx/yyy.html");
-        CloseableHttpResponse response = httpclient.execute(httpget);
-        Assert.assertEquals(404, response.getStatusLine().getStatusCode());
-        response.close();
-    }
-
-    @Test
-    public void doPlugin() throws Exception {
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        HttpGet httpget = new HttpGet("http://localhost:9090/index.xml");
-        CloseableHttpResponse response = httpclient.execute(httpget);
-        String string = new String(readContents(response.getEntity()), "UTF-8");
-        Assert.assertEquals("<xml/>", string);
-        response.close();
-
-        httpget = new HttpGet("http://localhost:9090/testdir/testdir/different.xml");
-        response = httpclient.execute(httpget);
-        string = new String(readContents(response.getEntity()), "UTF-8");
-        Assert.assertEquals("<xml/>", string);
+        HttpOptions httpOption = new HttpOptions("http://localhost:9090/xxx/yyy.html");
+        CloseableHttpResponse response = httpclient.execute(httpOption);
+        Assert.assertEquals(200, response.getStatusLine().getStatusCode());
+        Assert.assertNotNull("Cors should have added a header: Access-Control-Allow-Origin", response.getLastHeader("Access-Control-Allow-Origin"));
+        Assert.assertEquals("Cors should have added a header: Access-Control-Allow-Origin: *", "*", response.getLastHeader("Access-Control-Allow-Origin").getValue());
         response.close();
     }
 
@@ -119,31 +110,45 @@ public class TestHttpServer extends AbstractTestHttpServer {
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
         String string = new String(readContents(entity), "UTF-8");
+
+        Assert.assertNotNull("Cors should have added a header: Access-Control-Allow-Origin", response.getLastHeader("Access-Control-Allow-Origin"));
+        Assert.assertEquals("Cors should have added a header: Access-Control-Allow-Origin: *", "*", response.getLastHeader("Access-Control-Allow-Origin").getValue());
         Assert.assertEquals("<html>\n<head>\n<title>dummy</title>\n</head>\n<body>\n\t<h1>it works</h1>\n</body>\n</html>", string);
         response.close();
+    }
 
-        httpget = new HttpGet("http://localhost:9090/");
-        response = httpclient.execute(httpget);
-        entity = response.getEntity();
-        string = new String(readContents(entity), "UTF-8");
-        Assert.assertTrue(string.indexOf("testdir") > 0);
+    @Test
+    public void testAccessControlAllowHeaderUsesDefaultsWithoutSystemProperty() throws Exception {
+        Assert.assertNull("no System " + SimpleWebServer.ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME + " shoudl be set",
+                System.getProperty(SimpleWebServer.ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME));
+
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        HttpOptions httpOption = new HttpOptions("http://localhost:9090/xxx/yyy.html");
+        CloseableHttpResponse response = httpclient.execute(httpOption);
+        Assert.assertEquals(200, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("Cors should have added a header: Access-Control-Allow-Headers: " + SimpleWebServer.DEFAULT_ALLOWED_HEADERS,
+                SimpleWebServer.DEFAULT_ALLOWED_HEADERS, response.getLastHeader("Access-Control-Allow-Headers").getValue());
         response.close();
+    }
 
-        httpget = new HttpGet("http://localhost:9090/testdir");
-        response = httpclient.execute(httpget);
-        entity = response.getEntity();
-        string = new String(readContents(entity), "UTF-8");
-        Assert.assertTrue(string.indexOf("test.html") > 0);
-        response.close();
+    @Test
+    public void testAccessControlAllowHeaderUsesSystemPropertyWhenSet() throws Exception {
+        Assert.assertNull("no System " + SimpleWebServer.ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME + " shoudl be set",
+                System.getProperty(SimpleWebServer.ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME));
 
-        httpget = new HttpGet("http://localhost:9090/testdir/testpdf.pdf");
-        response = httpclient.execute(httpget);
-        entity = response.getEntity();
+        final String expectedValue = "origin";
+        System.setProperty(SimpleWebServer.ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME, expectedValue);
 
-        byte[] actual = readContents(entity);
-        byte[] expected = readContents(new FileInputStream("src/test/resources/testdir/testpdf.pdf"));
-        Assert.assertArrayEquals(expected, actual);
-        response.close();
-
+        try {
+            CloseableHttpClient httpclient = HttpClients.createDefault();
+            HttpOptions httpOption = new HttpOptions("http://localhost:9090/xxx/yyy.html");
+            CloseableHttpResponse response = httpclient.execute(httpOption);
+            Assert.assertEquals(200, response.getStatusLine().getStatusCode());
+            Assert.assertEquals("Cors should have added a header: Access-Control-Allow-Headers: " + expectedValue, expectedValue,
+                    response.getLastHeader("Access-Control-Allow-Headers").getValue());
+            response.close();
+        } finally {
+            System.clearProperty(SimpleWebServer.ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME);
+        }
     }
 }
