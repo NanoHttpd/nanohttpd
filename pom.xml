@@ -385,6 +385,7 @@
 						</executions>
 						<configuration>
 							<configFile>${project.basedir}/../src/main/formatter/formatter.xml</configFile>
+							<lineEnding>LF</lineEnding>
 						</configuration>
 					</plugin>
 				</plugins>
