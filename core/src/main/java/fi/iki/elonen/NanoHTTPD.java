@@ -1046,7 +1046,10 @@ public abstract class NanoHTTPD {
         POST,
         DELETE,
         HEAD,
-        OPTIONS;
+        OPTIONS,
+        TRACE,
+        CONNECT,
+        PATCH;
 
         static Method lookup(String method) {
             for (Method m : Method.values()) {
