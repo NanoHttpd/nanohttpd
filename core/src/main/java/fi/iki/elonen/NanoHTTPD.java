@@ -34,6 +34,7 @@ package fi.iki.elonen;
  */
 
 import java.io.*;
+import java.lang.IllegalStateException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -1635,6 +1636,8 @@ public abstract class NanoHTTPD {
      */
     private TempFileManagerFactory tempFileManagerFactory;
 
+    private boolean mainServerDaemon = true;
+
     /**
      * Constructs an HTTP server on given port.
      */
@@ -1891,6 +1894,19 @@ public abstract class NanoHTTPD {
      */
     public void setTempFileManagerFactory(TempFileManagerFactory tempFileManagerFactory) {
         this.tempFileManagerFactory = tempFileManagerFactory;
+    }
+
+    /**
+     * Set whether the main listener thread should be started as a daemon thread.
+     *
+     * @param daemon
+     *            whether to start the main thread as daemon
+     * @throws IllegalStateException
+     *             if the thread is already started
+     */
+    public void setMainServerDaemon(boolean daemon) throws IllegalStateException {
+        if(myThread != null && myThread.isAlive()) throw new IllegalStateException();
+        this.mainServerDaemon = daemon;
     }
 
     /**
