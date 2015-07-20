@@ -1636,7 +1636,7 @@ public abstract class NanoHTTPD {
      */
     private TempFileManagerFactory tempFileManagerFactory;
 
-    private boolean mainServerDaemon = true;
+    private boolean mainThreadDaemon = true;
 
     /**
      * Constructs an HTTP server on given port.
@@ -1904,9 +1904,9 @@ public abstract class NanoHTTPD {
      * @throws IllegalStateException
      *             if the thread is already started
      */
-    public void setMainServerDaemon(boolean daemon) throws IllegalStateException {
+    public void setMainThreadDaemon(boolean daemon) throws IllegalStateException {
         if(myThread != null && myThread.isAlive()) throw new IllegalStateException();
-        this.mainServerDaemon = daemon;
+        this.mainThreadDaemon = daemon;
     }
 
     /**
@@ -1939,7 +1939,7 @@ public abstract class NanoHTTPD {
 
         ServerRunnable serverRunnable = createServerRunnable(timeout);
         this.myThread = new Thread(serverRunnable);
-        this.myThread.setDaemon(mainServerDaemon);
+        this.myThread.setDaemon(mainThreadDaemon);
         this.myThread.setName("NanoHttpd Main Listener");
         this.myThread.start();
         while (!serverRunnable.hasBinded && serverRunnable.bindException == null) {
