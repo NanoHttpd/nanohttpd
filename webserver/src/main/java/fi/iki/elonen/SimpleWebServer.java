@@ -621,7 +621,7 @@ public class SimpleWebServer extends NanoHTTPD {
         return res;
     }
 
-    private Response addCORSHeaders(Map<String, String> queryHeaders, Response resp) {
+    protected Response addCORSHeaders(Map<String, String> queryHeaders, Response resp) {
         resp.addHeader("Access-Control-Allow-Origin", "*");
         resp.addHeader("Access-Control-Allow-Headers", calculateAllowHeaders(queryHeaders));
         resp.addHeader("Access-Control-Allow-Credentials", "true");
