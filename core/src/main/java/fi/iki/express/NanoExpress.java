@@ -45,7 +45,11 @@ public abstract class NanoExpress extends NanoHTTPD {
 
     public synchronized void addMappings(String path, Router route) {
         //If a URI Path is already specified, it will be over written.
-        if (path != null && route != null) {
+        //It will rejoin the queue at the end.
+        if (path != null && route != null ) {
+            if ( this.route_priority.contains(path)) {
+                this.route_priority.remove(path);
+            }
             this.route_priority.add(path);
             this.routerArray.put(path, route);
         }
