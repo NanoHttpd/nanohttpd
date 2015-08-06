@@ -38,13 +38,17 @@ public abstract class NanoExpress extends NanoHTTPD {
     }
 
     public final void addMappings(Router route){
-        addMappings(route.getDefaultURIPath(),route);
+        if (route != null) {
+            addMappings(route.getDefaultURIPath(), route);
+        }
     }
 
     public synchronized void addMappings(String path, Router route) {
         //If a URI Path is already specified, it will be over written.
-        this.route_priority.add(path);
-        this.routerArray.put(path, route);
+        if (path != null && route != null) {
+            this.route_priority.add(path);
+            this.routerArray.put(path, route);
+        }
     }
 
     /**

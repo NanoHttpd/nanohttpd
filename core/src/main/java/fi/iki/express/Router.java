@@ -3,10 +3,11 @@ package fi.iki.express;
 import fi.iki.elonen.NanoHTTPD;
 
 /**
+ * Implementation of the Interface should provide a response to when the session.getUri() mathes getDefaultURIpath.
  * Created by James on 6/8/2015.
  */
 public interface Router {
-    public NanoHTTPD.Response doGet     ( NanoHTTPD.IHTTPSession session );
+    public NanoHTTPD.Response doGet     ( NanoHTTPD.IHTTPSession session);
     public NanoHTTPD.Response doPost    ( NanoHTTPD.IHTTPSession session);
     public NanoHTTPD.Response doPut     ( NanoHTTPD.IHTTPSession session);
     public NanoHTTPD.Response doDelete  ( NanoHTTPD.IHTTPSession session);

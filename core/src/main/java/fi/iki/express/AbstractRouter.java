@@ -7,6 +7,12 @@ import fi.iki.elonen.NanoHTTPD;
  */
 public class AbstractRouter implements Router {
 
+    private final String urlPath;
+
+    public AbstractRouter(String urlPath){
+        this.urlPath = urlPath;
+    }
+
     @Override
     public NanoHTTPD.Response doGet(NanoHTTPD.IHTTPSession session) {
         return null;
@@ -54,6 +60,6 @@ public class AbstractRouter implements Router {
 
     @Override
     public String getDefaultURIPath() {
-        return "/";
+        return this.urlPath;
     }
 }
