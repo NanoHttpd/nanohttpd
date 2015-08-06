@@ -3,7 +3,7 @@ package fi.iki.express;
 import fi.iki.elonen.NanoHTTPD;
 
 /**
- * Implementation of the Interface should provide a response to when the session.getUri() mathes getDefaultURIpath.
+ * Implementation of the Interface should provide a response when the session.getUri() matches getDefaultURIpath result .
  * Created by James on 6/8/2015.
  */
 public interface Router {
