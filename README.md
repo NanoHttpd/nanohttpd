@@ -12,6 +12,15 @@ It is being developed at Github and uses Apache Maven for builds & unit testing:
 
 We'll create a custom HTTP server project using Maven for build/dep system. This tutorial assumes you are using a Unix variant and a shell. First, install Maven and Java SDK if not already installed. Then run:
 
+    mvn compile
+    mvn exec:java -pl webserver -Dexec.mainClass="fi.iki.elonen.SimpleWebServer"
+    
+You should now have a HTTP file server running on <http://localhost:8080/>.
+
+### Custom web app
+
+Let's raise the bar and build a custom web application next:
+
     mvn archetype:generate -DgroupId=com.example -DartifactId=myHellopApp -DinteractiveMode=false
     cd myHellopApp
     
