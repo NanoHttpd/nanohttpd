@@ -739,7 +739,14 @@ public abstract class NanoHTTPD {
                 boolean keepAlive = protocolVersion.equals("HTTP/1.1") && (connection == null || !connection.matches("(?i).*close.*"));
 
                 // Ok, now do the serve()
+
+                // TODO: long body_size = getBodySize();
+                // TODO: long pos_before_serve = this.inputStream.totalRead()
+                // (requires implementaion for totalRead())
                 r = serve(this);
+                // TODO: this.inputStream.skip(body_size -
+                // (this.inputStream.totalRead() - pos_before_serve))
+
                 if (r == null) {
                     throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
                 } else {
@@ -880,21 +887,26 @@ public abstract class NanoHTTPD {
             return this.uri;
         }
 
+        /**
+         * Deduce body length in bytes. Either from "content-length" header or
+         * read bytes.
+         */
+        public long getBodySize() {
+            if (this.headers.containsKey("content-length")) {
+                return Integer.parseInt(this.headers.get("content-length"));
+            } else if (this.splitbyte < this.rlen) {
+                return this.rlen - this.splitbyte;
+            }
+            return 0;
+        }
+
         @Override
         public void parseBody(Map<String, String> files) throws IOException, ResponseException {
             final int REQUEST_BUFFER_LEN = 512;
             final int MEMORY_STORE_LIMIT = 1024;
             RandomAccessFile randomAccessFile = null;
             try {
-                long size;
-                if (this.headers.containsKey("content-length")) {
-                    size = Integer.parseInt(this.headers.get("content-length"));
-                } else if (this.splitbyte < this.rlen) {
-                    size = this.rlen - this.splitbyte;
-                } else {
-                    size = 0;
-                }
-
+                long size = getBodySize();
                 ByteArrayOutputStream baos = null;
                 DataOutput request_data_output = null;
 
