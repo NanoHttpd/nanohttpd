@@ -1920,10 +1920,12 @@ public abstract class NanoHTTPD {
      * 
      * @param timeout
      *            timeout to use for socket connections.
+     * @param daemon
+     *            start the thread daemon or not.
      * @throws IOException
      *             if the socket is in use.
      */
-    public void start(final int timeout) throws IOException {
+    public void start(final int timeout, boolean daemon) throws IOException {
         if (this.sslServerSocketFactory != null) {
             SSLServerSocket ss = (SSLServerSocket) this.sslServerSocketFactory.createServerSocket();
             ss.setNeedClientAuth(false);
@@ -1935,7 +1937,7 @@ public abstract class NanoHTTPD {
 
         ServerRunnable serverRunnable = createServerRunnable(timeout);
         this.myThread = new Thread(serverRunnable);
-        this.myThread.setDaemon(true);
+        this.myThread.setDaemon(daemon);
         this.myThread.setName("NanoHttpd Main Listener");
         this.myThread.start();
         while (!serverRunnable.hasBinded && serverRunnable.bindException == null) {
@@ -1950,6 +1952,13 @@ public abstract class NanoHTTPD {
         if (serverRunnable.bindException != null) {
             throw serverRunnable.bindException;
         }
+    }
+
+    /**
+     * Starts the server (in setDaemon(true) mode).
+     */
+    public void start(final int timeout) throws IOException {
+        start(timeout, true);
     }
 
     /**
