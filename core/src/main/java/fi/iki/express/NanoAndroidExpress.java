@@ -10,7 +10,7 @@ import android.content.Context;
  */
 public abstract class NanoAndroidExpress extends NanoExpress {
 
-    private final Context applicationContext;
+    protected final Context applicationContext;
     /**
      * Constructs an HTTP server on given port.
      *
