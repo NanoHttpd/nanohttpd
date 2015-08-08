@@ -28,19 +28,43 @@ public abstract class NanoExpress extends NanoHTTPD {
         super(port);
         this.routerArray = new Hashtable<String, Router>();
         this.route_priority = new ArrayList<String>();
-        loadMappings();
     }
 
     public NanoExpress(int port, ArrayList<String> routePriority, Map<String, Router> routerArray){
         super(port);
-        this.route_priority = routePriority;
-        this.routerArray = new Hashtable<String, Router>(routerArray);
+        if ( routePriority != null ) {
+            this.route_priority = routePriority;
+        }else{
+            this.route_priority = new ArrayList<String>();
+        }
+        if ( routerArray != null ){
+            this.routerArray = new Hashtable<String, Router>(routerArray);
+        }else{
+            this.routerArray = new Hashtable<String, Router>();
+        }
     }
 
     public final void addMappings(Router route){
         if (route != null) {
             addMappings(route.getDefaultURIPath(), route);
         }
+    }
+
+    public final int getRouterCount(){
+        return this.routerArray.size();
+    }
+
+    /**
+     * The small priority indicate the route will be run and checked first.
+     * @param routePath
+     * @return Priority of the route
+     * @throws RouteNotFoundException
+     */
+    public final int getRoutePriority(String routePath) throws RouteNotFoundException {
+        if ( this.routerArray.get(routePath) == null ){
+            throw new RouteNotFoundException(routePath);
+        }
+        return this.route_priority.indexOf(routePath);
     }
 
     public synchronized void addMappings(String path, Router route) {
@@ -77,9 +101,9 @@ public abstract class NanoExpress extends NanoHTTPD {
      * @return HTTP response, see class Response for details
      */
     @Override
-    public Response serve(IHTTPSession session) {
+    public NanoHTTPD.Response serve(IHTTPSession session) {
         Method method = session.getMethod();
-        Response res = null;
+        NanoHTTPD.Response res = null;
         try {
             for (String uri : route_priority) {
                 Router r = routerArray.get(uri);
@@ -131,6 +155,26 @@ public abstract class NanoExpress extends NanoHTTPD {
 
         public IStatusResponse (NanoHTTPD.Response.Status status){
             this(status, NanoHTTPD.MIME_PLAINTEXT,new ByteArrayInputStream(status.getDescription().getBytes()), (long) status.getDescription().getBytes().length);
+        }
+    }
+
+    /**
+     * This is to facilitate the creation of the response object.
+     */
+    public static class Response extends NanoHTTPD.Response {
+        public Response(IStatus status, String mimeType, InputStream data, long totalBytes) {
+            super(status, mimeType, data, totalBytes);
+        }
+    }
+
+    static class RouteNotFoundException extends Exception {
+
+        public RouteNotFoundException() {
+            super("The specified route is not registered.");
+        }
+
+        public RouteNotFoundException(String message){
+            super("The "+message+" route is not registered.");
         }
     }
 }

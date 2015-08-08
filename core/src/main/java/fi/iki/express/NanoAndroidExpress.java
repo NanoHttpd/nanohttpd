@@ -19,6 +19,7 @@ public abstract class NanoAndroidExpress extends NanoExpress {
     public NanoAndroidExpress(int port, Context applicationContext) {
         super(port);
         this.applicationContext = applicationContext;
+        loadMappings();
     }
 
     public NanoAndroidExpress(int port, Context applicationContext, ArrayList<String> routePriority, Map<String, Router> routerArray) {
@@ -28,6 +29,8 @@ public abstract class NanoAndroidExpress extends NanoExpress {
 
     /**
      * User Define the mechanism of how he/she wants to load the mapping.
+     * This should be called immediately after creation of teh object.
+     * Must be called before the starting of the web service.
      * Externally
      */
     @Override
