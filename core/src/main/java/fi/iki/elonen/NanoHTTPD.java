@@ -425,7 +425,7 @@ public abstract class NanoHTTPD {
         }
 
         @Override
-        public TempFile createTempFile() throws Exception {
+        public TempFile createTempFile(String filename_hint) throws Exception {
             DefaultTempFile tempFile = new DefaultTempFile(this.tmpdir);
             this.tempFiles.add(tempFile);
             return tempFile;
@@ -622,7 +622,7 @@ public abstract class NanoHTTPD {
                         parms.put(part_name, new String(data_bytes));
                     } else {
                         // Read it into a file
-                        String path = saveTmpFile(fbuf, part_data_start, part_data_end - part_data_start);
+                        String path = saveTmpFile(fbuf, part_data_start, part_data_end - part_data_start, file_name);
                         if (!files.containsKey(part_name)) {
                             files.put(part_name, path);
                         } else {
@@ -875,7 +875,7 @@ public abstract class NanoHTTPD {
 
         private RandomAccessFile getTmpBucket() {
             try {
-                TempFile tempFile = this.tempFileManager.createTempFile();
+                TempFile tempFile = this.tempFileManager.createTempFile(null);
                 return new RandomAccessFile(tempFile.getName(), "rw");
             } catch (Exception e) {
                 throw new Error(e); // we won't recover, so throw an error
@@ -981,7 +981,7 @@ public abstract class NanoHTTPD {
                         }
                     }
                 } else if (Method.PUT.equals(this.method)) {
-                    files.put("content", saveTmpFile(fbuf, 0, fbuf.limit()));
+                    files.put("content", saveTmpFile(fbuf, 0, fbuf.limit(), null));
                 }
             } finally {
                 safeClose(randomAccessFile);
@@ -992,12 +992,12 @@ public abstract class NanoHTTPD {
          * Retrieves the content of a sent file and saves it to a temporary
          * file. The full path to the saved file is returned.
          */
-        private String saveTmpFile(ByteBuffer b, int offset, int len) {
+        private String saveTmpFile(ByteBuffer b, int offset, int len, String filename_hint) {
             String path = "";
             if (len > 0) {
                 FileOutputStream fileOutputStream = null;
                 try {
-                    TempFile tempFile = this.tempFileManager.createTempFile();
+                    TempFile tempFile = this.tempFileManager.createTempFile(filename_hint);
                     ByteBuffer src = b.duplicate();
                     fileOutputStream = new FileOutputStream(tempFile.getName());
                     FileChannel dest = fileOutputStream.getChannel();
@@ -1509,7 +1509,7 @@ public abstract class NanoHTTPD {
 
         void clear();
 
-        TempFile createTempFile() throws Exception;
+        TempFile createTempFile(String filename_hint) throws Exception;
     }
 
     /**
