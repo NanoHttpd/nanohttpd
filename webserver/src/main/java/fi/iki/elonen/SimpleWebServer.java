@@ -32,7 +32,6 @@ package fi.iki.elonen;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -137,7 +136,7 @@ public class SimpleWebServer extends NanoHTTPD {
         String host = null; // bind to all interfaces by default
         List<File> rootDirs = new ArrayList<File>();
         boolean quiet = false;
-        boolean cors = false;
+        String cors = null;
         Map<String, String> options = new HashMap<String, String>();
 
         // Parse command-line, with short and long versions of the options.
@@ -150,8 +149,12 @@ public class SimpleWebServer extends NanoHTTPD {
                 quiet = true;
             } else if (args[i].equalsIgnoreCase("-d") || args[i].equalsIgnoreCase("--dir")) {
                 rootDirs.add(new File(args[i + 1]).getAbsoluteFile());
-            } else if (args[i].equalsIgnoreCase("--cors")) {
-                cors = true;
+            } else if (args[i].startsWith("--cors")) {
+                cors = "*";
+                int equalIdx = args[i].indexOf('=');
+                if (equalIdx > 0) {
+                    cors = args[i].substring(equalIdx + 1);
+                }
             } else if (args[i].equalsIgnoreCase("--licence")) {
                 System.out.println(SimpleWebServer.LICENCE + "\n");
             } else if (args[i].startsWith("-X:")) {
@@ -167,7 +170,6 @@ public class SimpleWebServer extends NanoHTTPD {
         if (rootDirs.isEmpty()) {
             rootDirs.add(new File(".").getAbsoluteFile());
         }
-
         options.put("host", host);
         options.put("port", "" + port);
         options.put("quiet", String.valueOf(quiet));
@@ -182,7 +184,6 @@ public class SimpleWebServer extends NanoHTTPD {
             }
         }
         options.put("home", sb.toString());
-
         ServiceLoader<WebServerPluginInfo> serviceLoader = ServiceLoader.load(WebServerPluginInfo.class);
         for (WebServerPluginInfo info : serviceLoader) {
             String[] mimeTypes = info.getMimeTypes();
@@ -201,7 +202,6 @@ public class SimpleWebServer extends NanoHTTPD {
                 registerPluginForMimeType(indexFiles, mime, info.getWebServerPlugin(mime), options);
             }
         }
-
         ServerRunner.executeInstance(new SimpleWebServer(host, port, rootDirs, quiet, cors));
     }
 
@@ -226,26 +226,26 @@ public class SimpleWebServer extends NanoHTTPD {
 
     private final boolean quiet;
 
-    private final boolean cors;
+    private final String cors;
 
     protected List<File> rootDirs;
 
-    public SimpleWebServer(String host, int port, File wwwroot, boolean quiet, boolean useCORS) {
-        this(host, port, Collections.singletonList(wwwroot), quiet, useCORS);
+    public SimpleWebServer(String host, int port, File wwwroot, boolean quiet, String cors) {
+        this(host, port, Collections.singletonList(wwwroot), quiet, cors);
     }
 
     public SimpleWebServer(String host, int port, File wwwroot, boolean quiet) {
-        this(host, port, Collections.singletonList(wwwroot), quiet, false);
+        this(host, port, Collections.singletonList(wwwroot), quiet, null);
     }
 
     public SimpleWebServer(String host, int port, List<File> wwwroots, boolean quiet) {
-        this(host, port, wwwroots, quiet, false);
+        this(host, port, wwwroots, quiet, null);
     }
 
-    public SimpleWebServer(String host, int port, List<File> wwwroots, boolean quiet, boolean useCORS) {
+    public SimpleWebServer(String host, int port, List<File> wwwroots, boolean quiet, String cors) {
         super(host, port);
         this.quiet = quiet;
-        this.cors = useCORS;
+        this.cors = cors;
         this.rootDirs = new ArrayList<File>(wwwroots);
 
         init();
@@ -405,14 +405,14 @@ public class SimpleWebServer extends NanoHTTPD {
     private Response respond(Map<String, String> headers, IHTTPSession session, String uri) {
         // First let's handle CORS OPTION query
         Response r;
-        if (cors && Method.OPTIONS.equals(session.getMethod())) {
+        if (cors != null && Method.OPTIONS.equals(session.getMethod())) {
             r = new NanoHTTPD.Response(Response.Status.OK, MIME_PLAINTEXT, null, 0);
         } else {
             r = defaultRespond(headers, session, uri);
         }
 
-        if (cors) {
-            r = addCORSHeaders(headers, r);
+        if (cors != null) {
+            r = addCORSHeaders(headers, r, cors);
         }
         return r;
     }
@@ -621,8 +621,8 @@ public class SimpleWebServer extends NanoHTTPD {
         return res;
     }
 
-    protected Response addCORSHeaders(Map<String, String> queryHeaders, Response resp) {
-        resp.addHeader("Access-Control-Allow-Origin", "*");
+    protected Response addCORSHeaders(Map<String, String> queryHeaders, Response resp, String cors) {
+        resp.addHeader("Access-Control-Allow-Origin", cors);
         resp.addHeader("Access-Control-Allow-Headers", calculateAllowHeaders(queryHeaders));
         resp.addHeader("Access-Control-Allow-Credentials", "true");
         resp.addHeader("Access-Control-Allow-Methods", ALLOWED_METHODS);
