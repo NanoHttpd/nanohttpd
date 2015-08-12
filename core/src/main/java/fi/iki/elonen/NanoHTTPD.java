@@ -425,7 +425,7 @@ public abstract class NanoHTTPD {
         }
 
         @Override
-        public TempFile createTempFile() throws Exception {
+        public TempFile createTempFile(String filename_hint) throws Exception {
             DefaultTempFile tempFile = new DefaultTempFile(this.tmpdir);
             this.tempFiles.add(tempFile);
             return tempFile;
@@ -622,7 +622,7 @@ public abstract class NanoHTTPD {
                         parms.put(part_name, new String(data_bytes));
                     } else {
                         // Read it into a file
-                        String path = saveTmpFile(fbuf, part_data_start, part_data_end - part_data_start);
+                        String path = saveTmpFile(fbuf, part_data_start, part_data_end - part_data_start, file_name);
                         if (!files.containsKey(part_name)) {
                             files.put(part_name, path);
                         } else {
@@ -739,7 +739,14 @@ public abstract class NanoHTTPD {
                 boolean keepAlive = protocolVersion.equals("HTTP/1.1") && (connection == null || !connection.matches("(?i).*close.*"));
 
                 // Ok, now do the serve()
+
+                // TODO: long body_size = getBodySize();
+                // TODO: long pos_before_serve = this.inputStream.totalRead()
+                // (requires implementaion for totalRead())
                 r = serve(this);
+                // TODO: this.inputStream.skip(body_size -
+                // (this.inputStream.totalRead() - pos_before_serve))
+
                 if (r == null) {
                     throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
                 } else {
@@ -868,7 +875,7 @@ public abstract class NanoHTTPD {
 
         private RandomAccessFile getTmpBucket() {
             try {
-                TempFile tempFile = this.tempFileManager.createTempFile();
+                TempFile tempFile = this.tempFileManager.createTempFile(null);
                 return new RandomAccessFile(tempFile.getName(), "rw");
             } catch (Exception e) {
                 throw new Error(e); // we won't recover, so throw an error
@@ -880,21 +887,26 @@ public abstract class NanoHTTPD {
             return this.uri;
         }
 
+        /**
+         * Deduce body length in bytes. Either from "content-length" header or
+         * read bytes.
+         */
+        public long getBodySize() {
+            if (this.headers.containsKey("content-length")) {
+                return Integer.parseInt(this.headers.get("content-length"));
+            } else if (this.splitbyte < this.rlen) {
+                return this.rlen - this.splitbyte;
+            }
+            return 0;
+        }
+
         @Override
         public void parseBody(Map<String, String> files) throws IOException, ResponseException {
             final int REQUEST_BUFFER_LEN = 512;
             final int MEMORY_STORE_LIMIT = 1024;
             RandomAccessFile randomAccessFile = null;
             try {
-                long size;
-                if (this.headers.containsKey("content-length")) {
-                    size = Integer.parseInt(this.headers.get("content-length"));
-                } else if (this.splitbyte < this.rlen) {
-                    size = this.rlen - this.splitbyte;
-                } else {
-                    size = 0;
-                }
-
+                long size = getBodySize();
                 ByteArrayOutputStream baos = null;
                 DataOutput request_data_output = null;
 
@@ -969,7 +981,7 @@ public abstract class NanoHTTPD {
                         }
                     }
                 } else if (Method.PUT.equals(this.method)) {
-                    files.put("content", saveTmpFile(fbuf, 0, fbuf.limit()));
+                    files.put("content", saveTmpFile(fbuf, 0, fbuf.limit(), null));
                 }
             } finally {
                 safeClose(randomAccessFile);
@@ -980,12 +992,12 @@ public abstract class NanoHTTPD {
          * Retrieves the content of a sent file and saves it to a temporary
          * file. The full path to the saved file is returned.
          */
-        private String saveTmpFile(ByteBuffer b, int offset, int len) {
+        private String saveTmpFile(ByteBuffer b, int offset, int len, String filename_hint) {
             String path = "";
             if (len > 0) {
                 FileOutputStream fileOutputStream = null;
                 try {
-                    TempFile tempFile = this.tempFileManager.createTempFile();
+                    TempFile tempFile = this.tempFileManager.createTempFile(filename_hint);
                     ByteBuffer src = b.duplicate();
                     fileOutputStream = new FileOutputStream(tempFile.getName());
                     FileChannel dest = fileOutputStream.getChannel();
@@ -1497,7 +1509,7 @@ public abstract class NanoHTTPD {
 
         void clear();
 
-        TempFile createTempFile() throws Exception;
+        TempFile createTempFile(String filename_hint) throws Exception;
     }
 
     /**
@@ -1908,10 +1920,12 @@ public abstract class NanoHTTPD {
      * 
      * @param timeout
      *            timeout to use for socket connections.
+     * @param daemon
+     *            start the thread daemon or not.
      * @throws IOException
      *             if the socket is in use.
      */
-    public void start(final int timeout) throws IOException {
+    public void start(final int timeout, boolean daemon) throws IOException {
         if (this.sslServerSocketFactory != null) {
             SSLServerSocket ss = (SSLServerSocket) this.sslServerSocketFactory.createServerSocket();
             ss.setNeedClientAuth(false);
@@ -1923,7 +1937,7 @@ public abstract class NanoHTTPD {
 
         ServerRunnable serverRunnable = createServerRunnable(timeout);
         this.myThread = new Thread(serverRunnable);
-        this.myThread.setDaemon(true);
+        this.myThread.setDaemon(daemon);
         this.myThread.setName("NanoHttpd Main Listener");
         this.myThread.start();
         while (!serverRunnable.hasBinded && serverRunnable.bindException == null) {
@@ -1938,6 +1952,13 @@ public abstract class NanoHTTPD {
         if (serverRunnable.bindException != null) {
             throw serverRunnable.bindException;
         }
+    }
+
+    /**
+     * Starts the server (in setDaemon(true) mode).
+     */
+    public void start(final int timeout) throws IOException {
+        start(timeout, true);
     }
 
     /**

@@ -70,7 +70,7 @@ public class TempFilesServer extends DebugServer {
         }
 
         @Override
-        public TempFile createTempFile() throws Exception {
+        public TempFile createTempFile(String filename_hint) throws Exception {
             DefaultTempFile tempFile = new DefaultTempFile(this.tmpdir);
             this.tempFiles.add(tempFile);
             System.out.println("Created tempFile: " + tempFile.getName());
