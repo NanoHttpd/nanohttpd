@@ -62,4 +62,14 @@ public class AbstractRouter implements Router {
     public String getDefaultURIPath() {
         return this.urlPath;
     }
+
+    @Override
+    public void setup() {
+
+    }
+
+    @Override
+    public void tearDown() {
+
+    }
 }
