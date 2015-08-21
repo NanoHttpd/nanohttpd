@@ -168,8 +168,7 @@ public class HttpGetRequestTest extends HttpServerTest {
     @Test
     public void testOutputOfServeSentBackToClient() throws Exception {
         String responseBody = "Success!";
-        this.testServer.response = new NanoHTTPD(0) {
-        }.newFixedLengthResponse(responseBody);
+        this.testServer.response = NanoHTTPD.newFixedLengthResponse(responseBody);
         ByteArrayOutputStream outputStream = invokeServer("GET " + HttpServerTest.URI + " HTTP/1.1");
 
         String[] expected = {

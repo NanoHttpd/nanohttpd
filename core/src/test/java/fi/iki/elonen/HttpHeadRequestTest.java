@@ -48,8 +48,7 @@ public class HttpHeadRequestTest extends HttpServerTest {
     public void setUp() {
         super.setUp();
         String responseBody = "Success!";
-        this.testServer.response = new NanoHTTPD(0) {
-        }.newFixedLengthResponse(responseBody);
+        this.testServer.response = NanoHTTPD.newFixedLengthResponse(responseBody);
     }
 
     @Test
