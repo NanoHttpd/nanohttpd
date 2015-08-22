@@ -386,6 +386,12 @@ public class SimpleWebServer extends NanoHTTPD {
         return msg.toString();
     }
 
+    public static Response newFixedLengthResponse(IStatus status, String mimeType, String message) {
+        Response response = NanoHTTPD.newFixedLengthResponse(status, mimeType, message);
+        response.addHeader("Accept-Ranges", "bytes");
+        return response;
+    }
+
     private Response respond(Map<String, String> headers, IHTTPSession session, String uri) {
         // Remove URL arguments
         uri = uri.trim().replace(File.separatorChar, '/');
@@ -415,7 +421,6 @@ public class SimpleWebServer extends NanoHTTPD {
             uri += "/";
             Response res =
                     newFixedLengthResponse(Response.Status.REDIRECT, NanoHTTPD.MIME_HTML, "<html><body>Redirected: <a href=\"" + uri + "\">" + uri + "</a></body></html>");
-            res.addHeader("Accept-Ranges", "bytes");
             res.addHeader("Location", uri);
             return res;
         }
@@ -427,8 +432,7 @@ public class SimpleWebServer extends NanoHTTPD {
             if (indexFile == null) {
                 if (f.canRead()) {
                     // No index file, list the directory if it is readable
-                    Response res = newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_HTML, listDirectory(uri, f));
-                    res.addHeader("Accept-Ranges", "bytes");
+                    return newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_HTML, listDirectory(uri, f));
                 } else {
                     return getForbiddenResponse("No directory listing.");
                 }
@@ -531,7 +535,6 @@ public class SimpleWebServer extends NanoHTTPD {
                     // would return range from file
                     // respond with not-modified
                     res = newFixedLengthResponse(Response.Status.NOT_MODIFIED, mime, "");
-                    res.addHeader("Accept-Ranges", "bytes");
                     res.addHeader("ETag", etag);
                 } else {
                     if (endAt < 0) {
@@ -558,14 +561,12 @@ public class SimpleWebServer extends NanoHTTPD {
                     // 4xx responses are not trumped by if-none-match
                     res = newFixedLengthResponse(Response.Status.RANGE_NOT_SATISFIABLE, NanoHTTPD.MIME_PLAINTEXT, "");
                     res.addHeader("Content-Range", "bytes */" + fileLen);
-                    res.addHeader("Accept-Ranges", "bytes");
                     res.addHeader("ETag", etag);
                 } else if (range == null && headerIfNoneMatchPresentAndMatching) {
                     // full-file-fetch request
                     // would return entire file
                     // respond with not-modified
                     res = newFixedLengthResponse(Response.Status.NOT_MODIFIED, mime, "");
-                    res.addHeader("Accept-Ranges", "bytes");
                     res.addHeader("ETag", etag);
                 } else if (!headerIfRangeMissingOrMatching && headerIfNoneMatchPresentAndMatching) {
                     // range request that doesn't match current etag
@@ -573,7 +574,6 @@ public class SimpleWebServer extends NanoHTTPD {
                     // respond with not-modified
 
                     res = newFixedLengthResponse(Response.Status.NOT_MODIFIED, mime, "");
-                    res.addHeader("Accept-Ranges", "bytes");
                     res.addHeader("ETag", etag);
                 } else {
                     // supply the file
