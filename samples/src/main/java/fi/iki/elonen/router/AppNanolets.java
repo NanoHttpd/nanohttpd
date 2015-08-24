@@ -32,19 +32,55 @@ package fi.iki.elonen.router;
  * #L%
  */
 
-import fi.iki.elonen.NanoHTTPD;
-
-import java.util.Map;
-
 /**
- * Created by vnnv on 7/20/15.
+ * Created by vnnv on 7/17/15.
+ * Simple httpd server based on NanoHTTPD
+ * Read the source. Everything is there.
  */
-public interface UriResponder {
 
-	public RouterResponse get(UriResource uriResource, Map<String, String> urlParams, NanoHTTPD.IHTTPSession session);
-	public RouterResponse put(UriResource uriResource, Map<String, String> urlParams, NanoHTTPD.IHTTPSession session);
-	public RouterResponse post(UriResource uriResource, Map<String, String> urlParams, NanoHTTPD.IHTTPSession session);
-	public RouterResponse delete(UriResource uriResource, Map<String, String> urlParams, NanoHTTPD.IHTTPSession session);
-	public RouterResponse other(String method, UriResource uriResource, Map<String, String> urlParams, NanoHTTPD.IHTTPSession session);
+import fi.iki.elonen.ServerRunner;
 
+import java.io.IOException;
+
+public class AppNanolets extends RouterNanoHTTPD {
+
+	private static final int PORT = 8081;
+
+	/**
+	 Create the server instance
+	 */
+	public AppNanolets() throws IOException {
+		super(PORT);
+		addMappings();
+		System.out.println("\nRunning! Point your browers to http://localhost:" + PORT + "/ \n");
+	}
+
+	/**
+	 * Add the routes
+	 * Every route is an absolute path
+	 * Parameters starts with ":"
+	 * Handler class should implement @UriResponder interface
+	 * If the handler not implement UriResponder interface - toString() is used
+	 */
+	@Override
+	public void addMappings() {
+		super.addMappings();
+		addRoute("/user", UserHandler.class);
+		addRoute("/user/:id", UserHandler.class);
+		addRoute("/user/help", GeneralHandler.class);
+		addRoute("/photos/:customer_id/:photo_id", null);
+		addRoute("/test", String.class);
+	}
+
+	/**
+	 * Main entry point
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		try {
+			ServerRunner.run(AppNanolets.class);
+		} catch (Exception ioe) {
+			System.err.println("Couldn't start server:\n" + ioe);
+		}
+	}
 }
