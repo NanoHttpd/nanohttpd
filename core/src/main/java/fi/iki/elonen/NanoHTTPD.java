@@ -742,7 +742,7 @@ public abstract class NanoHTTPD {
 
                 // TODO: long body_size = getBodySize();
                 // TODO: long pos_before_serve = this.inputStream.totalRead()
-                // (requires implementaion for totalRead())
+                // (requires implementation for totalRead())
                 r = serve(this);
                 // TODO: this.inputStream.skip(body_size -
                 // (this.inputStream.totalRead() - pos_before_serve))
@@ -757,7 +757,7 @@ public abstract class NanoHTTPD {
                     r.setKeepAlive(keepAlive);
                     r.send(this.outputStream);
                 }
-                if (!keepAlive || "close".equalsIgnoreCase(r.getHeader("connection"))) {
+                if (!keepAlive || r.isCloseConnection()) {
                     throw new SocketException("NanoHttpd Shutdown");
                 }
             } catch (SocketException e) {
@@ -1237,6 +1237,25 @@ public abstract class NanoHTTPD {
             this.header.put(name, value);
         }
 
+        /**
+         * Indicate to close the connection after the Response has been sent.
+         * @param close {@code true} to hint connection closing, {@code false} to let connection
+         * 		be closed by client.
+         */
+        public void closeConnection(boolean close) {
+            if (close)
+                this.header.put("connection", "close");
+            else
+                this.header.remove("connection");
+        }
+
+        /**
+         * @return {@code true} if connection is to be closed after this Response has been sent.
+         */
+        public boolean isCloseConnection() {
+            return "close".equals(getHeader("connection"));
+        }
+
         public InputStream getData() {
             return this.data;
         }
@@ -1270,7 +1289,7 @@ public abstract class NanoHTTPD {
             this.keepAlive = useKeepAlive;
         }
 
-        private boolean headerAlreadySent(Map<String, String> header, String name) {
+        private static boolean headerAlreadySent(Map<String, String> header, String name) {
             boolean alreadySent = false;
             for (String headerName : header.keySet()) {
                 alreadySent |= headerName.equalsIgnoreCase(name);
@@ -1387,7 +1406,7 @@ public abstract class NanoHTTPD {
             }
         }
 
-        protected long sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header, long size) {
+        protected static long sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header, long size) {
             for (String headerName : header.keySet()) {
                 if (headerName.equalsIgnoreCase("content-length")) {
                     try {
@@ -1719,8 +1738,8 @@ public abstract class NanoHTTPD {
      * @return a map of <code>String</code> (parameter name) to
      *         <code>List&lt;String&gt;</code> (a list of the values supplied).
      */
-    protected Map<String, List<String>> decodeParameters(Map<String, String> parms) {
-        return this.decodeParameters(parms.get(NanoHTTPD.QUERY_STRING_PARAMETER));
+    protected static Map<String, List<String>> decodeParameters(Map<String, String> parms) {
+        return decodeParameters(parms.get(NanoHTTPD.QUERY_STRING_PARAMETER));
     }
 
     // -------------------------------------------------------------------------------
@@ -1736,7 +1755,7 @@ public abstract class NanoHTTPD {
      * @return a map of <code>String</code> (parameter name) to
      *         <code>List&lt;String&gt;</code> (a list of the values supplied).
      */
-    protected Map<String, List<String>> decodeParameters(String queryString) {
+    protected static Map<String, List<String>> decodeParameters(String queryString) {
         Map<String, List<String>> parms = new HashMap<String, List<String>>();
         if (queryString != null) {
             StringTokenizer st = new StringTokenizer(queryString, "&");
@@ -1764,7 +1783,7 @@ public abstract class NanoHTTPD {
      * @return expanded form of the input, for example "foo%20bar" becomes
      *         "foo bar"
      */
-    protected String decodePercent(String str) {
+    protected static String decodePercent(String str) {
         String decoded = null;
         try {
             decoded = URLDecoder.decode(str, "UTF8");
@@ -1779,7 +1798,7 @@ public abstract class NanoHTTPD {
      *         accespts it. Default this option is on for text content and off
      *         for everything else.
      */
-    protected boolean useGzipWhenAccepted(Response r) {
+    protected static boolean useGzipWhenAccepted(Response r) {
         return r.getMimeType() != null && r.getMimeType().toLowerCase().contains("text/");
     }
 
@@ -1801,21 +1820,21 @@ public abstract class NanoHTTPD {
     /**
      * Create a response with unknown length (using HTTP 1.1 chunking).
      */
-    public Response newChunkedResponse(IStatus status, String mimeType, InputStream data) {
+    public static Response newChunkedResponse(IStatus status, String mimeType, InputStream data) {
         return new Response(status, mimeType, data, -1);
     }
 
     /**
      * Create a response with known length.
      */
-    public Response newFixedLengthResponse(IStatus status, String mimeType, InputStream data, long totalBytes) {
+    public static Response newFixedLengthResponse(IStatus status, String mimeType, InputStream data, long totalBytes) {
         return new Response(status, mimeType, data, totalBytes);
     }
 
     /**
      * Create a text response with known length.
      */
-    public Response newFixedLengthResponse(IStatus status, String mimeType, String txt) {
+    public static Response newFixedLengthResponse(IStatus status, String mimeType, String txt) {
         if (txt == null) {
             return newFixedLengthResponse(status, mimeType, new ByteArrayInputStream(new byte[0]), 0);
         } else {
@@ -1833,7 +1852,7 @@ public abstract class NanoHTTPD {
     /**
      * Create a text response with known length.
      */
-    public Response newFixedLengthResponse(String msg) {
+    public static Response newFixedLengthResponse(String msg) {
         return newFixedLengthResponse(Status.OK, NanoHTTPD.MIME_HTML, msg);
     }
 
@@ -1883,7 +1902,8 @@ public abstract class NanoHTTPD {
      *            Header entries, percent decoded
      * @return HTTP response, see class Response for details
      */
-    @Deprecated
+    @SuppressWarnings("static-method")
+	@Deprecated
     public Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) {
         return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found");
     }
