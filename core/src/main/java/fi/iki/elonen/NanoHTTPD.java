@@ -1270,7 +1270,7 @@ public abstract class NanoHTTPD {
             this.keepAlive = useKeepAlive;
         }
 
-        private boolean headerAlreadySent(Map<String, String> header, String name) {
+        private static boolean headerAlreadySent(Map<String, String> header, String name) {
             boolean alreadySent = false;
             for (String headerName : header.keySet()) {
                 alreadySent |= headerName.equalsIgnoreCase(name);
@@ -1387,7 +1387,7 @@ public abstract class NanoHTTPD {
             }
         }
 
-        protected long sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header, long size) {
+        protected static long sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header, long size) {
             for (String headerName : header.keySet()) {
                 if (headerName.equalsIgnoreCase("content-length")) {
                     try {
@@ -1719,8 +1719,8 @@ public abstract class NanoHTTPD {
      * @return a map of <code>String</code> (parameter name) to
      *         <code>List&lt;String&gt;</code> (a list of the values supplied).
      */
-    protected Map<String, List<String>> decodeParameters(Map<String, String> parms) {
-        return this.decodeParameters(parms.get(NanoHTTPD.QUERY_STRING_PARAMETER));
+    protected static Map<String, List<String>> decodeParameters(Map<String, String> parms) {
+        return decodeParameters(parms.get(NanoHTTPD.QUERY_STRING_PARAMETER));
     }
 
     // -------------------------------------------------------------------------------
@@ -1736,7 +1736,7 @@ public abstract class NanoHTTPD {
      * @return a map of <code>String</code> (parameter name) to
      *         <code>List&lt;String&gt;</code> (a list of the values supplied).
      */
-    protected Map<String, List<String>> decodeParameters(String queryString) {
+    protected static Map<String, List<String>> decodeParameters(String queryString) {
         Map<String, List<String>> parms = new HashMap<String, List<String>>();
         if (queryString != null) {
             StringTokenizer st = new StringTokenizer(queryString, "&");
@@ -1764,7 +1764,7 @@ public abstract class NanoHTTPD {
      * @return expanded form of the input, for example "foo%20bar" becomes
      *         "foo bar"
      */
-    protected String decodePercent(String str) {
+    protected static String decodePercent(String str) {
         String decoded = null;
         try {
             decoded = URLDecoder.decode(str, "UTF8");
@@ -1777,7 +1777,7 @@ public abstract class NanoHTTPD {
     /**
      * @return true if the gzip compression should be used if the client
      *         accespts it. Default this option is on for text content and off
-     *         for everything else.
+     *         for everything. Override this for custom semantics.
      */
     protected boolean useGzipWhenAccepted(Response r) {
         return r.getMimeType() != null && r.getMimeType().toLowerCase().contains("text/");

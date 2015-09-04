@@ -92,11 +92,6 @@ public class HttpServerTest {
         }
 
         @Override
-        public String decodePercent(String str) {
-            return super.decodePercent(str);
-        }
-
-        @Override
         public Response serve(IHTTPSession session) {
             this.uri = session.getUri();
             this.method = session.getMethod();
