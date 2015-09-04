@@ -1634,7 +1634,7 @@ public abstract class NanoHTTPD {
 
     private final int myPort;
 
-    private ServerSocket myServerSocket;
+    private volatile ServerSocket myServerSocket;
 
     private SSLServerSocketFactory sslServerSocketFactory;
 
