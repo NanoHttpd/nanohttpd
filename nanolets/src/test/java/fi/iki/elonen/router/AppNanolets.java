@@ -39,12 +39,12 @@ package fi.iki.elonen.router;
  * Read the source. Everything is there.
  */
 
-import fi.iki.elonen.NanoHTTPD;
-import fi.iki.elonen.ServerRunner;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Map;
+
+import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.util.ServerRunner;
 
 public class AppNanolets extends RouterNanoHTTPD {
 
@@ -125,10 +125,6 @@ public class AppNanolets extends RouterNanoHTTPD {
      * @param args
      */
     public static void main(String[] args) {
-        try {
-            ServerRunner.run(AppNanolets.class);
-        } catch (Exception ioe) {
-            System.err.println("Couldn't start server:\n" + ioe);
-        }
+        ServerRunner.run(AppNanolets.class);
     }
 }
