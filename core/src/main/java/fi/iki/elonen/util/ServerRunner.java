@@ -1,4 +1,4 @@
-package fi.iki.elonen;
+package fi.iki.elonen.util;
 
 /*
  * #%L
@@ -36,6 +36,8 @@ package fi.iki.elonen;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import fi.iki.elonen.NanoHTTPD;
 
 public class ServerRunner {
 

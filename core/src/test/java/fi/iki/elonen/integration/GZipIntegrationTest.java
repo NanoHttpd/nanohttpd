@@ -81,7 +81,7 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
 
     @Test
     public void contentEncodingShouldBeAddedToFixedLengthResponses() throws IOException {
-        testServer.response = testServer.newFixedLengthResponse("This is a test");
+        testServer.response = NanoHTTPD.newFixedLengthResponse("This is a test");
         HttpGet request = new HttpGet("http://localhost:8192/");
         request.addHeader("Accept-encoding", "gzip");
         HttpResponse response = httpclient.execute(request);
@@ -93,7 +93,7 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
     @Test
     public void contentEncodingShouldBeAddedToChunkedResponses() throws IOException {
         InputStream data = new ByteArrayInputStream("This is a test".getBytes("UTF-8"));
-        testServer.response = testServer.newChunkedResponse(NanoHTTPD.Response.Status.OK, "text/plain", data);
+        testServer.response = NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, "text/plain", data);
         HttpGet request = new HttpGet("http://localhost:8192/");
         request.addHeader("Accept-encoding", "gzip");
         HttpResponse response = httpclient.execute(request);
@@ -104,7 +104,7 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
 
     @Test
     public void shouldFindCorrectAcceptEncodingAmongMany() throws IOException {
-        testServer.response = testServer.newFixedLengthResponse("This is a test");
+        testServer.response = NanoHTTPD.newFixedLengthResponse("This is a test");
         HttpGet request = new HttpGet("http://localhost:8192/");
         request.addHeader("Accept-encoding", "deflate,gzip");
         HttpResponse response = httpclient.execute(request);
@@ -115,7 +115,7 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
 
     @Test
     public void contentLengthShouldBeRemovedFromZippedResponses() throws IOException {
-        testServer.response = testServer.newFixedLengthResponse("This is a test");
+        testServer.response = NanoHTTPD.newFixedLengthResponse("This is a test");
         HttpGet request = new HttpGet("http://localhost:8192/");
         request.addHeader("Accept-encoding", "gzip");
         HttpResponse response = httpclient.execute(request);
@@ -125,7 +125,7 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
 
     @Test
     public void fixedLengthContentIsEncodedProperly() throws IOException {
-        testServer.response = testServer.newFixedLengthResponse("This is a test");
+        testServer.response = NanoHTTPD.newFixedLengthResponse("This is a test");
         HttpGet request = new HttpGet("http://localhost:8192/");
         request.addHeader("Accept-encoding", "gzip");
         HttpResponse response = new DecompressingHttpClient(httpclient).execute(request);
@@ -135,7 +135,7 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
     @Test
     public void chunkedContentIsEncodedProperly() throws IOException {
         InputStream data = new ByteArrayInputStream("This is a test".getBytes("UTF-8"));
-        testServer.response = testServer.newChunkedResponse(NanoHTTPD.Response.Status.OK, "text/plain", data);
+        testServer.response = NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, "text/plain", data);
         HttpGet request = new HttpGet("http://localhost:8192/");
         request.addHeader("Accept-encoding", "gzip");
         HttpResponse response = new DecompressingHttpClient(httpclient).execute(request);
@@ -144,7 +144,7 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
 
     @Test
     public void noGzipWithoutAcceptEncoding() throws IOException {
-        testServer.response = testServer.newFixedLengthResponse("This is a test");
+        testServer.response = NanoHTTPD.newFixedLengthResponse("This is a test");
         HttpGet request = new HttpGet("http://localhost:8192/");
         HttpResponse response = httpclient.execute(request);
         Header contentEncoding = response.getFirstHeader("content-encoding");
@@ -154,7 +154,7 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
 
     @Test
     public void contentShouldNotBeGzippedIfContentLengthIsAddedManually() throws IOException {
-        testServer.response = testServer.newFixedLengthResponse("This is a test");
+        testServer.response = NanoHTTPD.newFixedLengthResponse("This is a test");
         testServer.response.addHeader("Content-Length", "" + ("This is a test".getBytes("UTF-8").length));
         HttpGet request = new HttpGet("http://localhost:8192/");
         request.addHeader("Accept-encoding", "gzip");

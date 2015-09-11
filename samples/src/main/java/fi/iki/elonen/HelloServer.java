@@ -36,6 +36,8 @@ package fi.iki.elonen;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import fi.iki.elonen.util.ServerRunner;
+
 /**
  * An example of subclassing NanoHTTPD to make a custom HTTP server.
  */

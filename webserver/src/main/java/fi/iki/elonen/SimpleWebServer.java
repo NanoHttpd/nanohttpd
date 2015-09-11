@@ -51,6 +51,7 @@ import java.util.ServiceLoader;
 import java.util.StringTokenizer;
 
 import fi.iki.elonen.NanoHTTPD.Response.IStatus;
+import fi.iki.elonen.util.ServerRunner;
 
 public class SimpleWebServer extends NanoHTTPD {
 
@@ -386,9 +387,8 @@ public class SimpleWebServer extends NanoHTTPD {
         return msg.toString();
     }
 
-    @Override
-    public Response newFixedLengthResponse(IStatus status, String mimeType, String message) {
-        Response response = super.newFixedLengthResponse(status, mimeType, message);
+    public static Response newFixedLengthResponse(IStatus status, String mimeType, String message) {
+        Response response = NanoHTTPD.newFixedLengthResponse(status, mimeType, message);
         response.addHeader("Accept-Ranges", "bytes");
         return response;
     }
