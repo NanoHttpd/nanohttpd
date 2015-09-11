@@ -48,7 +48,7 @@ import fi.iki.elonen.util.ServerRunner;
 
 public class AppNanolets extends RouterNanoHTTPD {
 
-    private static final int PORT = 8080;
+    private static final int PORT = 9090;
 
     public static class UserHandler extends DefaultHandler {
 

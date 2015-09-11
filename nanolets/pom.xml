@@ -15,5 +15,11 @@
 			<artifactId>nanohttpd</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.4.1</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>
