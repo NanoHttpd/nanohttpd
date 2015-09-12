@@ -36,6 +36,7 @@ package fi.iki.elonen.router;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -223,21 +224,17 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         }
     }
 
-    public static class UriUtils {
-
-        public static String normalizeUri(String value) {
-            if (value == null) {
-                return value;
-            }
-            if (value.startsWith("/")) {
-                value = value.substring(1);
-            }
-            if (value.endsWith("/")) {
-                value = value.substring(0, value.length() - 1);
-            }
+    public static String normalizeUri(String value) {
+        if (value == null) {
             return value;
-
         }
+        if (value.startsWith("/")) {
+            value = value.substring(1);
+        }
+        if (value.endsWith("/")) {
+            value = value.substring(0, value.length() - 1);
+        }
+        return value;
 
     }
 
@@ -254,7 +251,9 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
         @Override
         public String toString() {
-            return "UriPart{name='" + name + '\'' + ", isParam=" + isParam + '}';
+            return new StringBuilder("UriPart{name='").append(name)//
+                    .append("\', isParam=").append(isParam)//
+                    .append('}').toString();
         }
 
         public boolean isParam() {
@@ -284,7 +283,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             this.handler = handler;
             uriParamsCount = 0;
             if (uri != null) {
-                this.uri = UriUtils.normalizeUri(uri);
+                this.uri = normalizeUri(uri);
                 parse();
             }
         }
@@ -334,15 +333,11 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                                         .append(object)//
                                         .toString());
                     }
-                } catch (InstantiationException e) {
-                    error = "Error: " + e.getClass().getName() + " : " + e.getMessage();
-                    LOG.log(Level.SEVERE, error, e);
-                } catch (IllegalAccessException e) {
+                } catch (Exception e) {
                     error = "Error: " + e.getClass().getName() + " : " + e.getMessage();
                     LOG.log(Level.SEVERE, error, e);
                 }
             }
-
             return NanoHTTPD.newFixedLengthResponse(Status.INTERNAL_ERROR, "text/plain", error);
         }
 
@@ -397,7 +392,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
          * @return
          */
         public UriResource matchUrl(String url) {
-            String work = UriUtils.normalizeUri(url);
+            String work = normalizeUri(url);
             String[] parts = work.split("/");
             List<UriResource> resultList = new ArrayList<UriResource>();
             for (UriResource u : mappings) {
@@ -468,8 +463,14 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         }
 
         public void removeRoute(String url) {
-            if (mappings.contains(url)) {
-                mappings.remove(url);
+            String uriToDelete = normalizeUri(url);
+            Iterator<UriResource> iter = mappings.iterator();
+            while (iter.hasNext()) {
+                UriResource uriResource = iter.next();
+                if (uriToDelete.equals(uriResource.getUri())) {
+                    iter.remove();
+                    break;
+                }
             }
         }
 
@@ -493,7 +494,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             if (route.getUri() == null) {
                 return result;
             }
-            String workUri = UriUtils.normalizeUri(uri);
+            String workUri = normalizeUri(uri);
             String[] parts = workUri.split("/");
             for (int i = 0; i < parts.length; i++) {
                 UriPart currentPart = route.getUriParts().get(i);

@@ -41,9 +41,12 @@ package fi.iki.elonen.router;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 
 import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.NanoHTTPD.Response.IStatus;
+import fi.iki.elonen.NanoHTTPD.Response.Status;
 import fi.iki.elonen.util.ServerRunner;
 
 public class AppNanolets extends RouterNanoHTTPD {
@@ -95,6 +98,25 @@ public class AppNanolets extends RouterNanoHTTPD {
 
     }
 
+    static public class StreamUrl extends DefaultStreamHandler {
+
+        @Override
+        public String getMimeType() {
+            return "text/plain";
+        }
+
+        @Override
+        public IStatus getStatus() {
+            return Status.OK;
+        }
+
+        @Override
+        public InputStream getData() {
+            return new ByteArrayInputStream("a stream of data ;-)".getBytes());
+        }
+
+    }
+
     /**
      * Create the server instance
      */
@@ -115,8 +137,14 @@ public class AppNanolets extends RouterNanoHTTPD {
         addRoute("/user", UserHandler.class);
         addRoute("/user/:id", UserHandler.class);
         addRoute("/user/help", GeneralHandler.class);
+        addRoute("/general/:param1/:param2", GeneralHandler.class);
         addRoute("/photos/:customer_id/:photo_id", null);
         addRoute("/test", String.class);
+        addRoute("/interface", UriResponder.class); // this will cause an error
+                                                    // when called
+        addRoute("/toBeDeleted", String.class);
+        removeRoute("/toBeDeleted");
+        addRoute("/stream", StreamUrl.class);
     }
 
     /**

@@ -41,13 +41,21 @@ import java.io.PipedOutputStream;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import fi.iki.elonen.router.RouterNanoHTTPD.GeneralHandler;
+import fi.iki.elonen.router.RouterNanoHTTPD.UriResource;
 
 public class TestNanolets {
 
@@ -73,8 +81,9 @@ public class TestNanolets {
     }
 
     @Test
-    public void doSomeBasicTest() throws Exception {
+    public void doSomeBasicMethodTest() throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
+
         HttpGet httpget = new HttpGet("http://localhost:9090/user/blabla");
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
@@ -82,6 +91,164 @@ public class TestNanolets {
         Assert.assertEquals(
                 "<html><body>User handler. Method: GET<br><h1>Uri parameters:</h1><div> Param: id&nbsp;Value: blabla</div><h1>Query parameters:</h1></body></html>", string);
         response.close();
+
+        HttpPost httppost = new HttpPost("http://localhost:9090/user/blabla");
+        response = httpclient.execute(httppost);
+        entity = response.getEntity();
+        string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals(
+                "<html><body>User handler. Method: POST<br><h1>Uri parameters:</h1><div> Param: id&nbsp;Value: blabla</div><h1>Query parameters:</h1></body></html>", string);
+        response.close();
+
+        HttpPut httpgput = new HttpPut("http://localhost:9090/user/blabla");
+        response = httpclient.execute(httpgput);
+        entity = response.getEntity();
+        string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals(
+                "<html><body>User handler. Method: PUT<br><h1>Uri parameters:</h1><div> Param: id&nbsp;Value: blabla</div><h1>Query parameters:</h1></body></html>", string);
+        response.close();
+
+        HttpDelete httpdelete = new HttpDelete("http://localhost:9090/user/blabla");
+        response = httpclient.execute(httpdelete);
+        entity = response.getEntity();
+        string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals(
+                "<html><body>User handler. Method: DELETE<br><h1>Uri parameters:</h1><div> Param: id&nbsp;Value: blabla</div><h1>Query parameters:</h1></body></html>", string);
+        response.close();
+    }
+
+    @Test
+    public void doNonRouterRequest() throws Exception {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+
+        HttpGet httpget = new HttpGet("http://localhost:9090/test");
+        CloseableHttpResponse response = httpclient.execute(httpget);
+        HttpEntity entity = response.getEntity();
+        String string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals("Return: java.lang.String.toString() -> ", string);
+        response.close();
+    }
+
+    @Test
+    public void doExceptionRequest() throws Exception {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+
+        HttpGet httpget = new HttpGet("http://localhost:9090/interface");
+        CloseableHttpResponse response = httpclient.execute(httpget);
+        HttpEntity entity = response.getEntity();
+        String string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals("Error: java.lang.InstantiationException : fi.iki.elonen.router.RouterNanoHTTPD$UriResponder", string);
+        response.close();
+    }
+
+    @Test
+    public void doDeletedRoute() throws Exception {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+
+        HttpGet httpget = new HttpGet("http://localhost:9090/toBeDeleted");
+        CloseableHttpResponse response = httpclient.execute(httpget);
+        HttpEntity entity = response.getEntity();
+        String string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals("<html><body><h3>Error 404: the requested page doesn't exist.</h3></body></html>", string);
+        response.close();
+    }
+
+    @Test
+    public void doUriSelection1() throws Exception {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+
+        HttpGet httpget = new HttpGet("http://localhost:9090/user/help");
+        CloseableHttpResponse response = httpclient.execute(httpget);
+        HttpEntity entity = response.getEntity();
+        String string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals("<html><body><h1>Url: /user/help</h1><br><p>no params in url</p><br>", string);
+        response.close();
+    }
+
+    @Test
+    public void doStreamOfData() throws Exception {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+
+        HttpGet httpget = new HttpGet("http://localhost:9090/stream");
+        CloseableHttpResponse response = httpclient.execute(httpget);
+        HttpEntity entity = response.getEntity();
+        String string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals("a stream of data ;-)", string);
+        response.close();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void illegalMethod1() throws Exception {
+        new AppNanolets.UserHandler().getData();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void illegalMethod2() throws Exception {
+        new RouterNanoHTTPD.GeneralHandler().getText();
+    }
+
+    @Test
+    public void doGeneralParams() throws Exception {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+
+        HttpGet httpget = new HttpGet("http://localhost:9090/general/value1/value2?param3=value3&param4=value4");
+
+        CloseableHttpResponse response = httpclient.execute(httpget);
+        HttpEntity entity = response.getEntity();
+        String string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals("<html><body><h1>Url: /general/value1/value2</h1><br><p>Param 'param3' = value3</p><p>Param 'param4' = value4</p>", string);
+        response.close();
+    }
+
+    @Test
+    public void doIndexHandler() throws Exception {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+
+        HttpGet httpget = new HttpGet("http://localhost:9090/index.html");
+        CloseableHttpResponse response = httpclient.execute(httpget);
+        HttpEntity entity = response.getEntity();
+        String string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals("<html><body><h2>Hello world!</h3></body></html>", string);
+        response.close();
+    }
+
+    @Test
+    public void doMissingHandler() throws Exception {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+
+        HttpGet httpget = new HttpGet("http://localhost:9090/photos/abc/def");
+        CloseableHttpResponse response = httpclient.execute(httpget);
+        HttpEntity entity = response.getEntity();
+        String string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals("<html><body><h2>The uri is mapped in the router, but no handler is specified. <br> Status: Not implemented!</h3></body></html>", string);
+        response.close();
+    }
+
+    @Test
+    public void uriToString() throws Exception {
+        Assert.assertEquals(//
+                "UrlResource{hasParameters=true, uriParamsCount=2, uri='photos/:customer_id/:photo_id', urlParts=[UriPart{name='photos', isParam=false}, UriPart{name='customer_id', isParam=true}, UriPart{name='photo_id', isParam=true}]}",//
+                new UriResource("/photos/:customer_id/:photo_id", GeneralHandler.class).toString());
+    }
+
+    @Test
+    public void doOtherMethod() throws Exception {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+
+        HttpTrace httphead = new HttpTrace("http://localhost:9090/index.html");
+        CloseableHttpResponse response = httpclient.execute(httphead);
+        HttpEntity entity = response.getEntity();
+        String string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals("<html><body><h2>Hello world!</h3></body></html>", string);
+        response.close();
+    }
+
+    @Test
+    public void normalize() throws Exception {
+        Assert.assertNull(RouterNanoHTTPD.normalizeUri(null));
+        Assert.assertEquals("", RouterNanoHTTPD.normalizeUri("/"));
+        Assert.assertEquals("xxx/yyy", RouterNanoHTTPD.normalizeUri("/xxx/yyy"));
+        Assert.assertEquals("xxx/yyy", RouterNanoHTTPD.normalizeUri("/xxx/yyy/"));
     }
 
     private byte[] readContents(HttpEntity entity) throws IOException {
