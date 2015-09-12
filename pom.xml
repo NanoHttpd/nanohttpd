@@ -89,6 +89,7 @@
 		<module>websocket</module>
 		<module>markdown-plugin</module>
 		<module>nanolets</module>
+		<module>fileupload</module>
 	</modules>
 	<licenses>
 		<license>
