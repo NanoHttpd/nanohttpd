@@ -8,7 +8,7 @@
 	</parent>
 	<artifactId>nanohttpd-nanolets</artifactId>
 	<packaging>jar</packaging>
-	<name>NanoHttpd nano application server</name>
+	<name>NanoHttpd-nano application server</name>
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
