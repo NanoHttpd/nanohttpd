@@ -45,7 +45,7 @@ import org.junit.Test;
 public class HttpHeadRequestTest extends HttpServerTest {
 
     @Override
-    public void setUp() {
+    public void setUp() throws Exception {
         super.setUp();
         String responseBody = "Success!";
         this.testServer.response = NanoHTTPD.newFixedLengthResponse(responseBody);

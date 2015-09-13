@@ -96,13 +96,13 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
             this.handshakeResponse.addHeader(NanoWebSocketServer.HEADER_CONNECTION, NanoWebSocketServer.HEADER_CONNECTION_VALUE);
         }
 
-        public void close(CloseCode code, String reason) throws IOException {
+        public void close(CloseCode code, String reason, boolean initiatedByRemote) throws IOException {
             State oldState = this.state;
             this.state = State.CLOSING;
             if (oldState == State.OPEN) {
                 sendFrame(new CloseFrame(code, reason));
             } else {
-                doClose(code, reason, false);
+                doClose(code, reason, initiatedByRemote);
             }
         }
 
@@ -149,13 +149,7 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
                 // Answer for my requested close
                 doClose(code, reason, false);
             } else {
-                // Answer close request from other endpoint and close self
-                State oldState = this.state;
-                this.state = State.CLOSING;
-                if (oldState == State.OPEN) {
-                    sendFrame(new CloseFrame(code, reason));
-                }
-                doClose(code, reason, true);
+                close(code, reason, true);
             }
         }
 

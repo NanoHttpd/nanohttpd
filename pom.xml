@@ -8,7 +8,7 @@
 	</parent>
 	<groupId>org.nanohttpd</groupId>
 	<artifactId>nanohttpd-project</artifactId>
-	<version>2.2.1-SNAPSHOT</version>
+	<version>2.2.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>NanoHttpd-Project</name>
 	<description>NanoHttpd is a light-weight HTTP server designed for embedding in other applications.</description>
@@ -88,6 +88,8 @@
 		<module>webserver</module>
 		<module>websocket</module>
 		<module>markdown-plugin</module>
+		<module>nanolets</module>
+		<module>fileupload</module>
 	</modules>
 	<licenses>
 		<license>
@@ -231,6 +233,26 @@
 							<goal>report</goal>
 						</goals>
 					</execution>
+					<execution>
+						<id>default-check</id>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<rule>
+									<element>BUNDLE</element>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>${minimal.coverage}</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>
@@ -318,7 +340,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.8.2</version>
+			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -473,4 +495,7 @@
 			</build>
 		</profile>
 	</profiles>
+	<properties>
+		<minimal.coverage>0.77</minimal.coverage>
+	</properties>
 </project>

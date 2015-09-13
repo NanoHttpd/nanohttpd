@@ -33,41 +33,35 @@ package fi.iki.elonen;
  * #L%
  */
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.io.InputStream;
+import org.apache.http.HttpEntity;
 
-public class ServerRunner {
+/**
+ * @author Matthieu Brouillard [matthieu@brouillard.fr]
+ */
+public class AbstractTestHttpServer {
 
-    /**
-     * logger to log to.
-     */
-    private static final Logger LOG = Logger.getLogger(ServerRunner.class.getName());
-
-    public static void executeInstance(NanoHTTPD server) {
-        try {
-            server.start();
-        } catch (IOException ioe) {
-            System.err.println("Couldn't start server:\n" + ioe);
-            System.exit(-1);
-        }
-
-        System.out.println("Server started, Hit Enter to stop.\n");
-
-        try {
-            System.in.read();
-        } catch (Throwable ignored) {
-        }
-
-        server.stop();
-        System.out.println("Server stopped.\n");
+    protected byte[] readContents(HttpEntity entity) throws IOException {
+        InputStream instream = entity.getContent();
+        return readContents(instream);
     }
 
-    public static <T extends NanoHTTPD> void run(Class<T> serverClass) {
+    protected byte[] readContents(InputStream instream) throws IOException {
+        byte[] bytes;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            executeInstance(serverClass.newInstance());
-        } catch (Exception e) {
-            ServerRunner.LOG.log(Level.SEVERE, "Cound nor create server", e);
+            byte[] buffer = new byte[1024];
+            int count;
+            while ((count = instream.read(buffer)) >= 0) {
+                out.write(buffer, 0, count);
+            }
+            bytes = out.toByteArray();
+        } finally {
+            instream.close();
         }
+        return bytes;
     }
+
 }

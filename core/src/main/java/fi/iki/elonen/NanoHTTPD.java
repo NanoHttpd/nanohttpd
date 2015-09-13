@@ -33,7 +33,25 @@ package fi.iki.elonen;
  * #L%
  */
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.PushbackInputStream;
+import java.io.RandomAccessFile;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -456,6 +474,10 @@ public abstract class NanoHTTPD {
     private static final Pattern CONTENT_DISPOSITION_ATTRIBUTE_PATTERN = Pattern.compile(CONTENT_DISPOSITION_ATTRIBUTE_REGEX);
 
     protected class HTTPSession implements IHTTPSession {
+
+        private static final int REQUEST_BUFFER_LEN = 512;
+
+        private static final int MEMORY_STORE_LIMIT = 1024;
 
         public static final int BUFSIZE = 8192;
 
@@ -902,8 +924,6 @@ public abstract class NanoHTTPD {
 
         @Override
         public void parseBody(Map<String, String> files) throws IOException, ResponseException {
-            final int REQUEST_BUFFER_LEN = 512;
-            final int MEMORY_STORE_LIMIT = 1024;
             RandomAccessFile randomAccessFile = null;
             try {
                 long size = getBodySize();
@@ -1576,17 +1596,11 @@ public abstract class NanoHTTPD {
      * by the caller.
      */
     public static SSLServerSocketFactory makeSSLSocketFactory(KeyStore loadedKeyStore, KeyManagerFactory loadedKeyFactory) throws IOException {
-        SSLServerSocketFactory res = null;
         try {
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            trustManagerFactory.init(loadedKeyStore);
-            SSLContext ctx = SSLContext.getInstance("TLS");
-            ctx.init(loadedKeyFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
-            res = ctx.getServerSocketFactory();
+            return makeSSLSocketFactory(loadedKeyStore, loadedKeyFactory.getKeyManagers());
         } catch (Exception e) {
             throw new IOException(e.getMessage());
         }
-        return res;
     }
 
     /**
@@ -1594,22 +1608,16 @@ public abstract class NanoHTTPD {
      * certificate and passphrase
      */
     public static SSLServerSocketFactory makeSSLSocketFactory(String keyAndTrustStoreClasspathPath, char[] passphrase) throws IOException {
-        SSLServerSocketFactory res = null;
         try {
             KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
             InputStream keystoreStream = NanoHTTPD.class.getResourceAsStream(keyAndTrustStoreClasspathPath);
             keystore.load(keystoreStream, passphrase);
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            trustManagerFactory.init(keystore);
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
             keyManagerFactory.init(keystore, passphrase);
-            SSLContext ctx = SSLContext.getInstance("TLS");
-            ctx.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
-            res = ctx.getServerSocketFactory();
+            return makeSSLSocketFactory(keystore, keyManagerFactory);
         } catch (Exception e) {
             throw new IOException(e.getMessage());
         }
-        return res;
     }
 
     private static final void safeClose(Object closeable) {
@@ -1634,7 +1642,7 @@ public abstract class NanoHTTPD {
 
     private final int myPort;
 
-    private ServerSocket myServerSocket;
+    private volatile ServerSocket myServerSocket;
 
     private SSLServerSocketFactory sslServerSocketFactory;
 

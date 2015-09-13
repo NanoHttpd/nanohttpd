@@ -1,8 +1,8 @@
-package fi.iki.elonen;
+package fi.iki.elonen.util;
 
 /*
  * #%L
- * NanoHttpd-Core
+ * NanoHttpd-Webserver
  * %%
  * Copyright (C) 2012 - 2015 nanohttpd
  * %%
@@ -33,37 +33,43 @@ package fi.iki.elonen;
  * #L%
  */
 
-import static org.junit.Assert.assertEquals;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.net.InetAddress;
+import fi.iki.elonen.NanoHTTPD;
 
-import org.junit.Ignore;
-import org.junit.Test;
+public class ServerRunner {
 
-public class HttpSessionHeadersTest extends HttpServerTest {
+    /**
+     * logger to log to.
+     */
+    private static final Logger LOG = Logger.getLogger(ServerRunner.class.getName());
 
-    private static final String DUMMY_REQUEST_CONTENT = "dummy request content";
-
-    private static final TestTempFileManager TEST_TEMP_FILE_MANAGER = new TestTempFileManager();
-
-    @Test
-    @Ignore
-    public void testHeadersRemoteIp() throws Exception {
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(HttpSessionHeadersTest.DUMMY_REQUEST_CONTENT.getBytes());
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        String[] ipAddresses = {
-            "127.0.0.1",
-            "192.168.1.1",
-            "192.30.252.129"
-        };
-        for (String ipAddress : ipAddresses) {
-            InetAddress inetAddress = InetAddress.getByName(ipAddress);
-            NanoHTTPD.HTTPSession session = this.testServer.createSession(HttpSessionHeadersTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
-            assertEquals(ipAddress, session.getHeaders().get("remote-addr"));
-            assertEquals(ipAddress, session.getHeaders().get("http-client-ip"));
+    public static void executeInstance(NanoHTTPD server) {
+        try {
+            server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+        } catch (IOException ioe) {
+            System.err.println("Couldn't start server:\n" + ioe);
+            System.exit(-1);
         }
+
+        System.out.println("Server started, Hit Enter to stop.\n");
+
+        try {
+            System.in.read();
+        } catch (Throwable ignored) {
+        }
+
+        server.stop();
+        System.out.println("Server stopped.\n");
     }
 
+    public static <T extends NanoHTTPD> void run(Class<T> serverClass) {
+        try {
+            executeInstance(serverClass.newInstance());
+        } catch (Exception e) {
+            ServerRunner.LOG.log(Level.SEVERE, "Cound nor create server", e);
+        }
+    }
 }

@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 import fi.iki.elonen.NanoHTTPD;
-import fi.iki.elonen.ServerRunner;
+import fi.iki.elonen.util.ServerRunner;
 
 public class DebugServer extends NanoHTTPD {
 

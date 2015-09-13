@@ -20,4 +20,7 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
+	<properties>
+		<minimal.coverage>0.0</minimal.coverage>
+	</properties>
 </project>

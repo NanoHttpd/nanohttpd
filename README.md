@@ -121,6 +121,19 @@ NanoHTTPD project currently consist of four parts:
 * File server serves also very long files without memory overhead.
 * Contains a built-in list of most common MIME types.
 * Runtime extension support (extensions that serve particular MIME types) - example extension that serves Markdown formatted files. Simply including an extension JAR in the webserver classpath is enough for the extension to be loaded.
+* Simple [CORS](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing) support via `--cors` paramater
+  * by default serves `Access-Control-Allow-Headers: origin,accept,content-type`
+  * possibility to set `Access-Control-Allow-Headers` by setting System property: `AccessControlAllowHeader`
+  * _example: _ `-DAccessControlAllowHeader=origin,accept,content-type,Authorization`
+  * possible values:
+      * `--cors`: activates CORS support, `Access-Control-Allow-Origin` will be set to `*`
+      * `--cors=some_value`: `Access-Control-Allow-Origin` will be set to `some_value`. 
+
+**_CORS argument examples_**
+
+
+* `--cors=http://appOne.company.com`
+* `--cors="http://appOne.company.com, http://appTwo.company.com"`: note the double quotes so that the 2 URLs are considered part of a single argument.
 
 ## Maven dependencies
 
@@ -198,7 +211,19 @@ The latest Github master version can be fetched through sonatype.org:
 		</repository>
 	</repositories>
 
+### generating an self signed ssl certificate
 
+Just a hint how to generate a certificate for localhost.
+
+	keytool -genkey -keyalg RSA -alias selfsigned -keystore keystore.jks -storepass password -validity 360 -keysize 2048 -ext SAN=DNS:localhost,IP:127.0.0.1  -validity 9999
+
+This will generate a keystore file named 'keystore.jks' with a self signed certificate for a host named localhost with the ip adress 127.0.0.1 . Now 
+you can use:
+
+	server.makeSecure(NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()));
+
+Before you start the server to make Nanohttpd serve https connections, when you make sure 'keystore.jks' is in your classpath .  
+ 
 -----
 
 *Thank you to everyone who has reported bugs and suggested fixes.*

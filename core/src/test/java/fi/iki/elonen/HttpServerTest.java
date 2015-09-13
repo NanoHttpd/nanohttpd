@@ -83,6 +83,10 @@ public class HttpServerTest {
             super(8192);
         }
 
+        public TestServer(int port) {
+            super(port);
+        }
+
         public HTTPSession createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
             return new HTTPSession(tempFileManager, inputStream, outputStream);
         }
@@ -126,7 +130,7 @@ public class HttpServerTest {
 
     protected TestServer testServer;
 
-    private TestTempFileManager tempFileManager;
+    protected TestTempFileManager tempFileManager;
 
     protected void assertLinesOfText(String[] expected, List<String> lines) {
         // assertEquals(expected.length, lines.size());
@@ -172,7 +176,7 @@ public class HttpServerTest {
     }
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         this.testServer = new TestServer();
         this.tempFileManager = new TestTempFileManager();
     }
