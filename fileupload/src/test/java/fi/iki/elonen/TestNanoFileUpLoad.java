@@ -114,11 +114,6 @@ public class TestNanoFileUpLoad {
             return new HTTPSession(tempFileManager, inputStream, outputStream, inetAddress);
         }
 
-        @Override
-        public String decodePercent(String str) {
-            return super.decodePercent(str);
-        }
-
         NanoFileUpload uploader;
 
         @Override
