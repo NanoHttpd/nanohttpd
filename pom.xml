@@ -496,6 +496,6 @@
 		</profile>
 	</profiles>
 	<properties>
-		<minimal.coverage>0.76</minimal.coverage>
+		<minimal.coverage>0.77</minimal.coverage>
 	</properties>
 </project>
