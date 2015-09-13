@@ -61,6 +61,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import fi.iki.elonen.NanoHTTPD.Response.Status;
+
 public class TestNanoFileUpLoad {
 
     protected TestServer testServer;
@@ -87,8 +89,7 @@ public class TestNanoFileUpLoad {
 
         public TestServer() {
             super(8192);
-            uploader = new NanoFileUpload();
-            uploader.setFileItemFactory(new DiskFileItemFactory());
+            uploader = new NanoFileUpload(new DiskFileItemFactory());
         }
 
         public HTTPSession createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
@@ -116,8 +117,8 @@ public class TestNanoFileUpLoad {
             if (NanoFileUpload.isMultipartContent(session)) {
                 try {
                     files = uploader.parseParameterMap(session);
-
                 } catch (FileUploadException e) {
+                    this.response.setStatus(Status.INTERNAL_ERROR);
                     e.printStackTrace();
                 }
             }

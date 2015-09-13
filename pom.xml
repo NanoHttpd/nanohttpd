@@ -233,6 +233,26 @@
 							<goal>report</goal>
 						</goals>
 					</execution>
+					<execution>
+						<id>default-check</id>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<rule>
+									<element>BUNDLE</element>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>${minimal.coverage}</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>
@@ -475,4 +495,7 @@
 			</build>
 		</profile>
 	</profiles>
+	<properties>
+		<minimal.coverage>0.76</minimal.coverage>
+	</properties>
 </project>

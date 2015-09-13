@@ -40,4 +40,7 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<properties>
+		<minimal.coverage>0.1</minimal.coverage>
+	</properties>
 </project>

@@ -22,4 +22,7 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<properties>
+		<minimal.coverage>0.98</minimal.coverage>
+	</properties>
 </project>

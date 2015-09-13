@@ -68,6 +68,8 @@ public class EchoWebSocketsTest {
         SimpleEchoSocket socket = new SimpleEchoSocket();
         socket.getToSendMessages().add("Hello");
         socket.getToSendMessages().add("Thanks for the conversation.");
+        socket.getToSendMessages().add(createString(31000));
+        socket.getToSendMessages().add(createString(65400));
         try {
             client.start();
             URI echoUri = new URI(destUri);
@@ -84,9 +86,17 @@ public class EchoWebSocketsTest {
                 e.printStackTrace();
             }
         }
-        Assert.assertEquals(2, socket.getReceivedMessages().size());
+        Assert.assertEquals(4, socket.getReceivedMessages().size());
         Assert.assertEquals("Hello", socket.getReceivedMessages().get(0));
         Assert.assertEquals("Thanks for the conversation.", socket.getReceivedMessages().get(1));
 
+    }
+
+    private String createString(int i) {
+        StringBuilder builder = new StringBuilder();
+        while (builder.length() < i) {
+            builder.append("A very long text.");
+        }
+        return builder.toString();
     }
 }

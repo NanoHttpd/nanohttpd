@@ -99,9 +99,6 @@ public class NanoFileUpload extends FileUpload {
         return session.getMethod() == POST && FileUploadBase.isMultipartContent(new NanoHttpdContext(session));
     }
 
-    public NanoFileUpload() {
-    }
-
     public NanoFileUpload(FileItemFactory fileItemFactory) {
         super(fileItemFactory);
     }
