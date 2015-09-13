@@ -23,6 +23,6 @@
 		</dependency>
 	</dependencies>
 	<properties>
-		<minimal.coverage>0.77</minimal.coverage>
+		<minimal.coverage>0.81</minimal.coverage>
 	</properties>
 </project>

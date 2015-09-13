@@ -211,7 +211,19 @@ The latest Github master version can be fetched through sonatype.org:
 		</repository>
 	</repositories>
 
+### generating an self signed ssl certificate
 
+Just a hint how to generate a certificate for localhost.
+
+	keytool -genkey -keyalg RSA -alias selfsigned -keystore keystore.jks -storepass password -validity 360 -keysize 2048 -ext SAN=DNS:localhost,IP:127.0.0.1  -validity 9999
+
+This will generate a keystore file named 'keystore.jks' with a self signed certificate for a host named localhost with the ip adress 127.0.0.1 . Now 
+you can use:
+
+	server.makeSecure(NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()));
+
+Before you start the server to make Nanohttpd serve https connections, when you make sure 'keystore.jks' is in your classpath .  
+ 
 -----
 
 *Thank you to everyone who has reported bugs and suggested fixes.*

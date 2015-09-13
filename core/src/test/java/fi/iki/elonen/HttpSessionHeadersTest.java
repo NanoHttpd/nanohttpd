@@ -48,11 +48,6 @@ public class HttpSessionHeadersTest extends HttpServerTest {
 
     private static final TestTempFileManager TEST_TEMP_FILE_MANAGER = new TestTempFileManager();
 
-    @Override
-    public void setUp() {
-        super.setUp();
-    }
-
     @Test
     @Ignore
     public void testHeadersRemoteIp() throws Exception {
