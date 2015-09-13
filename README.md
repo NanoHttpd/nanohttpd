@@ -121,6 +121,19 @@ NanoHTTPD project currently consist of four parts:
 * File server serves also very long files without memory overhead.
 * Contains a built-in list of most common MIME types.
 * Runtime extension support (extensions that serve particular MIME types) - example extension that serves Markdown formatted files. Simply including an extension JAR in the webserver classpath is enough for the extension to be loaded.
+* Simple [CORS](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing) support via `--cors` paramater
+  * by default serves `Access-Control-Allow-Headers: origin,accept,content-type`
+  * possibility to set `Access-Control-Allow-Headers` by setting System property: `AccessControlAllowHeader`
+  * _example: _ `-DAccessControlAllowHeader=origin,accept,content-type,Authorization`
+  * possible values:
+      * `--cors`: activates CORS support, `Access-Control-Allow-Origin` will be set to `*`
+      * `--cors=some_value`: `Access-Control-Allow-Origin` will be set to `some_value`. 
+
+**_CORS argument examples_**
+
+
+* `--cors=http://appOne.company.com`
+* `--cors="http://appOne.company.com, http://appTwo.company.com"`: note the double quotes so that the 2 URLs are considered part of a single argument.
 
 ## Maven dependencies
 
