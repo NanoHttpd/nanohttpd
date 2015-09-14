@@ -3,13 +3,14 @@ jdk:
 - oraclejdk7
 
 before_install:
+  - cat ~/.m2/settings.xml
   - sed -i.bak -e 's|https://nexus.codehaus.org/snapshots/|https://oss.sonatype.org/content/repositories/codehaus-snapshots/|g' ~/.m2/settings.xml
 
 install:
-  - mvn install -DskipTests=true
+  - mvn install -DskipTests=true  --settings settings.xml
 
 script:
-    - mvn test ; export MAVEN_RESULT=$?
+    - mvn test  --settings settings.xml; export MAVEN_RESULT=$?
     - if [ "$MAVEN_RESULT" -ne 0 ]; then exit 1; fi
     - if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then mvn clean deploy --quiet --settings settings.xml; fi
 
