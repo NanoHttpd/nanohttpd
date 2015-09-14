@@ -4,15 +4,15 @@ jdk:
 
 before_install:
   - cat ~/.m2/settings.xml
-  - sed -i.bak -e 's|https://nexus.codehaus.org/snapshots/|https://oss.sonatype.org/content/repositories/codehaus-snapshots/|g' ~/.m2/settings.xml
+  - rm  ~/.m2/settings.xml
 
 install:
-  - mvn install -DskipTests=true  -P!standard-with-extra-repos
+  - mvn install -DskipTests=true
 
 script:
-    - mvn test -P!standard-with-extra-repos; export MAVEN_RESULT=$?
+    - mvn test; export MAVEN_RESULT=$?
     - if [ "$MAVEN_RESULT" -ne 0 ]; then exit 1; fi
-    - if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then mvn clean deploy --quiet -P!standard-with-extra-repos --settings settings.xml; fi
+    - if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then mvn clean deploy --quiet --settings settings.xml; fi
 
 after_success:
   - mvn clean test jacoco:report coveralls:report
