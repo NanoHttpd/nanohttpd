@@ -49,7 +49,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.PushbackInputStream;
+import java.io.BufferedInputStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
@@ -485,7 +485,7 @@ public abstract class NanoHTTPD {
 
         private final OutputStream outputStream;
 
-        private final PushbackInputStream inputStream;
+        private final BufferedInputStream inputStream;
 
         private int splitbyte;
 
@@ -509,13 +509,13 @@ public abstract class NanoHTTPD {
 
         public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
             this.tempFileManager = tempFileManager;
-            this.inputStream = new PushbackInputStream(inputStream, HTTPSession.BUFSIZE);
+            this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
             this.outputStream = outputStream;
         }
 
         public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
             this.tempFileManager = tempFileManager;
-            this.inputStream = new PushbackInputStream(inputStream, HTTPSession.BUFSIZE);
+            this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
             this.outputStream = outputStream;
             this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
             this.headers = new HashMap<String, String>();
@@ -703,6 +703,7 @@ public abstract class NanoHTTPD {
                 this.rlen = 0;
 
                 int read = -1;
+                this.inputStream.mark(HTTPSession.BUFSIZE);
                 try {
                     read = this.inputStream.read(buf, 0, HTTPSession.BUFSIZE);
                 } catch (Exception e) {
@@ -726,7 +727,8 @@ public abstract class NanoHTTPD {
                 }
 
                 if (this.splitbyte < this.rlen) {
-                    this.inputStream.unread(buf, this.splitbyte, this.rlen - this.splitbyte);
+                    this.inputStream.reset();
+                    this.inputStream.skip(this.splitbyte);
                 }
 
                 this.parms = new HashMap<String, String>();
