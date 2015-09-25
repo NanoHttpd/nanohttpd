@@ -27,7 +27,7 @@ Let's raise the bar and build a custom web application next:
 Edit `pom.xml`, and add this between \<dependencies\>:
  
 	<dependency>
-		<groupId>org.nanohttpd</groupId>
+		<groupId>com.nanohttpd</groupId>
 		<artifactId>nanohttpd</artifactId>
 		<version>2.2.0-SNAPSHOT</version>
 	</dependency>
@@ -141,7 +141,7 @@ NanoHTTPD is a Maven based project and deployed to central. Most development env
 
 	<dependencies>
 		<dependency>
-			<groupId>org.nanohttpd</groupId>
+			<groupId>com.nanohttpd</groupId>
 			<artifactId>nanohttpd</artifactId>
 			<version>CURRENT_VERSION</version>
 		</dependency>
@@ -158,7 +158,7 @@ Next it depends what you are useing nanohttpd for, there are tree main usages.
 For a specialized HTTP (HTTPS) service you can use the module with artifactId *nanohttpd*.
 
 		<dependency>
-			<groupId>org.nanohttpd</groupId>
+			<groupId>com.nanohttpd</groupId>
 			<artifactId>nanohttpd</artifactId>
 			<version>CURRENT_VERSION</version>
 		</dependency>
@@ -170,7 +170,7 @@ Here you write your own subclass of *fi.iki.elonen.NanoHTTPD* to configure and t
 For a specialized websocket service you can use the module with artifactId *nanohttpd-websocket*.
 
 		<dependency>
-			<groupId>org.nanohttpd</groupId>
+			<groupId>com.nanohttpd</groupId>
 			<artifactId>nanohttpd-websocket</artifactId>
 			<version>CURRENT_VERSION</version>
 		</dependency>
@@ -182,7 +182,7 @@ Here you write your own subclass of *fi.iki.elonen.NanoWebSocketServer* to confi
 For a more classic aproach, perhaps to just create a HTTP server serving mostly service files from your disk, you can use the module with artifactId *nanohttpd-webserver*.
 
 		<dependency>
-			<groupId>org.nanohttpd</groupId>
+			<groupId>com.nanohttpd</groupId>
 			<artifactId>nanohttpd-webserver</artifactId>
 			<version>CURRENT_VERSION</version>
 		</dependency>
@@ -196,7 +196,7 @@ The latest Github master version can be fetched through sonatype.org:
 	<dependencies>
 		<dependency>
 			<artifactId>nanohttpd</artifactId>
-			<groupId>org.nanohttpd</groupId>
+			<groupId>com.nanohttpd</groupId>
 			<version>XXXXX-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
