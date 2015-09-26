@@ -27,7 +27,7 @@ Let's raise the bar and build a custom web application next:
 Edit `pom.xml`, and add this between \<dependencies\>:
  
 	<dependency>
-		<groupId>org.nanohttpd</groupId>
+		<groupId>org.nanohttpd</groupId> <!-- <groupId>com.nanohttpd</groupId> for 2.1.0 and earlier -->
 		<artifactId>nanohttpd</artifactId>
 		<version>2.2.0-SNAPSHOT</version>
 	</dependency>
@@ -141,7 +141,7 @@ NanoHTTPD is a Maven based project and deployed to central. Most development env
 
 	<dependencies>
 		<dependency>
-			<groupId>org.nanohttpd</groupId>
+			<groupId>org.nanohttpd</groupId> <!-- <groupId>com.nanohttpd</groupId> for 2.1.0 and earlier -->
 			<artifactId>nanohttpd</artifactId>
 			<version>CURRENT_VERSION</version>
 		</dependency>
@@ -158,7 +158,7 @@ Next it depends what you are useing nanohttpd for, there are tree main usages.
 For a specialized HTTP (HTTPS) service you can use the module with artifactId *nanohttpd*.
 
 		<dependency>
-			<groupId>org.nanohttpd</groupId>
+			<groupId>org.nanohttpd</groupId> <!-- <groupId>com.nanohttpd</groupId> for 2.1.0 and earlier -->
 			<artifactId>nanohttpd</artifactId>
 			<version>CURRENT_VERSION</version>
 		</dependency>
@@ -170,7 +170,7 @@ Here you write your own subclass of *fi.iki.elonen.NanoHTTPD* to configure and t
 For a specialized websocket service you can use the module with artifactId *nanohttpd-websocket*.
 
 		<dependency>
-			<groupId>org.nanohttpd</groupId>
+			<groupId>org.nanohttpd</groupId> <!-- <groupId>com.nanohttpd</groupId> for 2.1.0 and earlier -->
 			<artifactId>nanohttpd-websocket</artifactId>
 			<version>CURRENT_VERSION</version>
 		</dependency>
