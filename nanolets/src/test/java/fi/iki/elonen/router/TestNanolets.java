@@ -38,12 +38,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpTrace;
@@ -77,7 +78,28 @@ public class TestNanolets {
         });
         serverStartThread.start();
         // give the server some tine to start.
-        Thread.sleep(100);
+        Thread.sleep(200);
+    }
+
+    public static void main(String[] args) {
+        {
+            String uri = "def";
+            Pattern.compile("([A-Za-z0-9\\-\\._~:/?#\\[\\]@!\\$&'\\(\\)\\*\\+,;=]+)");
+            Pattern URI_PATTERN = Pattern.compile("([A-Za-z0-9\\-\\._~:/?#\\[\\]@!\\$&'\\(\\)\\*\\+,;=]+)");
+            System.out.println(URI_PATTERN.matcher(uri).matches());
+        }
+
+        String uri = "photos/abc/def";
+        Pattern URI_PATTERN = Pattern.compile("photos/([A-Za-z0-9\\-\\._~:/?#\\[\\]@!\\$&'\\(\\)\\*\\+,;=]+)/([A-Za-z0-9\\-\\._~:/?#\\[\\]@!\\$&'\\(\\)\\*\\+,;=]+)");
+        Matcher matcher = URI_PATTERN.matcher(uri);
+        System.out.println("--------------->" + "/" + uri);
+        while (matcher.matches()) {
+
+            System.out.println(matcher.group());
+        }
+        // for (int index = 0; index < matcher.groupCount(); index++) {
+        // System.out.println(matcher.group());
+        // }
     }
 
     @Test
@@ -187,6 +209,28 @@ public class TestNanolets {
         new RouterNanoHTTPD.GeneralHandler().getText();
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void illegalMethod3() throws Exception {
+        new RouterNanoHTTPD.StaticPageHandler().getText();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void illegalMethod4() throws Exception {
+        new RouterNanoHTTPD.StaticPageHandler().getMimeType();
+    }
+
+    @Test(expected = ClassCastException.class)
+    public void checkIniParameter1() throws Exception {
+        new RouterNanoHTTPD.UriResource("browse", 100, null, "init").initParameter(String.class);
+        new RouterNanoHTTPD.UriResource("browse", 100, null, "init").initParameter(Integer.class);
+    }
+
+    @Test
+    public void checkIniParameter2() throws Exception {
+        Assert.assertEquals("init", new RouterNanoHTTPD.UriResource("browse", 100, null, "init").initParameter(String.class));
+        Assert.assertNull(new RouterNanoHTTPD.UriResource("browse", 100, null).initParameter(String.class));
+    }
+
     @Test
     public void doGeneralParams() throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -227,8 +271,8 @@ public class TestNanolets {
     @Test
     public void uriToString() throws Exception {
         Assert.assertEquals(//
-                "UrlResource{hasParameters=true, uriParamsCount=2, uri='photos/:customer_id/:photo_id', urlParts=[UriPart{name='photos', isParam=false}, UriPart{name='customer_id', isParam=true}, UriPart{name='photo_id', isParam=true}]}",//
-                new UriResource("/photos/:customer_id/:photo_id", GeneralHandler.class).toString());
+                "UrlResource{uri='photos/:customer_id/:photo_id', urlParts=[customer_id, photo_id]}",//
+                new UriResource("/photos/:customer_id/:photo_id", 100, GeneralHandler.class).toString());
     }
 
     @Test
@@ -271,6 +315,45 @@ public class TestNanolets {
             instream.close();
         }
         return bytes;
+    }
+
+    @Test
+    public void staticFiles() throws Exception {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+
+        HttpTrace httphead = new HttpTrace("http://localhost:9090/browse/blabla.html");
+        CloseableHttpResponse response = httpclient.execute(httphead);
+        HttpEntity entity = response.getEntity();
+        String string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals("<html><body><h3>just a page</h3></body></html>", string);
+        response.close();
+
+        httphead = new HttpTrace("http://localhost:9090/browse/dir/blabla.html");
+        response = httpclient.execute(httphead);
+        entity = response.getEntity();
+        string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals("<html><body><h3>just an other page</h3></body></html>", string);
+        response.close();
+
+        httphead = new HttpTrace("http://localhost:9090/browse/dir/nanohttpd_logo.png");
+        response = httpclient.execute(httphead);
+        entity = response.getEntity();
+        Assert.assertEquals("image/png", entity.getContentType().getValue());
+        response.close();
+
+        httphead = new HttpTrace("http://localhost:9090/browse/dir/xxx.html");
+        response = httpclient.execute(httphead);
+        entity = response.getEntity();
+        string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals("<html><body><h3>Error 404: the requested page doesn't exist.</h3></body></html>", string);
+        response.close();
+
+        httphead = new HttpTrace("http://localhost:9090/browse/dir/");
+        response = httpclient.execute(httphead);
+        entity = response.getEntity();
+        string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals("<html><body><h3>just an index page</h3></body></html>", string);
+        response.close();
     }
 
     @AfterClass

@@ -33,14 +33,22 @@ package fi.iki.elonen.router;
  * #L%
  */
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.Response.IStatus;
@@ -167,6 +175,120 @@ public class RouterNanoHTTPD extends NanoHTTPD {
     }
 
     /**
+     * General nanolet to print debug info's as a html page.
+     */
+    public static class StaticPageHandler extends DefaultHandler {
+
+        /**
+         * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
+         */
+        @SuppressWarnings("serial")
+        private static final Map<String, String> MIME_TYPES = new HashMap<String, String>() {
+
+            {
+                put("css", "text/css");
+                put("htm", "text/html");
+                put("html", "text/html");
+                put("xml", "text/xml");
+                put("java", "text/x-java-source, text/java");
+                put("md", "text/plain");
+                put("txt", "text/plain");
+                put("asc", "text/plain");
+                put("gif", "image/gif");
+                put("jpg", "image/jpeg");
+                put("jpeg", "image/jpeg");
+                put("png", "image/png");
+                put("svg", "image/svg+xml");
+                put("mp3", "audio/mpeg");
+                put("m3u", "audio/mpeg-url");
+                put("mp4", "video/mp4");
+                put("ogv", "video/ogg");
+                put("flv", "video/x-flv");
+                put("mov", "video/quicktime");
+                put("swf", "application/x-shockwave-flash");
+                put("js", "application/javascript");
+                put("pdf", "application/pdf");
+                put("doc", "application/msword");
+                put("ogg", "application/x-ogg");
+                put("zip", "application/octet-stream");
+                put("exe", "application/octet-stream");
+                put("class", "application/octet-stream");
+                put("m3u8", "application/vnd.apple.mpegurl");
+                put("ts", " video/mp2t");
+            }
+        };
+
+        // Get MIME type from file name extension, if possible
+        private String getMimeTypeForFile(String uri) {
+            int dot = uri.lastIndexOf('.');
+            String mime = null;
+            if (dot >= 0) {
+                mime = MIME_TYPES.get(uri.substring(dot + 1).toLowerCase());
+            }
+            return mime == null ? "application/octet-stream" : mime;
+        }
+
+        private static String[] getPathArray(String uri) {
+            String array[] = uri.split("/");
+            ArrayList<String> pathArray = new ArrayList<String>();
+
+            for (String s : array) {
+                if (s.length() > 0)
+                    pathArray.add(s);
+            }
+
+            return pathArray.toArray(new String[]{});
+
+        }
+
+        @Override
+        public String getText() {
+            throw new IllegalStateException("this method should not be called");
+        }
+
+        @Override
+        public String getMimeType() {
+            throw new IllegalStateException("this method should not be called");
+        }
+
+        @Override
+        public IStatus getStatus() {
+            return Status.OK;
+        }
+
+        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+            String baseUri = uriResource.getUri();
+            String realUri = normalizeUri(session.getUri());
+            for (int index = 0; index < Math.min(baseUri.length(), realUri.length()); index++) {
+                if (baseUri.charAt(index) != realUri.charAt(index)) {
+                    realUri = normalizeUri(realUri.substring(index));
+                    break;
+                }
+            }
+            File fileOrdirectory = uriResource.initParameter(File.class);
+            for (String pathPart : getPathArray(realUri)) {
+                fileOrdirectory = new File(fileOrdirectory, pathPart);
+            }
+            if (fileOrdirectory.isDirectory()) {
+                fileOrdirectory = new File(fileOrdirectory, "index.html");
+                if (!fileOrdirectory.exists()) {
+                    fileOrdirectory = new File(fileOrdirectory.getParentFile(), "index.htm");
+                }
+            }
+            if (!fileOrdirectory.exists() || !fileOrdirectory.isFile()) {
+                return new Error404UriHandler().get(uriResource, urlParams, session);
+            } else {
+                try {
+                    FileInputStream ins = new FileInputStream(fileOrdirectory);
+                    return NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, getMimeTypeForFile(fileOrdirectory.getName()), new BufferedInputStream(ins));
+                } catch (IOException ioe) {
+                    return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.REQUEST_TIMEOUT, getMimeType(), null);
+                }
+            }
+        }
+    }
+
+    /**
      * Handling error 404 - unrecognized urls
      */
     public static class Error404UriHandler extends DefaultHandler {
@@ -238,72 +360,56 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
     }
 
-    public static class UriPart {
-
-        private String name;
-
-        private boolean isParam;
-
-        public UriPart(String name, boolean isParam) {
-            this.name = name;
-            this.isParam = isParam;
-        }
-
-        @Override
-        public String toString() {
-            return new StringBuilder("UriPart{name='").append(name)//
-                    .append("\', isParam=").append(isParam)//
-                    .append('}').toString();
-        }
-
-        public boolean isParam() {
-            return isParam;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-    }
-
     public static class UriResource {
 
-        private boolean hasParameters;
+        private static final Pattern PARAM_PATTERN = Pattern.compile("(?<=(^|/)):[a-zA-Z0-9_-]+(?=(/|$))");
 
-        private int uriParamsCount;
+        private static final String PARAM_MATCHER = "([A-Za-z0-9\\-\\._~:/?#\\[\\]@!\\$&'\\(\\)\\*\\+,;=]+)";
 
-        private String uri;
+        private static final Map<String, String> EMPTY = Collections.unmodifiableMap(new HashMap<String, String>());
 
-        private List<UriPart> uriParts;
+        private final String uri;
 
-        private Class<?> handler;
+        private final Pattern uriPattern;
 
-        public UriResource(String uri, Class<?> handler) {
-            this.hasParameters = false;
+        private final int priority;
+
+        private final Class<?> handler;
+
+        private final Object[] initParameter;
+
+        private List<String> uriParams = new ArrayList<String>();
+
+        public UriResource(String uri, int priority, Class<?> handler, Object... initParameter) {
             this.handler = handler;
-            uriParamsCount = 0;
+            this.initParameter = initParameter;
             if (uri != null) {
                 this.uri = normalizeUri(uri);
                 parse();
+                this.uriPattern = createUriPattern();
+            } else {
+                this.uriPattern = null;
+                this.uri = null;
             }
+            this.priority = priority + uriParams.size() * 1000;
         }
 
         private void parse() {
-            String[] parts = uri.split("/");
-            uriParts = new ArrayList<UriPart>();
-            for (String part : parts) {
-                boolean isParam = part.startsWith(":");
-                UriPart uriPart = null;
-                if (isParam) {
-                    hasParameters = true;
-                    uriParamsCount++;
-                    uriPart = new UriPart(part.substring(1), true);
-                } else {
-                    uriPart = new UriPart(part, false);
-                }
-                uriParts.add(uriPart);
-            }
+        }
 
+        private Pattern createUriPattern() {
+            String patternUri = uri;
+            Matcher matcher = PARAM_PATTERN.matcher(patternUri);
+            int start = 0;
+            while (matcher.find(start)) {
+                uriParams.add(patternUri.substring(matcher.start() + 1, matcher.end()));
+                patternUri = new StringBuilder(patternUri.substring(0, matcher.start()))//
+                        .append(PARAM_MATCHER)//
+                        .append(patternUri.substring(matcher.end())).toString();
+                start = matcher.start() + PARAM_MATCHER.length();
+                matcher = PARAM_PATTERN.matcher(patternUri);
+            }
+            return Pattern.compile(patternUri);
         }
 
         public Response process(Map<String, String> urlParams, IHTTPSession session) {
@@ -343,28 +449,42 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
         @Override
         public String toString() {
-            return new StringBuilder("UrlResource{hasParameters=").append(hasParameters)//
-                    .append(", uriParamsCount=").append(uriParamsCount)//
-                    .append(", uri='").append((uri == null ? "/" : uri))//
-                    .append("', urlParts=").append(uriParts)//
+            return new StringBuilder("UrlResource{uri='").append((uri == null ? "/" : uri))//
+                    .append("', urlParts=").append(uriParams)//
                     .append('}')//
                     .toString();
-        }
-
-        public boolean hasParameters() {
-            return hasParameters;
         }
 
         public String getUri() {
             return uri;
         }
 
-        public List<UriPart> getUriParts() {
-            return uriParts;
+        public <T> T initParameter(Class<T> paramClazz) {
+            return initParameter(0, paramClazz);
         }
 
-        public int getUriParamsCount() {
-            return uriParamsCount;
+        public <T> T initParameter(int parameterIndex, Class<T> paramClazz) {
+            if (initParameter.length > parameterIndex) {
+                return paramClazz.cast(initParameter[parameterIndex]);
+            }
+            LOG.severe("init parameter index not available " + parameterIndex);
+            return null;
+        }
+
+        public Map<String, String> match(String url) {
+            Matcher matcher = uriPattern.matcher(url);
+            if (matcher.matches()) {
+                if (uriParams.size() > 0) {
+                    Map<String, String> result = new HashMap<String, String>();
+                    for (int i = 1; i <= matcher.groupCount(); i++) {
+                        result.put(uriParams.get(i - 1), matcher.group(i));
+                    }
+                    return result;
+                } else {
+                    return EMPTY;
+                }
+            }
+            return null;
         }
 
     }
@@ -391,78 +511,42 @@ public class RouterNanoHTTPD extends NanoHTTPD {
          * @param url
          * @return
          */
-        public UriResource matchUrl(String url) {
-            String work = normalizeUri(url);
-            String[] parts = work.split("/");
-            List<UriResource> resultList = new ArrayList<UriResource>();
+        public Response process(IHTTPSession session) {
+            String work = normalizeUri(session.getUri());
+            Map<String, String> params = null;
+            UriResource uriResource = error404Url;
             for (UriResource u : mappings) {
-                // Check if count of parts is the same
-                if (parts.length != u.getUriParts().size()) {
-                    continue; // different
-                }
-                List<UriPart> uriParts = u.getUriParts();
-                boolean match = true;
-                for (int i = 0; i < parts.length; i++) {
-                    String currentPart = parts[i];
-                    UriPart uriPart = uriParts.get(i);
-                    boolean goOn = false;
-                    if (currentPart.equals(uriPart.getName())) {
-                        // exact match
-                        goOn = true;
-                    } else {
-                        // not match
-                        if (uriPart.isParam()) {
-                            goOn = true;
-                        } else {
-                            match = false;
-                            goOn = false;
-                        }
-                    }
-                    if (!goOn) {
-                        match = false;
-                        break;
-                    }
-                }
-                if (match) {
-                    // current match
-                    resultList.add(u);
+                params = u.match(work);
+                if (params != null) {
+                    uriResource = u;
+                    break;
                 }
             }
-            if (!resultList.isEmpty()) {
-                // some results
-                UriResource result = null;
-                if (resultList.size() > 1) {
-                    // return the rule with less parameters
-                    int params = 1024;
-                    for (UriResource u : resultList) {
-                        if (!u.hasParameters()) {
-                            result = u;
-                            break;
-                        } else {
-                            if (u.getUriParamsCount() <= params) {
-                                result = u;
-                            }
-                        }
-                    }
-                    return result;
-                } else {
-                    return resultList.get(0);
-                }
-            }
-            return error404Url;
+            return uriResource.process(params, session);
         }
 
-        public void addRoute(String url, Class<?> handler) {
+        private void addRoute(String url, int priority, Class<?> handler, Object... initParameter) {
             if (url != null) {
                 if (handler != null) {
-                    mappings.add(new UriResource(url, handler));
+                    mappings.add(new UriResource(url, priority + mappings.size(), handler, initParameter));
                 } else {
-                    mappings.add(new UriResource(url, notImplemented));
+                    mappings.add(new UriResource(url, priority + mappings.size(), notImplemented));
                 }
+                sortMappings();
             }
         }
 
-        public void removeRoute(String url) {
+        private void sortMappings() {
+            Collections.sort(mappings, new Comparator<UriResource>() {
+
+                @Override
+                public int compare(UriResource o1, UriResource o2) {
+                    return o1.priority - o2.priority;
+                }
+            });
+        }
+
+        private void removeRoute(String url) {
             String uriToDelete = normalizeUri(url);
             Iterator<UriResource> iter = mappings.iterator();
             while (iter.hasNext()) {
@@ -475,35 +559,13 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         }
 
         public void setNotFoundHandler(Class<?> handler) {
-            error404Url = new UriResource(null, handler);
+            error404Url = new UriResource(null, 100, handler);
         }
 
         public void setNotImplemented(Class<?> handler) {
             notImplemented = handler;
         }
 
-        /**
-         * Extract parameters and their values for the given route
-         * 
-         * @param route
-         * @param uri
-         * @return
-         */
-        public Map<String, String> getUrlParams(UriResource route, String uri) {
-            Map<String, String> result = new HashMap<String, String>();
-            if (route.getUri() == null) {
-                return result;
-            }
-            String workUri = normalizeUri(uri);
-            String[] parts = workUri.split("/");
-            for (int i = 0; i < parts.length; i++) {
-                UriPart currentPart = route.getUriParts().get(i);
-                if (currentPart.isParam()) {
-                    result.put(currentPart.getName(), parts[i]);
-                }
-            }
-            return result;
-        }
     }
 
     private UriRouter router;
@@ -524,12 +586,12 @@ public class RouterNanoHTTPD extends NanoHTTPD {
     public void addMappings() {
         router.setNotImplemented(NotImplementedHandler.class);
         router.setNotFoundHandler(Error404UriHandler.class);
-        router.addRoute("/", IndexHandler.class);
-        router.addRoute("/index.html", IndexHandler.class);
+        router.addRoute("/", Integer.MAX_VALUE / 2, IndexHandler.class);
+        router.addRoute("/index.html", Integer.MAX_VALUE / 2, IndexHandler.class);
     }
 
-    public void addRoute(String url, Class<?> handler) {
-        router.addRoute(url, handler);
+    public void addRoute(String url, Class<?> handler, Object... initParameter) {
+        router.addRoute(url, 100, handler, initParameter);
     }
 
     public void removeRoute(String url) {
@@ -539,8 +601,6 @@ public class RouterNanoHTTPD extends NanoHTTPD {
     @Override
     public Response serve(IHTTPSession session) {
         // Try to find match
-        UriResource uriResource = router.matchUrl(session.getUri());
-        // Process the uri
-        return uriResource.process(router.getUrlParams(uriResource, session.getUri()), session);
+        return router.process(session);
     }
 }

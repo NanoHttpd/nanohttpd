@@ -40,6 +40,7 @@ package fi.iki.elonen.router;
  */
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -145,6 +146,7 @@ public class AppNanolets extends RouterNanoHTTPD {
         addRoute("/toBeDeleted", String.class);
         removeRoute("/toBeDeleted");
         addRoute("/stream", StreamUrl.class);
+        addRoute("/browse/(.)+", StaticPageHandler.class, new File("src/test/resources").getAbsoluteFile());
     }
 
     /**
