@@ -1941,7 +1941,15 @@ public abstract class NanoHTTPD {
     public void start(final int timeout, boolean daemon) throws IOException {
         if (this.sslServerSocketFactory != null) {
             SSLServerSocket ss = (SSLServerSocket) this.sslServerSocketFactory.createServerSocket();
+            ss.setEnabledProtocols(new String[]{
+                "TLSv1",
+                "TLSv1.1",
+                "SSLv3"
+            });
+            ss.setUseClientMode(false);
+            ss.setWantClientAuth(false);
             ss.setNeedClientAuth(false);
+            ss.setSoTimeout(timeout);
             this.myServerSocket = ss;
         } else {
             this.myServerSocket = new ServerSocket();
