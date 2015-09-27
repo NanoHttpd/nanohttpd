@@ -33,6 +33,7 @@ package fi.iki.elonen;
  * #L%
  */
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
@@ -49,7 +50,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.BufferedInputStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
@@ -1648,6 +1648,8 @@ public abstract class NanoHTTPD {
 
     private SSLServerSocketFactory sslServerSocketFactory;
 
+    private String[] sslProtocols;
+
     private Thread myThread;
 
     /**
@@ -1804,8 +1806,9 @@ public abstract class NanoHTTPD {
     /**
      * Call before start() to serve over HTTPS instead of HTTP
      */
-    public void makeSecure(SSLServerSocketFactory sslServerSocketFactory) {
+    public void makeSecure(SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols) {
         this.sslServerSocketFactory = sslServerSocketFactory;
+        this.sslProtocols = sslProtocols;
     }
 
     /**
@@ -1941,11 +1944,11 @@ public abstract class NanoHTTPD {
     public void start(final int timeout, boolean daemon) throws IOException {
         if (this.sslServerSocketFactory != null) {
             SSLServerSocket ss = (SSLServerSocket) this.sslServerSocketFactory.createServerSocket();
-            ss.setEnabledProtocols(new String[]{
-                "TLSv1",
-                "TLSv1.1",
-                "SSLv3"
-            });
+            if (this.sslProtocols != null) {
+                ss.setEnabledProtocols(this.sslProtocols);
+            } else {
+                ss.setEnabledProtocols(ss.getSupportedProtocols());
+            }
             ss.setUseClientMode(false);
             ss.setWantClientAuth(false);
             ss.setNeedClientAuth(false);

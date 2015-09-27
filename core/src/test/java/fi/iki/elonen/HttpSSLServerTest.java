@@ -36,12 +36,11 @@ package fi.iki.elonen;
 import java.io.File;
 import java.io.IOException;
 
-import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLContext;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.junit.After;
@@ -58,13 +57,16 @@ public class HttpSSLServerTest extends HttpServerTest {
         HttpResponse response = httpclient.execute(httphead);
         HttpEntity entity = response.getEntity();
         Assert.assertEquals(200, response.getStatusLine().getStatusCode());
+        
+        Assert.assertEquals(9043, this.testServer.getListeningPort());
+        Assert.assertTrue(this.testServer.isAlive());
     }
 
     @Before
     public void setUp() throws Exception {
         System.setProperty("javax.net.ssl.trustStore", new File("src/test/resources/keystore.jks").getAbsolutePath());
         this.testServer = new TestServer(9043);
-        this.testServer.makeSecure(NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()));
+        this.testServer.makeSecure(NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()), null);
         this.tempFileManager = new TestTempFileManager();
         this.testServer.start();
         try {
