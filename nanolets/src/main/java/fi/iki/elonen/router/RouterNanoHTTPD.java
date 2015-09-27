@@ -36,6 +36,7 @@ package fi.iki.elonen.router;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -279,12 +280,15 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                 return new Error404UriHandler().get(uriResource, urlParams, session);
             } else {
                 try {
-                    FileInputStream ins = new FileInputStream(fileOrdirectory);
-                    return NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK, getMimeTypeForFile(fileOrdirectory.getName()), new BufferedInputStream(ins));
+                    return NanoHTTPD.newChunkedResponse(getStatus(), getMimeTypeForFile(fileOrdirectory.getName()), fileToInputStream(fileOrdirectory));
                 } catch (IOException ioe) {
-                    return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.REQUEST_TIMEOUT, getMimeType(), null);
+                    return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.REQUEST_TIMEOUT, "text/plain", null);
                 }
             }
+        }
+
+        protected BufferedInputStream fileToInputStream(File fileOrdirectory) throws IOException {
+            return new BufferedInputStream(new FileInputStream(fileOrdirectory));
         }
     }
 

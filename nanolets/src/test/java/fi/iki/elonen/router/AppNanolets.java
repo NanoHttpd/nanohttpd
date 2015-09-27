@@ -39,8 +39,10 @@ package fi.iki.elonen.router;
  * Read the source. Everything is there.
  */
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -118,6 +120,17 @@ public class AppNanolets extends RouterNanoHTTPD {
 
     }
 
+    static class StaticPageTestHandler extends StaticPageHandler {
+
+        @Override
+        protected BufferedInputStream fileToInputStream(File fileOrdirectory) throws IOException {
+            if (fileOrdirectory.getName().equals("exception.html")) {
+                throw new IOException("trigger something wrong");
+            }
+            return super.fileToInputStream(fileOrdirectory);
+        }
+    }
+
     /**
      * Create the server instance
      */
@@ -146,7 +159,7 @@ public class AppNanolets extends RouterNanoHTTPD {
         addRoute("/toBeDeleted", String.class);
         removeRoute("/toBeDeleted");
         addRoute("/stream", StreamUrl.class);
-        addRoute("/browse/(.)+", StaticPageHandler.class, new File("src/test/resources").getAbsoluteFile());
+        addRoute("/browse/(.)+", StaticPageTestHandler.class, new File("src/test/resources").getAbsoluteFile());
     }
 
     /**

@@ -55,6 +55,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.router.RouterNanoHTTPD.GeneralHandler;
 import fi.iki.elonen.router.RouterNanoHTTPD.UriResource;
 
@@ -353,6 +354,14 @@ public class TestNanolets {
         entity = response.getEntity();
         string = new String(readContents(entity), "UTF-8");
         Assert.assertEquals("<html><body><h3>just an index page</h3></body></html>", string);
+        response.close();
+
+        httphead = new HttpTrace("http://localhost:9090/browse/exception.html");
+        response = httpclient.execute(httphead);
+        Assert.assertEquals(NanoHTTPD.Response.Status.REQUEST_TIMEOUT.getRequestStatus(), response.getStatusLine().getStatusCode());
+        entity = response.getEntity();
+        string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals("", string);
         response.close();
     }
 
