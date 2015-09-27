@@ -78,6 +78,11 @@ Compile and run the server:
     
 If it started ok, point your browser at <http://localhost:8080/> and enjoy a web server that asks your name and replies with a greeting. 
 
+### Nanolets
+
+Nanolets are like sevlet's only that they have a extrem low profile. They offer an easy to use system for a more complex server application. 
+This text has to be extrended with an example, so for now take a look at the unit tests for the usage. <https://github.com/NanoHttpd/nanohttpd/blob/master/nanolets/src/test/java/fi/iki/elonen/router/AppNanolets.java>
+
 ## Status
 
 We are currently in the process of stabilizing NanoHttpd from the many pull requests and feature requests that were integrated over the last few months. The next release will come soon, and there will not be any more "intended" major changes before the next release. If you want to use the bleeding edge version, you can clone it from Github, or get it from sonatype.org (see "Maven dependencies / Living on the edge" below).
@@ -93,6 +98,10 @@ NanoHTTPD project currently consist of four parts:
  * `/websocket` – Websocket implementation, also in a single Java file. Depends on core.
 
  * `/webserver` – Standalone file server. Run & enjoy. A popular use seems to be serving files out off an Android device.
+
+ * `/nanolets` – Standalone nano app server, giving a servlet like system to the implementor.
+
+ * `/fileupload` – integration of the apache common file upload library.
 
 ## Features
 ### Core
