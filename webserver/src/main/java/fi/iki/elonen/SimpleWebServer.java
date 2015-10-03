@@ -32,11 +32,13 @@ package fi.iki.elonen;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -55,11 +57,6 @@ import fi.iki.elonen.util.ServerRunner;
 public class SimpleWebServer extends NanoHTTPD {
 
     /**
-     * Common mime type for dynamic content: binary
-     */
-    public static final String MIME_DEFAULT_BINARY = "application/octet-stream";
-
-    /**
      * Default Index file names.
      */
     @SuppressWarnings("serial")
@@ -72,58 +69,26 @@ public class SimpleWebServer extends NanoHTTPD {
     };
 
     /**
-     * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
-     */
-    @SuppressWarnings("serial")
-    private static final Map<String, String> MIME_TYPES = new HashMap<String, String>() {
-
-        {
-            put("css", "text/css");
-            put("htm", "text/html");
-            put("html", "text/html");
-            put("xml", "text/xml");
-            put("java", "text/x-java-source, text/java");
-            put("md", "text/plain");
-            put("txt", "text/plain");
-            put("asc", "text/plain");
-            put("gif", "image/gif");
-            put("jpg", "image/jpeg");
-            put("jpeg", "image/jpeg");
-            put("png", "image/png");
-            put("svg", "image/svg+xml");
-            put("mp3", "audio/mpeg");
-            put("m3u", "audio/mpeg-url");
-            put("mp4", "video/mp4");
-            put("ogv", "video/ogg");
-            put("flv", "video/x-flv");
-            put("mov", "video/quicktime");
-            put("swf", "application/x-shockwave-flash");
-            put("js", "application/javascript");
-            put("pdf", "application/pdf");
-            put("doc", "application/msword");
-            put("ogg", "application/x-ogg");
-            put("zip", "application/octet-stream");
-            put("exe", "application/octet-stream");
-            put("class", "application/octet-stream");
-            put("m3u8", "application/vnd.apple.mpegurl");
-            put("ts", " video/mp2t");
-        }
-    };
-
-    /**
      * The distribution licence
      */
-    private static final String LICENCE = "Copyright (c) 2012-2013 by Paul S. Hawke, 2001,2005-2013 by Jarno Elonen, 2010 by Konstantinos Togias\n" + "\n"
-            + "Redistribution and use in source and binary forms, with or without\n" + "modification, are permitted provided that the following conditions\n" + "are met:\n"
-            + "\n" + "Redistributions of source code must retain the above copyright notice,\n" + "this list of conditions and the following disclaimer. Redistributions in\n"
-            + "binary form must reproduce the above copyright notice, this list of\n" + "conditions and the following disclaimer in the documentation and/or other\n"
-            + "materials provided with the distribution. The name of the author may not\n" + "be used to endorse or promote products derived from this software without\n"
-            + "specific prior written permission. \n" + " \n" + "THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR\n"
-            + "IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES\n" + "OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.\n"
-            + "IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,\n" + "INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT\n"
-            + "NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\n" + "DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\n"
-            + "THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n" + "(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n"
-            + "OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.";
+    private static final String LICENCE;
+    static {
+        mimeTypes();
+        InputStream stream = SimpleWebServer.class.getResourceAsStream("/LICENSE.txt");
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int count;
+        String text;
+        try {
+            while ((count = stream.read(buffer)) >= 0) {
+                bytes.write(buffer, 0, count);
+            }
+            text = bytes.toString("UTF-8");
+        } catch (IOException e) {
+            text = "unknown";
+        }
+        LICENCE = text;
+    }
 
     private static Map<String, WebServerPlugin> mimeTypeHandlers = new HashMap<String, WebServerPlugin>();
 
@@ -216,7 +181,7 @@ public class SimpleWebServer extends NanoHTTPD {
                 int dot = filename.lastIndexOf('.');
                 if (dot >= 0) {
                     String extension = filename.substring(dot + 1).toLowerCase();
-                    SimpleWebServer.MIME_TYPES.put(extension, mimeType);
+                    mimeTypes().put(extension, mimeType);
                 }
             }
             SimpleWebServer.INDEX_FILE_NAMES.addAll(Arrays.asList(indexFiles));
@@ -257,8 +222,7 @@ public class SimpleWebServer extends NanoHTTPD {
         File f = new File(homeDir, uri);
         canServeUri = f.exists();
         if (!canServeUri) {
-            String mimeTypeForFile = getMimeTypeForFile(uri);
-            WebServerPlugin plugin = SimpleWebServer.mimeTypeHandlers.get(mimeTypeForFile);
+            WebServerPlugin plugin = SimpleWebServer.mimeTypeHandlers.get(getMimeTypeForFile(uri));
             if (plugin != null) {
                 canServeUri = plugin.canServeUri(uri, homeDir);
             }
@@ -305,16 +269,6 @@ public class SimpleWebServer extends NanoHTTPD {
 
     protected Response getInternalErrorResponse(String s) {
         return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "INTERNAL ERROR: " + s);
-    }
-
-    // Get MIME type from file name extension, if possible
-    private String getMimeTypeForFile(String uri) {
-        int dot = uri.lastIndexOf('.');
-        String mime = null;
-        if (dot >= 0) {
-            mime = SimpleWebServer.MIME_TYPES.get(uri.substring(dot + 1).toLowerCase());
-        }
-        return mime == null ? SimpleWebServer.MIME_DEFAULT_BINARY : mime;
     }
 
     protected Response getNotFoundResponse() {
@@ -465,7 +419,6 @@ public class SimpleWebServer extends NanoHTTPD {
                 return respond(headers, session, uri + indexFile);
             }
         }
-
         String mimeTypeForFile = getMimeTypeForFile(uri);
         WebServerPlugin plugin = SimpleWebServer.mimeTypeHandlers.get(mimeTypeForFile);
         Response response = null;

@@ -57,7 +57,7 @@ public class HttpSSLServerTest extends HttpServerTest {
         HttpResponse response = httpclient.execute(httphead);
         HttpEntity entity = response.getEntity();
         Assert.assertEquals(200, response.getStatusLine().getStatusCode());
-        
+
         Assert.assertEquals(9043, this.testServer.getListeningPort());
         Assert.assertTrue(this.testServer.isAlive());
     }

@@ -36,7 +36,6 @@ package fi.iki.elonen.router;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -179,55 +178,6 @@ public class RouterNanoHTTPD extends NanoHTTPD {
      * General nanolet to print debug info's as a html page.
      */
     public static class StaticPageHandler extends DefaultHandler {
-
-        /**
-         * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
-         */
-        @SuppressWarnings("serial")
-        private static final Map<String, String> MIME_TYPES = new HashMap<String, String>() {
-
-            {
-                put("css", "text/css");
-                put("htm", "text/html");
-                put("html", "text/html");
-                put("xml", "text/xml");
-                put("java", "text/x-java-source, text/java");
-                put("md", "text/plain");
-                put("txt", "text/plain");
-                put("asc", "text/plain");
-                put("gif", "image/gif");
-                put("jpg", "image/jpeg");
-                put("jpeg", "image/jpeg");
-                put("png", "image/png");
-                put("svg", "image/svg+xml");
-                put("mp3", "audio/mpeg");
-                put("m3u", "audio/mpeg-url");
-                put("mp4", "video/mp4");
-                put("ogv", "video/ogg");
-                put("flv", "video/x-flv");
-                put("mov", "video/quicktime");
-                put("swf", "application/x-shockwave-flash");
-                put("js", "application/javascript");
-                put("pdf", "application/pdf");
-                put("doc", "application/msword");
-                put("ogg", "application/x-ogg");
-                put("zip", "application/octet-stream");
-                put("exe", "application/octet-stream");
-                put("class", "application/octet-stream");
-                put("m3u8", "application/vnd.apple.mpegurl");
-                put("ts", " video/mp2t");
-            }
-        };
-
-        // Get MIME type from file name extension, if possible
-        private String getMimeTypeForFile(String uri) {
-            int dot = uri.lastIndexOf('.');
-            String mime = null;
-            if (dot >= 0) {
-                mime = MIME_TYPES.get(uri.substring(dot + 1).toLowerCase());
-            }
-            return mime == null ? "application/octet-stream" : mime;
-        }
 
         private static String[] getPathArray(String uri) {
             String array[] = uri.split("/");
