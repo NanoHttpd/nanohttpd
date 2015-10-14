@@ -979,7 +979,7 @@ public abstract class NanoHTTPD {
          */
         public long getBodySize() {
             if (this.headers.containsKey("content-length")) {
-                return Integer.parseInt(this.headers.get("content-length"));
+                return Long.parseLong(this.headers.get("content-length"));
             } else if (this.splitbyte < this.rlen) {
                 return this.rlen - this.splitbyte;
             }
