@@ -33,6 +33,15 @@ package fi.iki.elonen;
  * #L%
  */
 
+import fi.iki.elonen.NanoHTTPD.Response.IStatus;
+import fi.iki.elonen.NanoHTTPD.Response.Status;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -83,16 +92,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.TrustManagerFactory;
-
-import fi.iki.elonen.NanoHTTPD.Response.IStatus;
-import fi.iki.elonen.NanoHTTPD.Response.Status;
 
 /**
  * A simple, tiny, nicely embeddable HTTP server in Java
@@ -430,6 +429,10 @@ public abstract class NanoHTTPD {
 
         public DefaultTempFileManager() {
             this.tmpdir = System.getProperty("java.io.tmpdir");
+            File dir = new File(tmpdir);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
             this.tempFiles = new ArrayList<TempFile>();
         }
 
