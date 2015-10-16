@@ -58,6 +58,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -68,11 +69,13 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.logging.Level;
@@ -385,8 +388,8 @@ public abstract class NanoHTTPD {
 
         private final OutputStream fstream;
 
-        public DefaultTempFile(String tempdir) throws IOException {
-            this.file = File.createTempFile("NanoHTTPD-", "", new File(tempdir));
+        public DefaultTempFile(File tempdir) throws IOException {
+            this.file = File.createTempFile("NanoHTTPD-", "", tempdir);
             this.fstream = new FileOutputStream(this.file);
         }
 
@@ -421,12 +424,15 @@ public abstract class NanoHTTPD {
      */
     public static class DefaultTempFileManager implements TempFileManager {
 
-        private final String tmpdir;
+        private final File tmpdir;
 
         private final List<TempFile> tempFiles;
 
         public DefaultTempFileManager() {
-            this.tmpdir = System.getProperty("java.io.tmpdir");
+            this.tmpdir = new File(System.getProperty("java.io.tmpdir"));
+            if (!tmpdir.exists()) {
+                tmpdir.mkdirs();
+            }
             this.tempFiles = new ArrayList<TempFile>();
         }
 
@@ -917,7 +923,7 @@ public abstract class NanoHTTPD {
          */
         public long getBodySize() {
             if (this.headers.containsKey("content-length")) {
-                return Integer.parseInt(this.headers.get("content-length"));
+                return Long.parseLong(this.headers.get("content-length"));
             } else if (this.splitbyte < this.rlen) {
                 return this.rlen - this.splitbyte;
             }
@@ -1574,6 +1580,45 @@ public abstract class NanoHTTPD {
     private static final Logger LOG = Logger.getLogger(NanoHTTPD.class.getName());
 
     /**
+     * Hashtable mapping (String)FILENAME_EXTENSION -> (String)MIME_TYPE
+     */
+    protected static Map<String, String> MIME_TYPES;
+
+    public static Map<String, String> mimeTypes() {
+        if (MIME_TYPES == null) {
+            MIME_TYPES = new HashMap<String, String>();
+            loadMimeTypes(MIME_TYPES, "META-INF/nanohttpd/default-mimetypes.properties");
+            loadMimeTypes(MIME_TYPES, "META-INF/nanohttpd/mimetypes.properties");
+            if (MIME_TYPES.isEmpty()) {
+                LOG.log(Level.WARNING, "no mime types found in the classpath! please provide mimetypes.properties");
+            }
+        }
+        return MIME_TYPES;
+    }
+
+    private static void loadMimeTypes(Map<String, String> result, String resourceName) {
+        try {
+            Enumeration<URL> resources = NanoHTTPD.class.getClassLoader().getResources(resourceName);
+            while (resources.hasMoreElements()) {
+                URL url = (URL) resources.nextElement();
+                Properties properties = new Properties();
+                InputStream stream = null;
+                try {
+                    stream = url.openStream();
+                    properties.load(url.openStream());
+                } catch (IOException e) {
+                    LOG.log(Level.SEVERE, "could not load mimetypes from " + url, e);
+                } finally {
+                    safeClose(stream);
+                }
+                result.putAll((Map) properties);
+            }
+        } catch (IOException e) {
+            LOG.log(Level.INFO, "no mime types available at " + resourceName);
+        }
+    };
+
+    /**
      * Creates an SSLSocketFactory for HTTPS. Pass a loaded KeyStore and an
      * array of loaded KeyManagers. These objects must properly
      * loaded/initialized by the caller.
@@ -1620,6 +1665,22 @@ public abstract class NanoHTTPD {
         } catch (Exception e) {
             throw new IOException(e.getMessage());
         }
+    }
+
+    /**
+     * Get MIME type from file name extension, if possible
+     * 
+     * @param uri
+     *            the string representing a file
+     * @return the connected mime/type
+     */
+    public static String getMimeTypeForFile(String uri) {
+        int dot = uri.lastIndexOf('.');
+        String mime = null;
+        if (dot >= 0) {
+            mime = mimeTypes().get(uri.substring(dot + 1).toLowerCase());
+        }
+        return mime == null ? "application/octet-stream" : mime;
     }
 
     private static final void safeClose(Object closeable) {

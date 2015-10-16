@@ -50,6 +50,6 @@
 		</plugins>
 	</build>
 	<properties>
-		<minimal.coverage>0.74</minimal.coverage>
+		<minimal.coverage>0.75</minimal.coverage>
 	</properties>
 </project>
