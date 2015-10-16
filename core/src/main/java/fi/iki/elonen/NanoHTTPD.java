@@ -33,15 +33,6 @@ package fi.iki.elonen;
  * #L%
  */
 
-import fi.iki.elonen.NanoHTTPD.Response.IStatus;
-import fi.iki.elonen.NanoHTTPD.Response.Status;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.TrustManagerFactory;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -92,6 +83,16 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
+
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
+
+import fi.iki.elonen.NanoHTTPD.Response.IStatus;
+import fi.iki.elonen.NanoHTTPD.Response.Status;
 
 /**
  * A simple, tiny, nicely embeddable HTTP server in Java
@@ -387,8 +388,8 @@ public abstract class NanoHTTPD {
 
         private final OutputStream fstream;
 
-        public DefaultTempFile(String tempdir) throws IOException {
-            this.file = File.createTempFile("NanoHTTPD-", "", new File(tempdir));
+        public DefaultTempFile(File tempdir) throws IOException {
+            this.file = File.createTempFile("NanoHTTPD-", "", tempdir);
             this.fstream = new FileOutputStream(this.file);
         }
 
@@ -423,15 +424,14 @@ public abstract class NanoHTTPD {
      */
     public static class DefaultTempFileManager implements TempFileManager {
 
-        private final String tmpdir;
+        private final File tmpdir;
 
         private final List<TempFile> tempFiles;
 
         public DefaultTempFileManager() {
-            this.tmpdir = System.getProperty("java.io.tmpdir");
-            File dir = new File(tmpdir);
-            if (!dir.exists()) {
-                dir.mkdirs();
+            this.tmpdir = new File(System.getProperty("java.io.tmpdir"));
+            if (!tmpdir.exists()) {
+                tmpdir.mkdirs();
             }
             this.tempFiles = new ArrayList<TempFile>();
         }
@@ -1104,7 +1104,7 @@ public abstract class NanoHTTPD {
     /**
      * HTTP response. Return one of these from serve().
      */
-    public static class Response implements java.io.Closeable {
+    public static class Response implements Closeable {
 
         public interface IStatus {
 

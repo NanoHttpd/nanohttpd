@@ -33,6 +33,7 @@ package fi.iki.elonen;
  * #L%
  */
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,12 +47,12 @@ public class TempFilesServer extends DebugServer {
 
     private static class ExampleManager implements TempFileManager {
 
-        private final String tmpdir;
+        private final File tmpdir;
 
         private final List<TempFile> tempFiles;
 
         private ExampleManager() {
-            this.tmpdir = System.getProperty("java.io.tmpdir");
+            this.tmpdir = new File(System.getProperty("java.io.tmpdir"));
             this.tempFiles = new ArrayList<TempFile>();
         }
 
