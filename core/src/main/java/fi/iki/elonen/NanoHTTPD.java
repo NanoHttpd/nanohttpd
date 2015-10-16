@@ -1104,7 +1104,7 @@ public abstract class NanoHTTPD {
     /**
      * HTTP response. Return one of these from serve().
      */
-    public static class Response implements Closeable {
+    public static class Response implements java.io.Closeable {
 
         public interface IStatus {
 
