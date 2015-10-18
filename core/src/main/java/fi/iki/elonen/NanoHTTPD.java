@@ -2088,7 +2088,7 @@ public abstract class NanoHTTPD {
      *             if the socket is in use.
      */
     public void start(final int timeout, boolean daemon) throws IOException {
-        this.myServerSocket = this.serverSocketFactory.create();
+        this.myServerSocket = this.getServerSocketFactory().create();
         this.myServerSocket.setReuseAddress(true);
 
         ServerRunnable serverRunnable = createServerRunnable(timeout);
