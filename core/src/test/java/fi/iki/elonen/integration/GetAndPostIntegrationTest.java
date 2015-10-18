@@ -35,6 +35,7 @@ package fi.iki.elonen.integration;
 
 import static org.junit.Assert.assertEquals;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -153,5 +154,28 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
         String responseBody = this.httpclient.execute(httpget, responseHandler);
 
         assertEquals("GET:testSimpleGetRequest", responseBody);
+    }
+
+    @Test
+    public void testPostRequestWithMultipartExtremEncodedParameters() throws Exception {
+        this.testServer.response = "testPostRequestWithMultipartEncodedParameters";
+
+        HttpPost httppost = new HttpPost("http://localhost:8192/");
+        MultipartEntity reqEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE, "sfsadfasdf", Charset.forName("UTF-8"));
+        reqEntity.addPart("specialString", new StringBody("拖拉图片到浏览器，可以实现预览功能", "text/plain", Charset.forName("UTF-8")));
+        reqEntity.addPart("gender", new StringBody("图片名称", Charset.forName("UTF-8")) {
+
+            @Override
+            public String getFilename() {
+                return "图片名称";
+            }
+        });
+        httppost.setEntity(reqEntity);
+
+        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+        String responseBody = this.httpclient.execute(httppost, responseHandler);
+
+        // assertEquals("POST:testPostRequestWithMultipartEncodedParameters-params=2;age=120;gender=Male",
+        // responseBody);
     }
 }

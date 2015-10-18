@@ -388,8 +388,8 @@ public abstract class NanoHTTPD {
 
         private final OutputStream fstream;
 
-        public DefaultTempFile(String tempdir) throws IOException {
-            this.file = File.createTempFile("NanoHTTPD-", "", new File(tempdir));
+        public DefaultTempFile(File tempdir) throws IOException {
+            this.file = File.createTempFile("NanoHTTPD-", "", tempdir);
             this.fstream = new FileOutputStream(this.file);
         }
 
@@ -424,12 +424,15 @@ public abstract class NanoHTTPD {
      */
     public static class DefaultTempFileManager implements TempFileManager {
 
-        private final String tmpdir;
+        private final File tmpdir;
 
         private final List<TempFile> tempFiles;
 
         public DefaultTempFileManager() {
-            this.tmpdir = System.getProperty("java.io.tmpdir");
+            this.tmpdir = new File(System.getProperty("java.io.tmpdir"));
+            if (!tmpdir.exists()) {
+                tmpdir.mkdirs();
+            }
             this.tempFiles = new ArrayList<TempFile>();
         }
 
@@ -463,6 +466,14 @@ public abstract class NanoHTTPD {
             return new DefaultTempFileManager();
         }
     }
+
+    private static final String CHARSET_REGEX = "[ |\t]*(charset)[ |\t]*=[ |\t]*['|\"]?([^\"^'^;]*)['|\"]?";
+
+    private static final Pattern CHARSET_PATTERN = Pattern.compile(CHARSET_REGEX, Pattern.CASE_INSENSITIVE);
+
+    private static final String BOUNDARY_REGEX = "[ |\t]*(boundary)[ |\t]*=[ |\t]*['|\"]?([^\"^'^;]*)['|\"]?";
+
+    private static final Pattern BOUNDARY_PATTERN = Pattern.compile(BOUNDARY_REGEX, Pattern.CASE_INSENSITIVE);
 
     /**
      * Creates a normal ServerSocket for TCP connections
@@ -637,7 +648,7 @@ public abstract class NanoHTTPD {
         /**
          * Decodes the Multipart Body data and put it into Key/Value pairs.
          */
-        private void decodeMultipartFormData(String boundary, ByteBuffer fbuf, Map<String, String> parms, Map<String, String> files) throws ResponseException {
+        private void decodeMultipartFormData(String boundary, String encoding, ByteBuffer fbuf, Map<String, String> parms, Map<String, String> files) throws ResponseException {
             try {
                 int[] boundary_idxs = getBoundaryPositions(fbuf, boundary.getBytes());
                 if (boundary_idxs.length < 2) {
@@ -651,7 +662,7 @@ public abstract class NanoHTTPD {
                     int len = (fbuf.remaining() < MAX_HEADER_SIZE) ? fbuf.remaining() : MAX_HEADER_SIZE;
                     fbuf.get(part_header_buff, 0, len);
                     ByteArrayInputStream bais = new ByteArrayInputStream(part_header_buff, 0, len);
-                    BufferedReader in = new BufferedReader(new InputStreamReader(bais, Charset.forName("US-ASCII")));
+                    BufferedReader in = new BufferedReader(new InputStreamReader(bais, Charset.forName(encoding)));
 
                     // First line is boundary string
                     String mpline = in.readLine();
@@ -696,7 +707,7 @@ public abstract class NanoHTTPD {
                         // Read the part into a string
                         byte[] data_bytes = new byte[part_data_end - part_data_start];
                         fbuf.get(data_bytes);
-                        parms.put(part_name, new String(data_bytes));
+                        parms.put(part_name, new String(data_bytes, encoding));
                     } else {
                         // Read it into a file
                         String path = saveTmpFile(fbuf, part_data_start, part_data_end - part_data_start, file_name);
@@ -1041,15 +1052,8 @@ public abstract class NanoHTTPD {
                             throw new ResponseException(Response.Status.BAD_REQUEST,
                                     "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
                         }
-
-                        String boundaryStartString = "boundary=";
-                        int boundaryContentStart = contentTypeHeader.indexOf(boundaryStartString) + boundaryStartString.length();
-                        String boundary = contentTypeHeader.substring(boundaryContentStart, contentTypeHeader.length());
-                        if (boundary.startsWith("\"") && boundary.endsWith("\"")) {
-                            boundary = boundary.substring(1, boundary.length() - 1);
-                        }
-
-                        decodeMultipartFormData(boundary, fbuf, this.parms, files);
+                        decodeMultipartFormData(getAttributeFromContentHeader(contentTypeHeader, BOUNDARY_PATTERN, null), //
+                                getAttributeFromContentHeader(contentTypeHeader, CHARSET_PATTERN, "US-ASCII"), fbuf, this.parms, files);
                     } else {
                         byte[] postBytes = new byte[fbuf.remaining()];
                         fbuf.get(postBytes);
@@ -1070,6 +1074,11 @@ public abstract class NanoHTTPD {
             } finally {
                 safeClose(randomAccessFile);
             }
+        }
+
+        private String getAttributeFromContentHeader(String contentTypeHeader, Pattern pattern, String defaultValue) {
+            Matcher matcher = pattern.matcher(contentTypeHeader);
+            return matcher.find() ? matcher.group(2) : defaultValue;
         }
 
         /**
