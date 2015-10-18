@@ -495,6 +495,8 @@ public abstract class NanoHTTPD {
 
         public static final int BUFSIZE = 8192;
 
+        public static final int MAX_HEADER_SIZE = 1024;
+
         private final TempFileManager tempFileManager;
 
         private final OutputStream outputStream;
@@ -603,17 +605,17 @@ public abstract class NanoHTTPD {
                     throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but contains less than two boundary strings.");
                 }
 
-                final int MAX_HEADER_SIZE = 1024;
                 byte[] part_header_buff = new byte[MAX_HEADER_SIZE];
                 for (int bi = 0; bi < boundary_idxs.length - 1; bi++) {
                     fbuf.position(boundary_idxs[bi]);
                     int len = (fbuf.remaining() < MAX_HEADER_SIZE) ? fbuf.remaining() : MAX_HEADER_SIZE;
                     fbuf.get(part_header_buff, 0, len);
-                    ByteArrayInputStream bais = new ByteArrayInputStream(part_header_buff, 0, len);
-                    BufferedReader in = new BufferedReader(new InputStreamReader(bais, Charset.forName(encoding)));
+                    BufferedReader in = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(part_header_buff, 0, len), Charset.forName(encoding)), len);
 
+                    int headerLines = 0;
                     // First line is boundary string
                     String mpline = in.readLine();
+                    headerLines++;
                     if (!mpline.contains(boundary)) {
                         throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but chunk does not start with boundary.");
                     }
@@ -621,6 +623,7 @@ public abstract class NanoHTTPD {
                     String part_name = null, file_name = null, content_type = null;
                     // Parse the reset of the header lines
                     mpline = in.readLine();
+                    headerLines++;
                     while (mpline != null && mpline.trim().length() > 0) {
                         Matcher matcher = CONTENT_DISPOSITION_PATTERN.matcher(mpline);
                         if (matcher.matches()) {
@@ -640,10 +643,13 @@ public abstract class NanoHTTPD {
                             content_type = matcher.group(2).trim();
                         }
                         mpline = in.readLine();
+                        headerLines++;
                     }
-
+                    int part_header_len = 0;
+                    while (headerLines-- > 0) {
+                        part_header_len = scipOverNewLine(part_header_buff, part_header_len);
+                    }
                     // Read the part data
-                    int part_header_len = len - (int) in.skip(MAX_HEADER_SIZE);
                     if (part_header_len >= len - 4) {
                         throw new ResponseException(Response.Status.INTERNAL_ERROR, "Multipart header size exceeds MAX_HEADER_SIZE.");
                     }
@@ -676,6 +682,13 @@ public abstract class NanoHTTPD {
             } catch (Exception e) {
                 throw new ResponseException(Response.Status.INTERNAL_ERROR, e.toString());
             }
+        }
+
+        private int scipOverNewLine(byte[] part_header_buff, int index) {
+            while (part_header_buff[index] != '\n') {
+                index++;
+            }
+            return ++index;
         }
 
         /**
