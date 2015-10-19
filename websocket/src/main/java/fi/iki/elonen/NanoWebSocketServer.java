@@ -845,9 +845,9 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
             return serveHttp(session);
         }
     }
-    
+
     protected Response serveHttp(final IHTTPSession session) {
-    	return super.serve(session);
+        return super.serve(session);
     }
 
     /**
