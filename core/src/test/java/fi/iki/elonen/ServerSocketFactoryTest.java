@@ -1,5 +1,7 @@
 package fi.iki.elonen;
 
+import java.io.File;
+
 /*
  * #%L
  * NanoHttpd-Core
@@ -39,6 +41,9 @@ import java.net.ServerSocket;
 import org.junit.Assert;
 import org.junit.Test;
 
+import fi.iki.elonen.HttpServerTest.TestServer;
+import fi.iki.elonen.NanoHTTPD.SecureServerSocketFactory;
+
 public class ServerSocketFactoryTest extends NanoHTTPD {
 
     public static final int PORT = 8192;
@@ -58,8 +63,28 @@ public class ServerSocketFactoryTest extends NanoHTTPD {
     @Test
     public void testCreateServerSocket() {
         System.out.println("CreateServerSocket test");
-        ServerSocket ss = this.getServerSocketFactory().create();
+        ServerSocket ss = null;
+        try {
+            ss = this.getServerSocketFactory().create();
+        } catch (IOException e) {
+        }
         Assert.assertTrue(ss != null);
+    }
+
+    @Test
+    public void testSSLServerSocketFail() {
+        String[] protocols = {
+            ""
+        };
+        System.setProperty("javax.net.ssl.trustStore", new File("src/test/resources/keystore.jks").getAbsolutePath());
+        ServerSocketFactory ssFactory = new SecureServerSocketFactory(null, protocols);
+        ServerSocket ss = null;
+        try {
+            ss = ssFactory.create();
+        } catch (Exception e) {
+        }
+        Assert.assertTrue(ss == null);
+
     }
 
     private class TestFactory implements ServerSocketFactory {

@@ -481,13 +481,8 @@ public abstract class NanoHTTPD {
     public static class DefaultServerSocketFactory implements ServerSocketFactory {
 
         @Override
-        public ServerSocket create() {
-            try {
-                return new ServerSocket();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
+        public ServerSocket create() throws IOException {
+            return new ServerSocket();
         }
 
     }
@@ -507,21 +502,17 @@ public abstract class NanoHTTPD {
         }
 
         @Override
-        public ServerSocket create() {
+        public ServerSocket create() throws IOException {
             SSLServerSocket ss = null;
-            try {
-                ss = (SSLServerSocket) this.sslServerSocketFactory.createServerSocket();
-                if (this.sslProtocols != null) {
-                    ss.setEnabledProtocols(this.sslProtocols);
-                } else {
-                    ss.setEnabledProtocols(ss.getSupportedProtocols());
-                }
-                ss.setUseClientMode(false);
-                ss.setWantClientAuth(false);
-                ss.setNeedClientAuth(false);
-            } catch (IOException e) {
-                e.printStackTrace();
+            ss = (SSLServerSocket) this.sslServerSocketFactory.createServerSocket();
+            if (this.sslProtocols != null) {
+                ss.setEnabledProtocols(this.sslProtocols);
+            } else {
+                ss.setEnabledProtocols(ss.getSupportedProtocols());
             }
+            ss.setUseClientMode(false);
+            ss.setWantClientAuth(false);
+            ss.setNeedClientAuth(false);
             return ss;
         }
 
@@ -1621,7 +1612,7 @@ public abstract class NanoHTTPD {
      */
     public interface ServerSocketFactory {
 
-        public ServerSocket create();
+        public ServerSocket create() throws IOException;
 
     }
 
