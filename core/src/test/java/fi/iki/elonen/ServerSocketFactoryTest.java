@@ -51,11 +51,13 @@ public class ServerSocketFactoryTest extends NanoHTTPD {
 
     @Test
     public void isCustomServerSocketFactory() {
+        System.out.println("CustomServerSocketFactory test");
         Assert.assertTrue(this.getServerSocketFactory() instanceof TestFactory);
     }
 
     @Test
     public void testCreateServerSocket() {
+        System.out.println("CreateServerSocket test");
         ServerSocket ss = this.getServerSocketFactory().create();
         Assert.assertTrue(ss != null);
     }

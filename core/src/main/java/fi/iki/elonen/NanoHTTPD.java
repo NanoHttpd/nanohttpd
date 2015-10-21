@@ -478,7 +478,7 @@ public abstract class NanoHTTPD {
     /**
      * Creates a normal ServerSocket for TCP connections
      */
-    public class DefaultServerSocketFactory implements ServerSocketFactory {
+    public static class DefaultServerSocketFactory implements ServerSocketFactory {
 
         @Override
         public ServerSocket create() {
@@ -487,7 +487,7 @@ public abstract class NanoHTTPD {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return myServerSocket;
+            return null;
         }
 
     }
@@ -495,7 +495,7 @@ public abstract class NanoHTTPD {
     /**
      * Creates a new SSLServerSocket
      */
-    public class SecureServerSocketFactory implements ServerSocketFactory {
+    public static class SecureServerSocketFactory implements ServerSocketFactory {
 
         private SSLServerSocketFactory sslServerSocketFactory;
 
