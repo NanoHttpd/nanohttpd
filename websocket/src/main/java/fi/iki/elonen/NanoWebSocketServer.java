@@ -95,7 +95,39 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
             this.handshakeResponse.addHeader(NanoWebSocketServer.HEADER_UPGRADE, NanoWebSocketServer.HEADER_UPGRADE_VALUE);
             this.handshakeResponse.addHeader(NanoWebSocketServer.HEADER_CONNECTION, NanoWebSocketServer.HEADER_CONNECTION_VALUE);
         }
-
+        
+        public boolean isOpen(){
+        	return state == State.OPEN;
+        }
+        
+        protected void onOpen(){
+        	NanoWebSocketServer.this.onOpen(this);
+        }
+        
+        protected void onClose(CloseCode code, String reason, boolean initiatedByRemote){
+        	NanoWebSocketServer.this.onClose(this, code, reason, initiatedByRemote);
+        }
+        
+        protected void onMessage(WebSocketFrame message){
+        	NanoWebSocketServer.this.onMessage(this, message);
+        }
+        
+        protected void onPong(WebSocketFrame pong){
+        	NanoWebSocketServer.this.onPong(this, pong);
+        }
+        
+        protected void onException(IOException exception){
+        	NanoWebSocketServer.this.onException(this, exception);
+        }
+        
+        protected void debugFrameReceived(WebSocketFrame frame){
+        	NanoWebSocketServer.this.onFrameReceived(frame);
+        }
+        
+        protected void debugFrameSent(WebSocketFrame frame){
+        	NanoWebSocketServer.this.onSendFrame(frame);
+        }
+        
         public void close(CloseCode code, String reason, boolean initiatedByRemote) throws IOException {
             State oldState = this.state;
             this.state = State.CLOSING;
@@ -125,7 +157,7 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
                 }
             }
             this.state = State.CLOSED;
-            onClose(this, code, reason, initiatedByRemote);
+            onClose(code, reason, initiatedByRemote);
         }
 
         // --------------------------------IO--------------------------------------
@@ -167,7 +199,7 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
                 if (this.continuousOpCode == null) {
                     throw new WebSocketException(CloseCode.ProtocolError, "Continuous frame sequence was not started.");
                 }
-                onMessage(this, new WebSocketFrame(this.continuousOpCode, this.continuousFrames));
+                onMessage(new WebSocketFrame(this.continuousOpCode, this.continuousFrames));
                 this.continuousOpCode = null;
                 this.continuousFrames.clear();
             } else if (this.continuousOpCode == null) {
@@ -180,19 +212,19 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
         }
 
         private void handleWebsocketFrame(WebSocketFrame frame) throws IOException {
-            onFrameReceived(frame);
+            debugFrameReceived(frame);
             if (frame.getOpCode() == OpCode.Close) {
                 handleCloseFrame(frame);
             } else if (frame.getOpCode() == OpCode.Ping) {
                 sendFrame(new WebSocketFrame(OpCode.Pong, true, frame.getBinaryPayload()));
             } else if (frame.getOpCode() == OpCode.Pong) {
-                onPong(this, frame);
+                onPong(frame);
             } else if (!frame.isFin() || frame.getOpCode() == OpCode.Continuation) {
                 handleFrameFragment(frame);
             } else if (this.continuousOpCode != null) {
                 throw new WebSocketException(CloseCode.ProtocolError, "Continuous frame sequence not completed.");
             } else if (frame.getOpCode() == OpCode.Text || frame.getOpCode() == OpCode.Binary) {
-                onMessage(this, frame);
+                onMessage(frame);
             } else {
                 throw new WebSocketException(CloseCode.ProtocolError, "Non control or continuous frame expected.");
             }
@@ -213,10 +245,10 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
                     handleWebsocketFrame(WebSocketFrame.read(this.in));
                 }
             } catch (CharacterCodingException e) {
-                onException(this, e);
+                onException(e);
                 doClose(CloseCode.InvalidFramePayloadData, e.toString(), false);
             } catch (IOException e) {
-                onException(this, e);
+                onException(e);
                 if (e instanceof WebSocketException) {
                     doClose(((WebSocketException) e).getCode(), ((WebSocketException) e).getReason(), false);
                 }
@@ -234,7 +266,7 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
         }
 
         public synchronized void sendFrame(WebSocketFrame frame) throws IOException {
-            onSendFrame(frame);
+            debugFrameSent(frame);
             frame.write(this.out);
         }
     }
@@ -801,12 +833,14 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
     protected void onFrameReceived(WebSocketFrame webSocket) {
         // only for debugging
     }
-
+    
+    protected abstract void onOpen(WebSocket webSocket);
+    
     protected abstract void onMessage(WebSocket webSocket, WebSocketFrame messageFrame);
 
     protected abstract void onPong(WebSocket webSocket, WebSocketFrame pongFrame);
 
-    public void onSendFrame(WebSocketFrame webSocket) {
+    protected void onSendFrame(WebSocketFrame webSocket) {
         // only for debugging
     }
 
