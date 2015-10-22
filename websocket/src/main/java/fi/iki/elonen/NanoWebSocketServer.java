@@ -62,7 +62,7 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
         CLOSED
     }
 
-    public class WebSocket {
+    public static abstract class WebSocket {
 
         private final InputStream in;
 
@@ -84,6 +84,7 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
                 WebSocket.this.state = State.CONNECTING;
                 super.send(out);
                 WebSocket.this.state = State.OPEN;
+                WebSocket.this.onOpen();
                 readWebsocket();
             }
         };
@@ -100,33 +101,26 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
         	return state == State.OPEN;
         }
         
-        protected void onOpen(){
-        	NanoWebSocketServer.this.onOpen(this);
-        }
+        protected abstract void onOpen();
+        protected abstract void onClose(CloseCode code, String reason, boolean initiatedByRemote);
+        protected abstract void onMessage(WebSocketFrame message);
+        protected abstract void onPong(WebSocketFrame pong);
+        protected abstract void onException(IOException exception);
         
-        protected void onClose(CloseCode code, String reason, boolean initiatedByRemote){
-        	NanoWebSocketServer.this.onClose(this, code, reason, initiatedByRemote);
-        }
+        /**
+         * Debug method. <b>Do not Override unless for debug purposes!</b>
+         * 
+         * @param frame The received WebSocket Frame.
+         */
+        protected void debugFrameReceived(WebSocketFrame frame){}
         
-        protected void onMessage(WebSocketFrame message){
-        	NanoWebSocketServer.this.onMessage(this, message);
-        }
-        
-        protected void onPong(WebSocketFrame pong){
-        	NanoWebSocketServer.this.onPong(this, pong);
-        }
-        
-        protected void onException(IOException exception){
-        	NanoWebSocketServer.this.onException(this, exception);
-        }
-        
-        protected void debugFrameReceived(WebSocketFrame frame){
-        	NanoWebSocketServer.this.onFrameReceived(frame);
-        }
-        
-        protected void debugFrameSent(WebSocketFrame frame){
-        	NanoWebSocketServer.this.onSendFrame(frame);
-        }
+        /**
+         * Debug method. <b>Do not Override unless for debug purposes!</b><br>
+         * This method is called before actually sending the frame.
+         * 
+         * @param frame The sent WebSocket Frame.
+         */
+        protected void debugFrameSent(WebSocketFrame frame){}
         
         public void close(CloseCode code, String reason, boolean initiatedByRemote) throws IOException {
             State oldState = this.state;
@@ -824,29 +818,9 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
         return isUpgrade && isCorrectConnection;
     }
 
-    protected abstract void onClose(WebSocket webSocket, CloseCode code, String reason, boolean initiatedByRemote);
-
-    protected abstract void onException(WebSocket webSocket, IOException e);
-
     // --------------------------------Listener--------------------------------
 
-    protected void onFrameReceived(WebSocketFrame webSocket) {
-        // only for debugging
-    }
-    
-    protected abstract void onOpen(WebSocket webSocket);
-    
-    protected abstract void onMessage(WebSocket webSocket, WebSocketFrame messageFrame);
-
-    protected abstract void onPong(WebSocket webSocket, WebSocketFrame pongFrame);
-
-    protected void onSendFrame(WebSocketFrame webSocket) {
-        // only for debugging
-    }
-
-    public WebSocket openWebSocket(IHTTPSession handshake) {
-        return new WebSocket(handshake);
-    }
+    protected abstract WebSocket openWebSocket(IHTTPSession handshake);
 
     @Override
     public Response serve(final IHTTPSession session) {
