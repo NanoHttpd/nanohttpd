@@ -37,13 +37,13 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import fi.iki.elonen.NanoWebSocketServer;
-import fi.iki.elonen.NanoWebSocketServer.WebSocketFrame.CloseCode;
+import fi.iki.elonen.NanoWSD;
+import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseCode;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 4/23/14 at 10:31 PM
  */
-public class DebugWebSocketServer extends NanoWebSocketServer {
+public class DebugWebSocketServer extends NanoWSD {
 
     /**
      * logger to log to.

@@ -51,8 +51,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import fi.iki.elonen.NanoHTTPD.IHTTPSession;
 import fi.iki.elonen.NanoHTTPD.Response;
-import fi.iki.elonen.NanoWebSocketServer.WebSocketFrame;
-import fi.iki.elonen.NanoWebSocketServer.WebSocketFrame.CloseCode;
+import fi.iki.elonen.NanoWSD.WebSocketFrame;
+import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseCode;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WebSocketResponseHandlerTest {
@@ -60,11 +60,11 @@ public class WebSocketResponseHandlerTest {
     @Mock
     private IHTTPSession session;
 
-    private NanoWebSocketServer nanoWebSocketServer;
+    private NanoWSD nanoWebSocketServer;
 
     private Map<String, String> headers;
     
-    private static class MockedWSD extends NanoWebSocketServer{
+    private static class MockedWSD extends NanoWSD{
     	public MockedWSD(int port) {
 			super(port);
 		}
@@ -113,8 +113,8 @@ public class WebSocketResponseHandlerTest {
 
         assertNotNull(handshakeResponse);
 
-        assertEquals(handshakeResponse.getHeader(NanoWebSocketServer.HEADER_WEBSOCKET_ACCEPT), "HSmrc0sMlYUkAGmm5OPpG2HaGWk=");
-        assertEquals(handshakeResponse.getHeader(NanoWebSocketServer.HEADER_WEBSOCKET_PROTOCOL), "chat");
+        assertEquals(handshakeResponse.getHeader(NanoWSD.HEADER_WEBSOCKET_ACCEPT), "HSmrc0sMlYUkAGmm5OPpG2HaGWk=");
+        assertEquals(handshakeResponse.getHeader(NanoWSD.HEADER_WEBSOCKET_PROTOCOL), "chat");
     }
 
     @Test
@@ -131,14 +131,14 @@ public class WebSocketResponseHandlerTest {
     public void testWrongConnectionHeaderReturnsNullResponse() {
         this.headers.put("connection", "Junk");
         Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
-        assertNull(handshakeResponse.getHeader(NanoWebSocketServer.HEADER_UPGRADE));
+        assertNull(handshakeResponse.getHeader(NanoWSD.HEADER_UPGRADE));
     }
 
     @Test
     public void testWrongUpgradeHeaderReturnsNullResponse() {
         this.headers.put("upgrade", "not a websocket");
         Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
-        assertNull(handshakeResponse.getHeader(NanoWebSocketServer.HEADER_UPGRADE));
+        assertNull(handshakeResponse.getHeader(NanoWSD.HEADER_UPGRADE));
     }
 
     @Test
