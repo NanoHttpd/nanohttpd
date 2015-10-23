@@ -37,12 +37,13 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import fi.iki.elonen.NanoWebSocketServer;
+import fi.iki.elonen.NanoWSD;
+import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseCode;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 4/23/14 at 10:31 PM
  */
-public class DebugWebSocketServer extends NanoWebSocketServer {
+public class DebugWebSocketServer extends NanoWSD {
 
     /**
      * logger to log to.
@@ -56,47 +57,64 @@ public class DebugWebSocketServer extends NanoWebSocketServer {
         this.debug = debug;
     }
 
-    @Override
-    protected void onClose(WebSocket socket, WebSocketFrame.CloseCode code, String reason, boolean initiatedByRemote) {
-        if (this.debug) {
-            System.out.println("C [" + (initiatedByRemote ? "Remote" : "Self") + "] " + (code != null ? code : "UnknownCloseCode[" + code + "]")
-                    + (reason != null && !reason.isEmpty() ? ": " + reason : ""));
-        }
-    }
+	@Override
+	protected WebSocket openWebSocket(IHTTPSession handshake) {
+		return new DebugWebSocket(this, handshake);
+	}
+	
+	private static class DebugWebSocket extends WebSocket{
+		private final DebugWebSocketServer server;
+		
+		public DebugWebSocket(DebugWebSocketServer server, IHTTPSession handshakeRequest) {
+			super(handshakeRequest);
+			this.server = server;
+		}
 
-    @Override
-    protected void onException(WebSocket socket, IOException e) {
-        DebugWebSocketServer.LOG.log(Level.SEVERE, "exception occured", e);
-    }
+		@Override
+		protected void onOpen(){}
 
-    @Override
-    protected void onFrameReceived(WebSocketFrame frame) {
-        if (this.debug) {
-            System.out.println("R " + frame);
-        }
-    }
+		@Override
+		protected void onClose(CloseCode code, String reason, boolean initiatedByRemote) {
+			if(server.debug) {
+	            System.out.println("C [" + (initiatedByRemote ? "Remote" : "Self") + "] " + (code != null ? code : "UnknownCloseCode[" + code + "]")
+	                    + (reason != null && !reason.isEmpty() ? ": " + reason : ""));
+	        }
+		}
 
-    @Override
-    protected void onMessage(WebSocket socket, WebSocketFrame messageFrame) {
-        try {
-            messageFrame.setUnmasked();
-            socket.sendFrame(messageFrame);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+		@Override
+		protected void onMessage(WebSocketFrame message) {
+			try {
+	            message.setUnmasked();
+	            sendFrame(message);
+	        } catch (IOException e) {
+	            throw new RuntimeException(e);
+	        }
+		}
 
-    @Override
-    protected void onPong(WebSocket socket, WebSocketFrame pongFrame) {
-        if (this.debug) {
-            System.out.println("P " + pongFrame);
-        }
-    }
+		@Override
+		protected void onPong(WebSocketFrame pong) {
+			if (server.debug) {
+	            System.out.println("P " + pong);
+	        }
+		}
 
-    @Override
-    public void onSendFrame(WebSocketFrame frame) {
-        if (this.debug) {
-            System.out.println("S " + frame);
-        }
-    }
+		@Override
+		protected void onException(IOException exception) {
+			DebugWebSocketServer.LOG.log(Level.SEVERE, "exception occured", exception);
+		}
+		
+		@Override
+	    protected void debugFrameReceived(WebSocketFrame frame) {
+	        if (server.debug) {
+	            System.out.println("R " + frame);
+	        }
+	    }
+
+	    @Override
+	    protected void debugFrameSent(WebSocketFrame frame) {
+	        if (server.debug) {
+	            System.out.println("S " + frame);
+	        }
+	    }
+	}
 }

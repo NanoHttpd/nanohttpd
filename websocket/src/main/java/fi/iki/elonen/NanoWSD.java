@@ -48,11 +48,11 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import fi.iki.elonen.NanoWebSocketServer.WebSocketFrame.CloseCode;
-import fi.iki.elonen.NanoWebSocketServer.WebSocketFrame.CloseFrame;
-import fi.iki.elonen.NanoWebSocketServer.WebSocketFrame.OpCode;
+import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseCode;
+import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseFrame;
+import fi.iki.elonen.NanoWSD.WebSocketFrame.OpCode;
 
-public abstract class NanoWebSocketServer extends NanoHTTPD {
+public abstract class NanoWSD extends NanoHTTPD {
 
     public static enum State {
         UNCONNECTED,
@@ -62,7 +62,7 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
         CLOSED
     }
 
-    public class WebSocket {
+    public static abstract class WebSocket {
 
         private final InputStream in;
 
@@ -84,6 +84,7 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
                 WebSocket.this.state = State.CONNECTING;
                 super.send(out);
                 WebSocket.this.state = State.OPEN;
+                WebSocket.this.onOpen();
                 readWebsocket();
             }
         };
@@ -92,10 +93,35 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
             this.handshakeRequest = handshakeRequest;
             this.in = handshakeRequest.getInputStream();
 
-            this.handshakeResponse.addHeader(NanoWebSocketServer.HEADER_UPGRADE, NanoWebSocketServer.HEADER_UPGRADE_VALUE);
-            this.handshakeResponse.addHeader(NanoWebSocketServer.HEADER_CONNECTION, NanoWebSocketServer.HEADER_CONNECTION_VALUE);
+            this.handshakeResponse.addHeader(NanoWSD.HEADER_UPGRADE, NanoWSD.HEADER_UPGRADE_VALUE);
+            this.handshakeResponse.addHeader(NanoWSD.HEADER_CONNECTION, NanoWSD.HEADER_CONNECTION_VALUE);
         }
-
+        
+        public boolean isOpen(){
+        	return state == State.OPEN;
+        }
+        
+        protected abstract void onOpen();
+        protected abstract void onClose(CloseCode code, String reason, boolean initiatedByRemote);
+        protected abstract void onMessage(WebSocketFrame message);
+        protected abstract void onPong(WebSocketFrame pong);
+        protected abstract void onException(IOException exception);
+        
+        /**
+         * Debug method. <b>Do not Override unless for debug purposes!</b>
+         * 
+         * @param frame The received WebSocket Frame.
+         */
+        protected void debugFrameReceived(WebSocketFrame frame){}
+        
+        /**
+         * Debug method. <b>Do not Override unless for debug purposes!</b><br>
+         * This method is called before actually sending the frame.
+         * 
+         * @param frame The sent WebSocket Frame.
+         */
+        protected void debugFrameSent(WebSocketFrame frame){}
+        
         public void close(CloseCode code, String reason, boolean initiatedByRemote) throws IOException {
             State oldState = this.state;
             this.state = State.CLOSING;
@@ -114,18 +140,18 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
                 try {
                     this.in.close();
                 } catch (IOException e) {
-                    NanoWebSocketServer.LOG.log(Level.FINE, "close failed", e);
+                    NanoWSD.LOG.log(Level.FINE, "close failed", e);
                 }
             }
             if (this.out != null) {
                 try {
                     this.out.close();
                 } catch (IOException e) {
-                    NanoWebSocketServer.LOG.log(Level.FINE, "close failed", e);
+                    NanoWSD.LOG.log(Level.FINE, "close failed", e);
                 }
             }
             this.state = State.CLOSED;
-            onClose(this, code, reason, initiatedByRemote);
+            onClose(code, reason, initiatedByRemote);
         }
 
         // --------------------------------IO--------------------------------------
@@ -167,7 +193,7 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
                 if (this.continuousOpCode == null) {
                     throw new WebSocketException(CloseCode.ProtocolError, "Continuous frame sequence was not started.");
                 }
-                onMessage(this, new WebSocketFrame(this.continuousOpCode, this.continuousFrames));
+                onMessage(new WebSocketFrame(this.continuousOpCode, this.continuousFrames));
                 this.continuousOpCode = null;
                 this.continuousFrames.clear();
             } else if (this.continuousOpCode == null) {
@@ -180,19 +206,19 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
         }
 
         private void handleWebsocketFrame(WebSocketFrame frame) throws IOException {
-            onFrameReceived(frame);
+            debugFrameReceived(frame);
             if (frame.getOpCode() == OpCode.Close) {
                 handleCloseFrame(frame);
             } else if (frame.getOpCode() == OpCode.Ping) {
                 sendFrame(new WebSocketFrame(OpCode.Pong, true, frame.getBinaryPayload()));
             } else if (frame.getOpCode() == OpCode.Pong) {
-                onPong(this, frame);
+                onPong(frame);
             } else if (!frame.isFin() || frame.getOpCode() == OpCode.Continuation) {
                 handleFrameFragment(frame);
             } else if (this.continuousOpCode != null) {
                 throw new WebSocketException(CloseCode.ProtocolError, "Continuous frame sequence not completed.");
             } else if (frame.getOpCode() == OpCode.Text || frame.getOpCode() == OpCode.Binary) {
-                onMessage(this, frame);
+                onMessage(frame);
             } else {
                 throw new WebSocketException(CloseCode.ProtocolError, "Non control or continuous frame expected.");
             }
@@ -213,10 +239,10 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
                     handleWebsocketFrame(WebSocketFrame.read(this.in));
                 }
             } catch (CharacterCodingException e) {
-                onException(this, e);
+                onException(e);
                 doClose(CloseCode.InvalidFramePayloadData, e.toString(), false);
             } catch (IOException e) {
-                onException(this, e);
+                onException(e);
                 if (e instanceof WebSocketException) {
                     doClose(((WebSocketException) e).getCode(), ((WebSocketException) e).getReason(), false);
                 }
@@ -234,7 +260,7 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
         }
 
         public synchronized void sendFrame(WebSocketFrame frame) throws IOException {
-            onSendFrame(frame);
+            debugFrameSent(frame);
             frame.write(this.out);
         }
     }
@@ -702,7 +728,7 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
     /**
      * logger to log to.
      */
-    private static final Logger LOG = Logger.getLogger(NanoWebSocketServer.class.getName());
+    private static final Logger LOG = Logger.getLogger(NanoWSD.class.getName());
 
     public static final String HEADER_UPGRADE = "upgrade";
 
@@ -749,10 +775,10 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
             byte b2 = i < size ? buf[i++] : 0;
 
             int mask = 0x3F;
-            ar[a++] = NanoWebSocketServer.ALPHABET[b0 >> 2 & mask];
-            ar[a++] = NanoWebSocketServer.ALPHABET[(b0 << 4 | (b1 & 0xFF) >> 4) & mask];
-            ar[a++] = NanoWebSocketServer.ALPHABET[(b1 << 2 | (b2 & 0xFF) >> 6) & mask];
-            ar[a++] = NanoWebSocketServer.ALPHABET[b2 & mask];
+            ar[a++] = NanoWSD.ALPHABET[b0 >> 2 & mask];
+            ar[a++] = NanoWSD.ALPHABET[(b0 << 4 | (b1 & 0xFF) >> 4) & mask];
+            ar[a++] = NanoWSD.ALPHABET[(b1 << 2 | (b2 & 0xFF) >> 6) & mask];
+            ar[a++] = NanoWSD.ALPHABET[b2 & mask];
         }
         switch (size % 3) {
             case 1:
@@ -765,79 +791,61 @@ public abstract class NanoWebSocketServer extends NanoHTTPD {
 
     public static String makeAcceptKey(String key) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-1");
-        String text = key + NanoWebSocketServer.WEBSOCKET_KEY_MAGIC;
+        String text = key + NanoWSD.WEBSOCKET_KEY_MAGIC;
         md.update(text.getBytes(), 0, text.length());
         byte[] sha1hash = md.digest();
         return encodeBase64(sha1hash);
     }
 
-    public NanoWebSocketServer(int port) {
+    public NanoWSD(int port) {
         super(port);
     }
 
-    public NanoWebSocketServer(String hostname, int port) {
+    public NanoWSD(String hostname, int port) {
         super(hostname, port);
     }
 
     private boolean isWebSocketConnectionHeader(Map<String, String> headers) {
-        String connection = headers.get(NanoWebSocketServer.HEADER_CONNECTION);
-        return connection != null && connection.toLowerCase().contains(NanoWebSocketServer.HEADER_CONNECTION_VALUE.toLowerCase());
+        String connection = headers.get(NanoWSD.HEADER_CONNECTION);
+        return connection != null && connection.toLowerCase().contains(NanoWSD.HEADER_CONNECTION_VALUE.toLowerCase());
     }
 
     protected boolean isWebsocketRequested(IHTTPSession session) {
         Map<String, String> headers = session.getHeaders();
-        String upgrade = headers.get(NanoWebSocketServer.HEADER_UPGRADE);
+        String upgrade = headers.get(NanoWSD.HEADER_UPGRADE);
         boolean isCorrectConnection = isWebSocketConnectionHeader(headers);
-        boolean isUpgrade = NanoWebSocketServer.HEADER_UPGRADE_VALUE.equalsIgnoreCase(upgrade);
+        boolean isUpgrade = NanoWSD.HEADER_UPGRADE_VALUE.equalsIgnoreCase(upgrade);
         return isUpgrade && isCorrectConnection;
     }
 
-    protected abstract void onClose(WebSocket webSocket, CloseCode code, String reason, boolean initiatedByRemote);
-
-    protected abstract void onException(WebSocket webSocket, IOException e);
-
     // --------------------------------Listener--------------------------------
 
-    protected void onFrameReceived(WebSocketFrame webSocket) {
-        // only for debugging
-    }
-
-    protected abstract void onMessage(WebSocket webSocket, WebSocketFrame messageFrame);
-
-    protected abstract void onPong(WebSocket webSocket, WebSocketFrame pongFrame);
-
-    public void onSendFrame(WebSocketFrame webSocket) {
-        // only for debugging
-    }
-
-    public WebSocket openWebSocket(IHTTPSession handshake) {
-        return new WebSocket(handshake);
-    }
+    protected abstract WebSocket openWebSocket(IHTTPSession handshake);
 
     @Override
     public Response serve(final IHTTPSession session) {
         Map<String, String> headers = session.getHeaders();
         if (isWebsocketRequested(session)) {
-            if (!NanoWebSocketServer.HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(NanoWebSocketServer.HEADER_WEBSOCKET_VERSION))) {
+            if (!NanoWSD.HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION))) {
                 return newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
-                        "Invalid Websocket-Version " + headers.get(NanoWebSocketServer.HEADER_WEBSOCKET_VERSION));
+                        "Invalid Websocket-Version " + headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION));
             }
 
-            if (!headers.containsKey(NanoWebSocketServer.HEADER_WEBSOCKET_KEY)) {
+            if (!headers.containsKey(NanoWSD.HEADER_WEBSOCKET_KEY)) {
                 return newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key");
             }
 
             WebSocket webSocket = openWebSocket(session);
             Response handshakeResponse = webSocket.getHandshakeResponse();
             try {
-                handshakeResponse.addHeader(NanoWebSocketServer.HEADER_WEBSOCKET_ACCEPT, makeAcceptKey(headers.get(NanoWebSocketServer.HEADER_WEBSOCKET_KEY)));
+                handshakeResponse.addHeader(NanoWSD.HEADER_WEBSOCKET_ACCEPT, makeAcceptKey(headers.get(NanoWSD.HEADER_WEBSOCKET_KEY)));
             } catch (NoSuchAlgorithmException e) {
                 return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
                         "The SHA-1 Algorithm required for websockets is not available on the server.");
             }
 
-            if (headers.containsKey(NanoWebSocketServer.HEADER_WEBSOCKET_PROTOCOL)) {
-                handshakeResponse.addHeader(NanoWebSocketServer.HEADER_WEBSOCKET_PROTOCOL, headers.get(NanoWebSocketServer.HEADER_WEBSOCKET_PROTOCOL).split(",")[0]);
+            if (headers.containsKey(NanoWSD.HEADER_WEBSOCKET_PROTOCOL)) {
+                handshakeResponse.addHeader(NanoWSD.HEADER_WEBSOCKET_PROTOCOL, headers.get(NanoWSD.HEADER_WEBSOCKET_PROTOCOL).split(",")[0]);
             }
 
             return handshakeResponse;

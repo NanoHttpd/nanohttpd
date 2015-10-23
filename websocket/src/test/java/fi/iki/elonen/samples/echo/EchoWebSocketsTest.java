@@ -43,11 +43,11 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fi.iki.elonen.NanoWebSocketServer;
+import fi.iki.elonen.NanoWSD;
 
 public class EchoWebSocketsTest {
 
-    private static NanoWebSocketServer server;
+    private static NanoWSD server;
 
     @BeforeClass
     public static void setUp() throws Exception {
