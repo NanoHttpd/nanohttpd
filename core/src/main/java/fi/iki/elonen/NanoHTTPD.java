@@ -475,6 +475,49 @@ public abstract class NanoHTTPD {
 
     private static final Pattern BOUNDARY_PATTERN = Pattern.compile(BOUNDARY_REGEX, Pattern.CASE_INSENSITIVE);
 
+    /**
+     * Creates a normal ServerSocket for TCP connections
+     */
+    public static class DefaultServerSocketFactory implements ServerSocketFactory {
+
+        @Override
+        public ServerSocket create() throws IOException {
+            return new ServerSocket();
+        }
+
+    }
+
+    /**
+     * Creates a new SSLServerSocket
+     */
+    public static class SecureServerSocketFactory implements ServerSocketFactory {
+
+        private SSLServerSocketFactory sslServerSocketFactory;
+
+        private String[] sslProtocols;
+
+        public SecureServerSocketFactory(SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols) {
+            this.sslServerSocketFactory = sslServerSocketFactory;
+            this.sslProtocols = sslProtocols;
+        }
+
+        @Override
+        public ServerSocket create() throws IOException {
+            SSLServerSocket ss = null;
+            ss = (SSLServerSocket) this.sslServerSocketFactory.createServerSocket();
+            if (this.sslProtocols != null) {
+                ss.setEnabledProtocols(this.sslProtocols);
+            } else {
+                ss.setEnabledProtocols(ss.getSupportedProtocols());
+            }
+            ss.setUseClientMode(false);
+            ss.setWantClientAuth(false);
+            ss.setNeedClientAuth(false);
+            return ss;
+        }
+
+    }
+
     private static final String CONTENT_DISPOSITION_REGEX = "([ |\t]*Content-Disposition[ |\t]*:)(.*)";
 
     private static final Pattern CONTENT_DISPOSITION_PATTERN = Pattern.compile(CONTENT_DISPOSITION_REGEX, Pattern.CASE_INSENSITIVE);
@@ -839,9 +882,16 @@ public abstract class NanoHTTPD {
          */
         private int findHeaderEnd(final byte[] buf, int rlen) {
             int splitbyte = 0;
-            while (splitbyte + 3 < rlen) {
-                if (buf[splitbyte] == '\r' && buf[splitbyte + 1] == '\n' && buf[splitbyte + 2] == '\r' && buf[splitbyte + 3] == '\n') {
+            while (splitbyte + 1 < rlen) {
+
+                // RFC2616
+                if (buf[splitbyte] == '\r' && buf[splitbyte + 1] == '\n' && splitbyte + 3 < rlen && buf[splitbyte + 2] == '\r' && buf[splitbyte + 3] == '\n') {
                     return splitbyte + 4;
+                }
+
+                // tolerance
+                if (buf[splitbyte] == '\n' && buf[splitbyte + 1] == '\n') {
+                    return splitbyte + 2;
                 }
                 splitbyte++;
             }
@@ -1540,11 +1590,11 @@ public abstract class NanoHTTPD {
      */
     public interface TempFile {
 
-        void delete() throws Exception;
+        public void delete() throws Exception;
 
-        String getName();
+        public String getName();
 
-        OutputStream open() throws Exception;
+        public OutputStream open() throws Exception;
     }
 
     /**
@@ -1559,7 +1609,7 @@ public abstract class NanoHTTPD {
 
         void clear();
 
-        TempFile createTempFile(String filename_hint) throws Exception;
+        public TempFile createTempFile(String filename_hint) throws Exception;
     }
 
     /**
@@ -1567,7 +1617,16 @@ public abstract class NanoHTTPD {
      */
     public interface TempFileManagerFactory {
 
-        TempFileManager create();
+        public TempFileManager create();
+    }
+
+    /**
+     * Factory to create ServerSocketFactories.
+     */
+    public interface ServerSocketFactory {
+
+        public ServerSocket create() throws IOException;
+
     }
 
     /**
@@ -1726,9 +1785,7 @@ public abstract class NanoHTTPD {
 
     private volatile ServerSocket myServerSocket;
 
-    private SSLServerSocketFactory sslServerSocketFactory;
-
-    private String[] sslProtocols;
+    private ServerSocketFactory serverSocketFactory = new DefaultServerSocketFactory();
 
     private Thread myThread;
 
@@ -1883,12 +1940,27 @@ public abstract class NanoHTTPD {
         return wasStarted() && !this.myServerSocket.isClosed() && this.myThread.isAlive();
     }
 
+    public ServerSocketFactory getServerSocketFactory() {
+        return serverSocketFactory;
+    }
+
+    public void setServerSocketFactory(ServerSocketFactory serverSocketFactory) {
+        this.serverSocketFactory = serverSocketFactory;
+    }
+
+    public String getHostname() {
+        return hostname;
+    }
+
+    public TempFileManagerFactory getTempFileManagerFactory() {
+        return tempFileManagerFactory;
+    }
+
     /**
      * Call before start() to serve over HTTPS instead of HTTP
      */
     public void makeSecure(SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols) {
-        this.sslServerSocketFactory = sslServerSocketFactory;
-        this.sslProtocols = sslProtocols;
+        this.serverSocketFactory = new SecureServerSocketFactory(sslServerSocketFactory, sslProtocols);
     }
 
     /**
@@ -2012,6 +2084,13 @@ public abstract class NanoHTTPD {
     }
 
     /**
+     * Starts the server (in setDaemon(true) mode).
+     */
+    public void start(final int timeout) throws IOException {
+        start(timeout, true);
+    }
+
+    /**
      * Start the server.
      * 
      * @param timeout
@@ -2022,21 +2101,7 @@ public abstract class NanoHTTPD {
      *             if the socket is in use.
      */
     public void start(final int timeout, boolean daemon) throws IOException {
-        if (this.sslServerSocketFactory != null) {
-            SSLServerSocket ss = (SSLServerSocket) this.sslServerSocketFactory.createServerSocket();
-            if (this.sslProtocols != null) {
-                ss.setEnabledProtocols(this.sslProtocols);
-            } else {
-                ss.setEnabledProtocols(ss.getSupportedProtocols());
-            }
-            ss.setUseClientMode(false);
-            ss.setWantClientAuth(false);
-            ss.setNeedClientAuth(false);
-            ss.setSoTimeout(timeout);
-            this.myServerSocket = ss;
-        } else {
-            this.myServerSocket = new ServerSocket();
-        }
+        this.myServerSocket = this.getServerSocketFactory().create();
         this.myServerSocket.setReuseAddress(true);
 
         ServerRunnable serverRunnable = createServerRunnable(timeout);
@@ -2056,13 +2121,6 @@ public abstract class NanoHTTPD {
         if (serverRunnable.bindException != null) {
             throw serverRunnable.bindException;
         }
-    }
-
-    /**
-     * Starts the server (in setDaemon(true) mode).
-     */
-    public void start(final int timeout) throws IOException {
-        start(timeout, true);
     }
 
     /**
