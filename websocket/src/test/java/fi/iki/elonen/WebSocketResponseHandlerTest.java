@@ -38,6 +38,7 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,6 +51,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import fi.iki.elonen.NanoHTTPD.IHTTPSession;
 import fi.iki.elonen.NanoHTTPD.Response;
+import fi.iki.elonen.NanoWebSocketServer.WebSocketFrame;
+import fi.iki.elonen.NanoWebSocketServer.WebSocketFrame.CloseCode;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WebSocketResponseHandlerTest {
@@ -60,10 +63,31 @@ public class WebSocketResponseHandlerTest {
     private NanoWebSocketServer nanoWebSocketServer;
 
     private Map<String, String> headers;
-
+    
+    private static class MockedWSD extends NanoWebSocketServer{
+    	public MockedWSD(int port) {
+			super(port);
+		}
+    	
+		public MockedWSD(String hostname, int port) {
+			super(hostname, port);
+		}
+		
+		@Override
+		protected WebSocket openWebSocket(IHTTPSession handshake) {
+			return new WebSocket(handshake) { // Dummy websocket inner class.
+				@Override protected void onPong(WebSocketFrame pong) {}
+				@Override protected void onOpen() {}
+				@Override protected void onMessage(WebSocketFrame message) {}
+				@Override protected void onException(IOException exception) {}
+				@Override protected void onClose(CloseCode code, String reason, boolean initiatedByRemote) {}
+			};
+		}
+    }
+    
     @Before
     public void setUp() {
-        this.nanoWebSocketServer = Mockito.mock(NanoWebSocketServer.class, Mockito.CALLS_REAL_METHODS);
+        this.nanoWebSocketServer = Mockito.mock(MockedWSD.class, Mockito.CALLS_REAL_METHODS);
 
         this.headers = new HashMap<String, String>();
         this.headers.put("upgrade", "websocket");
