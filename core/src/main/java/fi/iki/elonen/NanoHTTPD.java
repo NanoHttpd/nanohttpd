@@ -2057,9 +2057,9 @@ public abstract class NanoHTTPD {
      * Pluggable strategy for asynchronously executing requests.
      * 
      * @param asyncRunner
-     *            new strategy for handling threads.
+     *            new strategy for handling threads.                 
      */
-    public void setAsyncRunner(AsyncRunner asyncRunner) {
+    public final void setAsyncRunner(AsyncRunner asyncRunner) {
         this.asyncRunner = asyncRunner;
     }
 
@@ -2067,9 +2067,9 @@ public abstract class NanoHTTPD {
      * Pluggable strategy for creating and cleaning up temporary files.
      * 
      * @param tempFileManagerFactory
-     *            new strategy for handling temp files.
+     *            new strategy for handling temp files.                
      */
-    public void setTempFileManagerFactory(TempFileManagerFactory tempFileManagerFactory) {
+    public final void setTempFileManagerFactory(TempFileManagerFactory tempFileManagerFactory) {
         this.tempFileManagerFactory = tempFileManagerFactory;
     }
 

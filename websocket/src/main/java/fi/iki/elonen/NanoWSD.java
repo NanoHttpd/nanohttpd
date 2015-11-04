@@ -515,8 +515,8 @@ public abstract class NanoWSD extends NanoHTTPD {
             setBinaryPayload(clone.getBinaryPayload());
             setMaskingKey(clone.getMaskingKey());
         }
-
-        public byte[] getBinaryPayload() {
+                   
+        public final byte[] getBinaryPayload() {
             return this.payload;
         }
 
@@ -638,28 +638,28 @@ public abstract class NanoWSD extends NanoHTTPD {
             }
         }
 
-        public void setBinaryPayload(byte[] payload) {
+        public final void setBinaryPayload(byte[] payload) {
             this.payload = payload;
             this._payloadLength = payload.length;
             this._payloadString = null;
         }
 
-        public void setFin(boolean fin) {
+        public final void setFin(boolean fin) {
             this.fin = fin;
         }
 
-        public void setMaskingKey(byte[] maskingKey) {
+        public final void setMaskingKey(byte[] maskingKey) {
             if (maskingKey != null && maskingKey.length != 4) {
                 throw new IllegalArgumentException("MaskingKey " + Arrays.toString(maskingKey) + " hasn't length 4");
             }
             this.maskingKey = maskingKey;
         }
 
-        public void setOpCode(OpCode opcode) {
+        public final void setOpCode(OpCode opcode) {
             this.opCode = opcode;
         }
 
-        public void setTextPayload(String payload) throws CharacterCodingException {
+        public final void setTextPayload(String payload) throws CharacterCodingException {
             this.payload = text2Binary(payload);
             this._payloadLength = payload.length();
             this._payloadString = payload;
