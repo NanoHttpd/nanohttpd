@@ -1256,7 +1256,7 @@ public abstract class NanoHTTPD {
             public void write(byte[] b, int off, int len) throws IOException {
                 if (len == 0)
                     return;
-                out.write(String.format("%x\r\n", len).getBytes());
+                out.write(String.format("%x\r%n", len).getBytes());
                 out.write(b, off, len);
                 out.write("\r\n".getBytes());
             }
