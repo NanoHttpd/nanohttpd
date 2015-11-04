@@ -38,6 +38,7 @@ import static fi.iki.elonen.NanoHTTPD.Response.Status.OK;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PipedInputStream;
+import fi.iki.elonen.util.ArrayUtils;
 
 public class HttpChunkedResponseTest extends HttpServerTest {
 
@@ -48,7 +49,7 @@ public class HttpChunkedResponseTest extends HttpServerTest {
         String[] chunks;
 
         private ChunkedInputStream(String[] chunks) {
-            this.chunks = chunks;
+            this.chunks = ArrayUtils.clone(chunks);
         }
 
         @Override
