@@ -808,17 +808,17 @@ public abstract class NanoHTTPD {
                     this.headers.clear();
                 }
 
-                if (null != this.remoteIp) {
-                    this.headers.put("remote-addr", this.remoteIp);
-                    this.headers.put("http-client-ip", this.remoteIp);
-                }
-
                 // Create a BufferedReader for parsing the header.
                 BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, this.rlen)));
 
                 // Decode the header into parms and header java properties
                 Map<String, String> pre = new HashMap<String, String>();
                 decodeHeader(hin, pre, this.parms, this.headers);
+
+                if (null != this.remoteIp) {
+                    this.headers.put("remote-addr", this.remoteIp);
+                    this.headers.put("http-client-ip", this.remoteIp);
+                }
 
                 this.method = Method.lookup(pre.get("method"));
                 if (this.method == null) {
