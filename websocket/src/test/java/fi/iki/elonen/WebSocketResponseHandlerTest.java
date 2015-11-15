@@ -63,28 +63,44 @@ public class WebSocketResponseHandlerTest {
     private NanoWSD nanoWebSocketServer;
 
     private Map<String, String> headers;
-    
-    private static class MockedWSD extends NanoWSD{
-    	public MockedWSD(int port) {
-			super(port);
-		}
-    	
-		public MockedWSD(String hostname, int port) {
-			super(hostname, port);
-		}
-		
-		@Override
-		protected WebSocket openWebSocket(IHTTPSession handshake) {
-			return new WebSocket(handshake) { // Dummy websocket inner class.
-				@Override protected void onPong(WebSocketFrame pong) {}
-				@Override protected void onOpen() {}
-				@Override protected void onMessage(WebSocketFrame message) {}
-				@Override protected void onException(IOException exception) {}
-				@Override protected void onClose(CloseCode code, String reason, boolean initiatedByRemote) {}
-			};
-		}
+
+    private static class MockedWSD extends NanoWSD {
+
+        public MockedWSD(int port) {
+            super(port);
+        }
+
+        public MockedWSD(String hostname, int port) {
+            super(hostname, port);
+        }
+
+        @Override
+        protected WebSocket openWebSocket(IHTTPSession handshake) {
+            return new WebSocket(handshake) { // Dummy websocket inner class.
+
+                @Override
+                protected void onPong(WebSocketFrame pong) {
+                }
+
+                @Override
+                protected void onOpen() {
+                }
+
+                @Override
+                protected void onMessage(WebSocketFrame message) {
+                }
+
+                @Override
+                protected void onException(IOException exception) {
+                }
+
+                @Override
+                protected void onClose(CloseCode code, String reason, boolean initiatedByRemote) {
+                }
+            };
+        }
     }
-    
+
     @Before
     public void setUp() {
         this.nanoWebSocketServer = Mockito.mock(MockedWSD.class, Mockito.CALLS_REAL_METHODS);

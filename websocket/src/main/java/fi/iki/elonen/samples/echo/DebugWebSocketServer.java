@@ -57,64 +57,66 @@ public class DebugWebSocketServer extends NanoWSD {
         this.debug = debug;
     }
 
-	@Override
-	protected WebSocket openWebSocket(IHTTPSession handshake) {
-		return new DebugWebSocket(this, handshake);
-	}
-	
-	private static class DebugWebSocket extends WebSocket{
-		private final DebugWebSocketServer server;
-		
-		public DebugWebSocket(DebugWebSocketServer server, IHTTPSession handshakeRequest) {
-			super(handshakeRequest);
-			this.server = server;
-		}
+    @Override
+    protected WebSocket openWebSocket(IHTTPSession handshake) {
+        return new DebugWebSocket(this, handshake);
+    }
 
-		@Override
-		protected void onOpen(){}
+    private static class DebugWebSocket extends WebSocket {
 
-		@Override
-		protected void onClose(CloseCode code, String reason, boolean initiatedByRemote) {
-			if(server.debug) {
-	            System.out.println("C [" + (initiatedByRemote ? "Remote" : "Self") + "] " + (code != null ? code : "UnknownCloseCode[" + code + "]")
-	                    + (reason != null && !reason.isEmpty() ? ": " + reason : ""));
-	        }
-		}
+        private final DebugWebSocketServer server;
 
-		@Override
-		protected void onMessage(WebSocketFrame message) {
-			try {
-	            message.setUnmasked();
-	            sendFrame(message);
-	        } catch (IOException e) {
-	            throw new RuntimeException(e);
-	        }
-		}
+        public DebugWebSocket(DebugWebSocketServer server, IHTTPSession handshakeRequest) {
+            super(handshakeRequest);
+            this.server = server;
+        }
 
-		@Override
-		protected void onPong(WebSocketFrame pong) {
-			if (server.debug) {
-	            System.out.println("P " + pong);
-	        }
-		}
+        @Override
+        protected void onOpen() {
+        }
 
-		@Override
-		protected void onException(IOException exception) {
-			DebugWebSocketServer.LOG.log(Level.SEVERE, "exception occured", exception);
-		}
-		
-		@Override
-	    protected void debugFrameReceived(WebSocketFrame frame) {
-	        if (server.debug) {
-	            System.out.println("R " + frame);
-	        }
-	    }
+        @Override
+        protected void onClose(CloseCode code, String reason, boolean initiatedByRemote) {
+            if (server.debug) {
+                System.out.println("C [" + (initiatedByRemote ? "Remote" : "Self") + "] " + (code != null ? code : "UnknownCloseCode[" + code + "]")
+                        + (reason != null && !reason.isEmpty() ? ": " + reason : ""));
+            }
+        }
 
-	    @Override
-	    protected void debugFrameSent(WebSocketFrame frame) {
-	        if (server.debug) {
-	            System.out.println("S " + frame);
-	        }
-	    }
-	}
+        @Override
+        protected void onMessage(WebSocketFrame message) {
+            try {
+                message.setUnmasked();
+                sendFrame(message);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        protected void onPong(WebSocketFrame pong) {
+            if (server.debug) {
+                System.out.println("P " + pong);
+            }
+        }
+
+        @Override
+        protected void onException(IOException exception) {
+            DebugWebSocketServer.LOG.log(Level.SEVERE, "exception occured", exception);
+        }
+
+        @Override
+        protected void debugFrameReceived(WebSocketFrame frame) {
+            if (server.debug) {
+                System.out.println("R " + frame);
+            }
+        }
+
+        @Override
+        protected void debugFrameSent(WebSocketFrame frame) {
+            if (server.debug) {
+                System.out.println("S " + frame);
+            }
+        }
+    }
 }
