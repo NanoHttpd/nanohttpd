@@ -1,25 +1,27 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.nanohttpd</groupId>
 		<artifactId>nanohttpd-project</artifactId>
 		<version>2.2.0-SNAPSHOT</version>
 	</parent>
-    <artifactId>nanohttpd-samples</artifactId>
-    <packaging>jar</packaging>
-    <name>NanoHttpd-Samples</name>
-    <dependencies>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>nanohttpd</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>nanohttpd-webserver</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
+	<artifactId>nanohttpd-samples</artifactId>
+	<description>samples for nanohttpd</description>
+	<packaging>jar</packaging>
+	<name>NanoHttpd-Samples</name>
+	<dependencies>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>nanohttpd</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>nanohttpd-webserver</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 	<properties>
 		<minimal.coverage>0.0</minimal.coverage>
 	</properties>

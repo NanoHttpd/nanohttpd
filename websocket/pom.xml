@@ -9,6 +9,7 @@
 	<artifactId>nanohttpd-websocket</artifactId>
 	<packaging>jar</packaging>
 	<name>NanoHttpd-Websocket</name>
+	<description>nanohttpd-websocket is a very low profile websocket server based on nanohttpd.</description>
 	<build>
 		<plugins>
 			<plugin>

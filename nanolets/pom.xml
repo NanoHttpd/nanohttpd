@@ -9,6 +9,7 @@
 	<artifactId>nanohttpd-nanolets</artifactId>
 	<packaging>jar</packaging>
 	<name>NanoHttpd-nano application server</name>
+	<description>nanohttpd-nanolets add a very easy to use version of servlets into nanohttpd.</description>
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>

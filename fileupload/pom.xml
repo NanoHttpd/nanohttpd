@@ -9,6 +9,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>nanohttpd-apache-fileupload</artifactId>
 	<name>NanoHttpd-apache file upload integration</name>
+	<description>nanohttpd-apache-fileupload integrates the apache file upload framework into nanohttpd</description>
 	<dependencies>
 		<dependency>
 			<groupId>org.nanohttpd</groupId>

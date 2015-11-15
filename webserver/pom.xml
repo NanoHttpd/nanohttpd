@@ -9,6 +9,7 @@
 	<artifactId>nanohttpd-webserver</artifactId>
 	<packaging>jar</packaging>
 	<name>NanoHttpd-Webserver</name>
+	<description>nanohttpd-webserver can serve any local directory as a webserver using nanohttpd.</description>
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
