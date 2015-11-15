@@ -29,7 +29,7 @@ Edit `pom.xml`, and add this between \<dependencies\>:
 	<dependency>
 		<groupId>org.nanohttpd</groupId> <!-- <groupId>com.nanohttpd</groupId> for 2.1.0 and earlier -->
 		<artifactId>nanohttpd</artifactId>
-		<version>2.2.0-SNAPSHOT</version>
+		<version>2.2.0</version>
 	</dependency>
 	
 Edit `src/main/java/com/example/App.java` and replace it with:
