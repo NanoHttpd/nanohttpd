@@ -40,7 +40,7 @@ import fi.iki.elonen.NanoWSD;
 public class EchoSocketSample {
 
     public static void main(String[] args) throws IOException {
-        final boolean debugMode = args.length >= 2 && args[1].toLowerCase().equals("-d");
+    	final boolean debugMode = args.length >= 2 && "-d".equals(args[1].toLowerCase());
         NanoWSD ws = new DebugWebSocketServer(args.length > 0 ? Integer.parseInt(args[0]) : 9090, debugMode);
         ws.start();
         System.out.println("Server started, hit Enter to stop.\n");
