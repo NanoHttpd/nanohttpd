@@ -143,10 +143,10 @@ public class AppNanolets extends RouterNanoHTTPD {
     /**
      * Add the routes Every route is an absolute path Parameters starts with ":"
      * Handler class should implement @UriResponder interface If the handler not
-     * implement UriResponder interface - toString() is used
-     */
+     * implement UriResponder interface - toString() is used 
+	 */
     @Override
-    public void addMappings() {
+    public final void addMappings() {
         super.addMappings();
         addRoute("/user", UserHandler.class);
         addRoute("/user/:id", UserHandler.class);
