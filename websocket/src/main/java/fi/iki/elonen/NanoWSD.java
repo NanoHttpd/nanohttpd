@@ -51,6 +51,7 @@ import java.util.logging.Logger;
 import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseCode;
 import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseFrame;
 import fi.iki.elonen.NanoWSD.WebSocketFrame.OpCode;
+import fi.iki.elonen.util.ArrayUtils;
 
 public abstract class NanoWSD extends NanoHTTPD {
 
@@ -647,7 +648,7 @@ public abstract class NanoWSD extends NanoHTTPD {
         }
 
         public void setBinaryPayload(byte[] payload) {
-            this.payload = payload;
+            this.payload = ArrayUtils.clone(payload);
             this._payloadLength = payload.length;
             this._payloadString = null;
         }
@@ -660,7 +661,7 @@ public abstract class NanoWSD extends NanoHTTPD {
             if (maskingKey != null && maskingKey.length != 4) {
                 throw new IllegalArgumentException("MaskingKey " + Arrays.toString(maskingKey) + " hasn't length 4");
             }
-            this.maskingKey = maskingKey;
+            this.maskingKey = ArrayUtils.clone(maskingKey);
         }
 
         public void setOpCode(OpCode opcode) {

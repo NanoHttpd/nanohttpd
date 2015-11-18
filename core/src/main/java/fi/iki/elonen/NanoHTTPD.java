@@ -93,6 +93,7 @@ import javax.net.ssl.TrustManagerFactory;
 
 import fi.iki.elonen.NanoHTTPD.Response.IStatus;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
+import fi.iki.elonen.util.ArrayUtils;
 
 /**
  * A simple, tiny, nicely embeddable HTTP server in Java
@@ -498,7 +499,7 @@ public abstract class NanoHTTPD {
 
         public SecureServerSocketFactory(SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols) {
             this.sslServerSocketFactory = sslServerSocketFactory;
-            this.sslProtocols = sslProtocols;
+            this.sslProtocols = ArrayUtils.clone(sslProtocols);
         }
 
         @Override
