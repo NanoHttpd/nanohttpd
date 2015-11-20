@@ -659,7 +659,7 @@ public abstract class NanoHTTPD {
                     // First line is boundary string
                     String mpline = in.readLine();
                     headerLines++;
-                    if (!mpline.contains(boundary)) {
+                    if (mpline == null || !mpline.contains(boundary)) {
                         throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but chunk does not start with boundary.");
                     }
 
@@ -1486,7 +1486,7 @@ public abstract class NanoHTTPD {
 
         protected static long sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header, long size) {
             for (String headerName : header.keySet()) {
-            	if ("content-length".equalsIgnoreCase(headerName)) {
+                if ("content-length".equalsIgnoreCase(headerName)) {
                     try {
                         return Long.parseLong(header.get(headerName));
                     } catch (NumberFormatException ex) {
