@@ -107,13 +107,13 @@ public class SimpleWebServer extends NanoHTTPD {
 
         // Parse command-line, with short and long versions of the options.
         for (int i = 0; i < args.length; ++i) {
-        	if ("-h".equalsIgnoreCase(args[i]) || "--host".equalsIgnoreCase(args[i])) {
+            if ("-h".equalsIgnoreCase(args[i]) || "--host".equalsIgnoreCase(args[i])) {
                 host = args[i + 1];
-        	} else if ("-p".equalsIgnoreCase(args[i]) || "--port".equalsIgnoreCase(args[i])) {
+            } else if ("-p".equalsIgnoreCase(args[i]) || "--port".equalsIgnoreCase(args[i])) {
                 port = Integer.parseInt(args[i + 1]);
-        	} else if ("-q".equalsIgnoreCase(args[i]) || "--quiet".equalsIgnoreCase(args[i])) {
+            } else if ("-q".equalsIgnoreCase(args[i]) || "--quiet".equalsIgnoreCase(args[i])) {
                 quiet = true;
-        	} else if ("-d".equalsIgnoreCase(args[i]) || "--dir".equalsIgnoreCase(args[i])) {
+            } else if ("-d".equalsIgnoreCase(args[i]) || "--dir".equalsIgnoreCase(args[i])) {
                 rootDirs.add(new File(args[i + 1]).getAbsoluteFile());
             } else if (args[i].startsWith("--cors")) {
                 cors = "*";

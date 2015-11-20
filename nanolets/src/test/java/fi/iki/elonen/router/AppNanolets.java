@@ -124,7 +124,7 @@ public class AppNanolets extends RouterNanoHTTPD {
 
         @Override
         protected BufferedInputStream fileToInputStream(File fileOrdirectory) throws IOException {
-        	if ("exception.html".equals(fileOrdirectory.getName())) {
+            if ("exception.html".equals(fileOrdirectory.getName())) {
                 throw new IOException("trigger something wrong");
             }
             return super.fileToInputStream(fileOrdirectory);
