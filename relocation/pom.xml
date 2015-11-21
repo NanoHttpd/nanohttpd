@@ -1,0 +1,48 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
+	<groupId>com.nanohttpd</groupId>
+	<artifactId>nanohttpd-project</artifactId>
+	<version>2.2.0</version>
+	<packaging>pom</packaging>
+	<distributionManagement>
+		<repository>
+			<id>sonatype-nexus-staging</id>
+			<name>nanohttpd sonytype Maven 2 repository</name>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+		</repository>
+		<relocation>
+			<groupId>org.nanohttpd</groupId>
+		</relocation>
+	</distributionManagement>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+						<!-- if the local user is not the key user use -Dgpg.keyname=XXXX -->
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	<modules>
+		<module>nanohttpd</module>
+		<module>nanohttpd-webserver</module>
+		<module>nanohttpd-webserver-markdown-plugin</module>
+		<module>nanohttpd-samples</module>
+		<module>nanohttpd-websocket</module>
+	</modules>
+</project>
