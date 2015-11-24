@@ -836,7 +836,7 @@ public abstract class NanoHTTPD {
 
                 // TODO: long body_size = getBodySize();
                 // TODO: long pos_before_serve = this.inputStream.totalRead()
-                // (requires implementaion for totalRead())
+                // (requires implementation for totalRead())
                 r = serve(this);
                 // TODO: this.inputStream.skip(body_size -
                 // (this.inputStream.totalRead() - pos_before_serve))
@@ -851,7 +851,7 @@ public abstract class NanoHTTPD {
                     r.setKeepAlive(keepAlive);
                     r.send(this.outputStream);
                 }
-                if (!keepAlive || "close".equalsIgnoreCase(r.getHeader("connection"))) {
+                if (!keepAlive || r.isCloseConnection()) {
                     throw new SocketException("NanoHttpd Shutdown");
                 }
             } catch (SocketException e) {
@@ -1332,6 +1332,25 @@ public abstract class NanoHTTPD {
          */
         public void addHeader(String name, String value) {
             this.header.put(name, value);
+        }
+
+        /**
+         * Indicate to close the connection after the Response has been sent.
+         * @param close {@code true} to hint connection closing, {@code false} to let connection
+         * 		be closed by client.
+         */
+        public void closeConnection(boolean close) {
+            if (close)
+                this.header.put("connection", "close");
+            else
+                this.header.remove("connection");
+        }
+
+        /**
+         * @return {@code true} if connection is to be closed after this Response has been sent.
+         */
+        public boolean isCloseConnection() {
+            return "close".equals(getHeader("connection"));
         }
 
         public InputStream getData() {
@@ -1928,7 +1947,7 @@ public abstract class NanoHTTPD {
      *         accespts it. Default this option is on for text content and off
      *         for everything. Override this for custom semantics.
      */
-    protected boolean useGzipWhenAccepted(Response r) {
+    protected static boolean useGzipWhenAccepted(Response r) {
         return r.getMimeType() != null && r.getMimeType().toLowerCase().contains("text/");
     }
 
@@ -2048,7 +2067,8 @@ public abstract class NanoHTTPD {
      *            Header entries, percent decoded
      * @return HTTP response, see class Response for details
      */
-    @Deprecated
+    @SuppressWarnings("static-method")
+	@Deprecated
     public Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) {
         return newFixedLengthResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found");
     }
