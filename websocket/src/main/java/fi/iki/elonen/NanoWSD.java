@@ -96,32 +96,40 @@ public abstract class NanoWSD extends NanoHTTPD {
             this.handshakeResponse.addHeader(NanoWSD.HEADER_UPGRADE, NanoWSD.HEADER_UPGRADE_VALUE);
             this.handshakeResponse.addHeader(NanoWSD.HEADER_CONNECTION, NanoWSD.HEADER_CONNECTION_VALUE);
         }
-        
-        public boolean isOpen(){
-        	return state == State.OPEN;
+
+        public boolean isOpen() {
+            return state == State.OPEN;
         }
-        
+
         protected abstract void onOpen();
+
         protected abstract void onClose(CloseCode code, String reason, boolean initiatedByRemote);
+
         protected abstract void onMessage(WebSocketFrame message);
+
         protected abstract void onPong(WebSocketFrame pong);
+
         protected abstract void onException(IOException exception);
-        
+
         /**
          * Debug method. <b>Do not Override unless for debug purposes!</b>
          * 
-         * @param frame The received WebSocket Frame.
+         * @param frame
+         *            The received WebSocket Frame.
          */
-        protected void debugFrameReceived(WebSocketFrame frame){}
-        
+        protected void debugFrameReceived(WebSocketFrame frame) {
+        }
+
         /**
          * Debug method. <b>Do not Override unless for debug purposes!</b><br>
          * This method is called before actually sending the frame.
          * 
-         * @param frame The sent WebSocket Frame.
+         * @param frame
+         *            The sent WebSocket Frame.
          */
-        protected void debugFrameSent(WebSocketFrame frame){}
-        
+        protected void debugFrameSent(WebSocketFrame frame) {
+        }
+
         public void close(CloseCode code, String reason, boolean initiatedByRemote) throws IOException {
             State oldState = this.state;
             this.state = State.CLOSING;

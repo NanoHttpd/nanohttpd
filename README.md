@@ -6,7 +6,7 @@ It is being developed at Github and uses Apache Maven for builds & unit testing:
 
  * Build status: [![Build Status](https://api.travis-ci.org/NanoHttpd/nanohttpd.png)](https://travis-ci.org/NanoHttpd/nanohttpd)
  * Coverage Status: [![Coverage Status](https://coveralls.io/repos/NanoHttpd/nanohttpd/badge.svg)](https://coveralls.io/r/NanoHttpd/nanohttpd)
- * Current central released version: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.nanohttpd/nanohttpd/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.nanohttpd/nanohttpd)
+ * Current central released version: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.nanohttpd/nanohttpd/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.nanohttpd/nanohttpd)
 
 ## Quickstart
 
@@ -29,9 +29,9 @@ Edit `pom.xml`, and add this between \<dependencies\>:
 	<dependency>
 		<groupId>org.nanohttpd</groupId> <!-- <groupId>com.nanohttpd</groupId> for 2.1.0 and earlier -->
 		<artifactId>nanohttpd</artifactId>
-		<version>2.2.0-SNAPSHOT</version>
+		<version>2.2.0</version>
 	</dependency>
-
+	
 Edit `src/main/java/com/example/App.java` and replace it with:
 ```java
 package com.example;
@@ -161,6 +161,20 @@ NanoHTTPD is a Maven based project and deployed to central. Most development env
 The coordinates for your development environment should correspond to these. When looking for an older version take care because we switched groupId from *com.nanohttpd* to *org.nanohttpd* in mid 2015.
 
 Next it depends what you are useing nanohttpd for, there are tree main usages.
+
+## Gradle dependencies
+
+In gradle you can use nano http the same way because gradle accesses the same central repository:
+
+	dependencies {
+		runtime(
+			[group: 'org.nanohttpd', name: 'nanohttpd', version: 'CURRENT_VERSION'],
+		)
+	}
+
+(Replace `CURRENT_VERSION` with whatever is reported latest at <http://nanohttpd.org/>.)
+
+Just replace the name with the artifact id of the module you want to use and gradle will find it for you. 
 
 ### Develop your own specialized HTTP service
 

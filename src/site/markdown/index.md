@@ -12,17 +12,26 @@ It is being developed at Github and uses Apache Maven for builds & unit testing:
 
 We'll create a custom HTTP server project using Maven for build/dep system. This tutorial assumes you are using a Unix variant and a shell. First, install Maven and Java SDK if not already installed. Then run:
 
+    mvn compile
+    mvn exec:java -pl webserver -Dexec.mainClass="fi.iki.elonen.SimpleWebServer"
+    
+You should now have a HTTP file server running on <http://localhost:8080/>.
+
+### Custom web app
+
+Let's raise the bar and build a custom web application next:
+
     mvn archetype:generate -DgroupId=com.example -DartifactId=myHellopApp -DinteractiveMode=false
     cd myHellopApp
     
 Edit `pom.xml`, and add this between \<dependencies\>:
  
 	<dependency>
-		<groupId>org.nanohttpd</groupId>
+		<groupId>org.nanohttpd</groupId> <!-- <groupId>com.nanohttpd</groupId> for 2.1.0 and earlier -->
 		<artifactId>nanohttpd</artifactId>
-		<version>2.2.0-SNAPSHOT</version>
+		<version>2.2.0</version>
 	</dependency>
-
+	
 Edit `src/main/java/com/example/App.java` and replace it with:
 ```java
 package com.example;
@@ -69,6 +78,11 @@ Compile and run the server:
     
 If it started ok, point your browser at <http://localhost:8080/> and enjoy a web server that asks your name and replies with a greeting. 
 
+### Nanolets
+
+Nanolets are like sevlet's only that they have a extrem low profile. They offer an easy to use system for a more complex server application. 
+This text has to be extrended with an example, so for now take a look at the unit tests for the usage. <https://github.com/NanoHttpd/nanohttpd/blob/master/nanolets/src/test/java/fi/iki/elonen/router/AppNanolets.java>
+
 ## Status
 
 We are currently in the process of stabilizing NanoHttpd from the many pull requests and feature requests that were integrated over the last few months. The next release will come soon, and there will not be any more "intended" major changes before the next release. If you want to use the bleeding edge version, you can clone it from Github, or get it from sonatype.org (see "Maven dependencies / Living on the edge" below).
@@ -84,6 +98,10 @@ NanoHTTPD project currently consist of four parts:
  * `/websocket` – Websocket implementation, also in a single Java file. Depends on core.
 
  * `/webserver` – Standalone file server. Run & enjoy. A popular use seems to be serving files out off an Android device.
+
+ * `/nanolets` – Standalone nano app server, giving a servlet like system to the implementor.
+
+ * `/fileupload` – integration of the apache common file upload library.
 
 ## Features
 ### Core
@@ -112,6 +130,19 @@ NanoHTTPD project currently consist of four parts:
 * File server serves also very long files without memory overhead.
 * Contains a built-in list of most common MIME types.
 * Runtime extension support (extensions that serve particular MIME types) - example extension that serves Markdown formatted files. Simply including an extension JAR in the webserver classpath is enough for the extension to be loaded.
+* Simple [CORS](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing) support via `--cors` paramater
+  * by default serves `Access-Control-Allow-Headers: origin,accept,content-type`
+  * possibility to set `Access-Control-Allow-Headers` by setting System property: `AccessControlAllowHeader`
+  * _example: _ `-DAccessControlAllowHeader=origin,accept,content-type,Authorization`
+  * possible values:
+      * `--cors`: activates CORS support, `Access-Control-Allow-Origin` will be set to `*`
+      * `--cors=some_value`: `Access-Control-Allow-Origin` will be set to `some_value`. 
+
+**_CORS argument examples_**
+
+
+* `--cors=http://appOne.company.com`
+* `--cors="http://appOne.company.com, http://appTwo.company.com"`: note the double quotes so that the 2 URLs are considered part of a single argument.
 
 ## Maven dependencies
 
@@ -119,26 +150,36 @@ NanoHTTPD is a Maven based project and deployed to central. Most development env
 
 	<dependencies>
 		<dependency>
-			<groupId>org.nanohttpd</groupId>
+			<groupId>org.nanohttpd</groupId> <!-- <groupId>com.nanohttpd</groupId> for 2.1.0 and earlier -->
 			<artifactId>nanohttpd</artifactId>
-			<version>CURRENT_VERSION</version>
+			<version>2.2.0</version>
 		</dependency>
 	</dependencies>
-
-(Replace `CURRENT_VERSION` with whatever is reported latest at <http://nanohttpd.org/>.)
 
 The coordinates for your development environment should correspond to these. When looking for an older version take care because we switched groupId from *com.nanohttpd* to *org.nanohttpd* in mid 2015.
 
 Next it depends what you are useing nanohttpd for, there are tree main usages.
+
+## Gradle dependencies
+
+In gradle you can use nano http the same way because gradle accesses the same central repository:
+
+	dependencies {
+		runtime(
+			[group: 'org.nanohttpd', name: 'nanohttpd', version: '2.2.0'],
+		)
+	}
+
+Just replace the name with the artifact id of the module you want to use and gradle will find it for you. 
 
 ### Develop your own specialized HTTP service
 
 For a specialized HTTP (HTTPS) service you can use the module with artifactId *nanohttpd*.
 
 		<dependency>
-			<groupId>org.nanohttpd</groupId>
+			<groupId>org.nanohttpd</groupId> <!-- <groupId>com.nanohttpd</groupId> for 2.1.0 and earlier -->
 			<artifactId>nanohttpd</artifactId>
-			<version>CURRENT_VERSION</version>
+			<version>2.2.0VERSION</version>
 		</dependency>
 		
 Here you write your own subclass of *fi.iki.elonen.NanoHTTPD* to configure and to serve the requests.
@@ -148,9 +189,9 @@ Here you write your own subclass of *fi.iki.elonen.NanoHTTPD* to configure and t
 For a specialized websocket service you can use the module with artifactId *nanohttpd-websocket*.
 
 		<dependency>
-			<groupId>org.nanohttpd</groupId>
+			<groupId>org.nanohttpd</groupId> <!-- <groupId>com.nanohttpd</groupId> for 2.1.0 and earlier -->
 			<artifactId>nanohttpd-websocket</artifactId>
-			<version>CURRENT_VERSION</version>
+			<version>2.2.0</version>
 		</dependency>
 
 Here you write your own subclass of *fi.iki.elonen.NanoWebSocketServer* to configure and to serve the websocket requests. A small standard echo example is included as *fi.iki.elonen.samples.echo.DebugWebSocketServer*. You can use it as a starting point to implement your own services.
@@ -162,7 +203,7 @@ For a more classic aproach, perhaps to just create a HTTP server serving mostly 
 		<dependency>
 			<groupId>org.nanohttpd</groupId>
 			<artifactId>nanohttpd-webserver</artifactId>
-			<version>CURRENT_VERSION</version>
+			<version>2.2.0</version>
 		</dependency>
 
 The included class *fi.iki.elonen.SimpleWebServer* is intended to be used as a starting point for your own implementation but it also can be used as is. Staring the class as is will start a http server on port 8080 and publishing the current directory.  
@@ -189,7 +230,19 @@ The latest Github master version can be fetched through sonatype.org:
 		</repository>
 	</repositories>
 
+### generating an self signed ssl certificate
 
+Just a hint how to generate a certificate for localhost.
+
+	keytool -genkey -keyalg RSA -alias selfsigned -keystore keystore.jks -storepass password -validity 360 -keysize 2048 -ext SAN=DNS:localhost,IP:127.0.0.1  -validity 9999
+
+This will generate a keystore file named 'keystore.jks' with a self signed certificate for a host named localhost with the ip adress 127.0.0.1 . Now 
+you can use:
+
+	server.makeSecure(NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()));
+
+Before you start the server to make Nanohttpd serve https connections, when you make sure 'keystore.jks' is in your classpath .  
+ 
 -----
 
 *Thank you to everyone who has reported bugs and suggested fixes.*

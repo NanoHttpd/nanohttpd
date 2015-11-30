@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.m2e.Maven2LaunchConfigurationType">
+<booleanAttribute key="M2_DEBUG_OUTPUT" value="false"/>
+<stringAttribute key="M2_GOALS" value="release:prepare"/>
+<booleanAttribute key="M2_NON_RECURSIVE" value="false"/>
+<booleanAttribute key="M2_OFFLINE" value="false"/>
+<stringAttribute key="M2_PROFILES" value=""/>
+<listAttribute key="M2_PROPERTIES"/>
+<stringAttribute key="M2_RUNTIME" value="apache-maven-3.3.3"/>
+<booleanAttribute key="M2_SKIP_TESTS" value="false"/>
+<intAttribute key="M2_THREADS" value="1"/>
+<booleanAttribute key="M2_UPDATE_SNAPSHOTS" value="false"/>
+<stringAttribute key="M2_USER_SETTINGS" value=""/>
+<booleanAttribute key="M2_WORKSPACE_RESOLUTION" value="false"/>
+<mapAttribute key="org.eclipse.debug.core.environmentVariables">
+<mapEntry key="JAVA_HOME" value="/home/nir/java/jdk1.7.0_79"/>
+</mapAttribute>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dmaven.multiModuleProjectDirectory=/home/nir/java/apache-maven-3.3.3"/>
+<stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:/nanohttpd-parent}"/>
+</launchConfiguration>
