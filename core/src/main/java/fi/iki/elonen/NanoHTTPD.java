@@ -659,7 +659,7 @@ public abstract class NanoHTTPD {
                     // First line is boundary string
                     String mpline = in.readLine();
                     headerLines++;
-                    if (!mpline.contains(boundary)) {
+                    if (mpline == null || !mpline.contains(boundary)) {
                         throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but chunk does not start with boundary.");
                     }
 
@@ -674,9 +674,9 @@ public abstract class NanoHTTPD {
                             matcher = CONTENT_DISPOSITION_ATTRIBUTE_PATTERN.matcher(attributeString);
                             while (matcher.find()) {
                                 String key = matcher.group(1);
-                                if (key.equalsIgnoreCase("name")) {
+                                if ("name".equalsIgnoreCase(key)) {
                                     part_name = matcher.group(2);
-                                } else if (key.equalsIgnoreCase("filename")) {
+                                } else if ("filename".equalsIgnoreCase(key)) {
                                     file_name = matcher.group(2);
                                 }
                             }
@@ -808,17 +808,17 @@ public abstract class NanoHTTPD {
                     this.headers.clear();
                 }
 
-                if (null != this.remoteIp) {
-                    this.headers.put("remote-addr", this.remoteIp);
-                    this.headers.put("http-client-ip", this.remoteIp);
-                }
-
                 // Create a BufferedReader for parsing the header.
                 BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, this.rlen)));
 
                 // Decode the header into parms and header java properties
                 Map<String, String> pre = new HashMap<String, String>();
                 decodeHeader(hin, pre, this.parms, this.headers);
+
+                if (null != this.remoteIp) {
+                    this.headers.put("remote-addr", this.remoteIp);
+                    this.headers.put("http-client-ip", this.remoteIp);
+                }
 
                 this.method = Method.lookup(pre.get("method"));
                 if (this.method == null) {
@@ -830,7 +830,7 @@ public abstract class NanoHTTPD {
                 this.cookies = new CookieHandler(this.headers);
 
                 String connection = this.headers.get("connection");
-                boolean keepAlive = protocolVersion.equals("HTTP/1.1") && (connection == null || !connection.matches("(?i).*close.*"));
+                boolean keepAlive = "HTTP/1.1".equals(protocolVersion) && (connection == null || !connection.matches("(?i).*close.*"));
 
                 // Ok, now do the serve()
 
@@ -1486,7 +1486,7 @@ public abstract class NanoHTTPD {
 
         protected static long sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header, long size) {
             for (String headerName : header.keySet()) {
-                if (headerName.equalsIgnoreCase("content-length")) {
+                if ("content-length".equalsIgnoreCase(headerName)) {
                     try {
                         return Long.parseLong(header.get(headerName));
                     } catch (NumberFormatException ex) {
