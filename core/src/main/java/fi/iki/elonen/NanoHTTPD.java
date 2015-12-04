@@ -75,6 +75,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
@@ -1285,9 +1286,22 @@ public abstract class NanoHTTPD {
         private long contentLength;
 
         /**
-         * Headers for the HTTP response. Use addHeader() to add lines.
+         * Headers for the HTTP response. Use addHeader() to add lines. the
+         * lowercase map is automaticaly kept up to date.
          */
-        private final Map<String, String> header = new HashMap<String, String>();
+        private final Map<String, String> header = new HashMap<String, String>() {
+
+            public String put(String key, String value) {
+                lowerCaseHeader.put(key == null ? key : key.toLowerCase(), value);
+                return super.put(key, value);
+            };
+        };
+
+        /**
+         * copy of the header map with all the keys lowercase for faster
+         * searching.
+         */
+        private final Map<String, String> lowerCaseHeader = new HashMap<String, String>();
 
         /**
          * The request method that spawned this response.
@@ -1339,12 +1353,7 @@ public abstract class NanoHTTPD {
         }
 
         public String getHeader(String name) {
-            for (String headerName : header.keySet()) {
-                if (headerName.equalsIgnoreCase(name)) {
-                    return header.get(headerName);
-                }
-            }
-            return null;
+            return this.lowerCaseHeader.get(name.toLowerCase());
         }
 
         public String getMimeType() {
@@ -1367,14 +1376,6 @@ public abstract class NanoHTTPD {
             this.keepAlive = useKeepAlive;
         }
 
-        private static boolean headerAlreadySent(Map<String, String> header, String name) {
-            boolean alreadySent = false;
-            for (String headerName : header.keySet()) {
-                alreadySent |= headerName.equalsIgnoreCase(name);
-            }
-            return alreadySent;
-        }
-
         /**
          * Sends given response to the socket.
          */
@@ -1388,43 +1389,33 @@ public abstract class NanoHTTPD {
                     throw new Error("sendResponse(): Status can't be null.");
                 }
                 PrintWriter pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8")), false);
-                pw.print("HTTP/1.1 " + this.status.getDescription() + " \r\n");
-
+                pw.append("HTTP/1.1 ").append(this.status.getDescription()).append(" \r\n");
                 if (mime != null) {
-                    pw.print("Content-Type: " + mime + "\r\n");
+                    printHeader(pw, "Content-Type", mime);
                 }
-
-                if (this.header == null || this.header.get("Date") == null) {
-                    pw.print("Date: " + gmtFrmt.format(new Date()) + "\r\n");
+                if (getHeader("date") == null) {
+                    printHeader(pw, "Date", gmtFrmt.format(new Date()));
                 }
-
-                if (this.header != null) {
-                    for (String key : this.header.keySet()) {
-                        String value = this.header.get(key);
-                        pw.print(key + ": " + value + "\r\n");
-                    }
+                for (Entry<String, String> entry : this.header.entrySet()) {
+                    printHeader(pw, entry.getKey(), entry.getValue());
                 }
-
-                if (!headerAlreadySent(header, "connection")) {
-                    pw.print("Connection: " + (this.keepAlive ? "keep-alive" : "close") + "\r\n");
+                if (getHeader("connection") == null) {
+                    printHeader(pw, "Connection", (this.keepAlive ? "keep-alive" : "close"));
                 }
-
-                if (headerAlreadySent(this.header, "content-length")) {
+                if (getHeader("content-length") != null) {
                     encodeAsGzip = false;
                 }
-
                 if (encodeAsGzip) {
-                    pw.print("Content-Encoding: gzip\r\n");
+                    printHeader(pw, "Content-Encoding", "gzip");
                     setChunkedTransfer(true);
                 }
-
                 long pending = this.data != null ? this.contentLength : 0;
                 if (this.requestMethod != Method.HEAD && this.chunkedTransfer) {
-                    pw.print("Transfer-Encoding: chunked\r\n");
+                    printHeader(pw, "Transfer-Encoding", "chunked");
                 } else if (!encodeAsGzip) {
-                    pending = sendContentLengthHeaderIfNotAlreadyPresent(pw, this.header, pending);
+                    pending = sendContentLengthHeaderIfNotAlreadyPresent(pw, pending);
                 }
-                pw.print("\r\n");
+                pw.append("\r\n");
                 pw.flush();
                 sendBodyWithCorrectTransferAndEncoding(outputStream, pending);
                 outputStream.flush();
@@ -1432,6 +1423,24 @@ public abstract class NanoHTTPD {
             } catch (IOException ioe) {
                 NanoHTTPD.LOG.log(Level.SEVERE, "Could not send response to the client", ioe);
             }
+        }
+
+        protected void printHeader(PrintWriter pw, String key, String value) {
+            pw.append(key).append(": ").append(value).append("\r\n");
+        }
+
+        protected long sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, long defaultSize) {
+            String contentLengthString = getHeader("content-length");
+            long size = defaultSize;
+            if (contentLengthString != null) {
+                try {
+                    size = Long.parseLong(contentLengthString);
+                } catch (NumberFormatException ex) {
+                    LOG.severe("content-length was no number " + contentLengthString);
+                }
+            }
+            pw.print("Content-Length: " + size + "\r\n");
+            return size;
         }
 
         private void sendBodyWithCorrectTransferAndEncoding(OutputStream outputStream, long pending) throws IOException {
@@ -1482,21 +1491,6 @@ public abstract class NanoHTTPD {
                     pending -= read;
                 }
             }
-        }
-
-        protected static long sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header, long size) {
-            for (String headerName : header.keySet()) {
-                if ("content-length".equalsIgnoreCase(headerName)) {
-                    try {
-                        return Long.parseLong(header.get(headerName));
-                    } catch (NumberFormatException ex) {
-                        return size;
-                    }
-                }
-            }
-
-            pw.print("Content-Length: " + size + "\r\n");
-            return size;
         }
 
         public void setChunkedTransfer(boolean chunkedTransfer) {
