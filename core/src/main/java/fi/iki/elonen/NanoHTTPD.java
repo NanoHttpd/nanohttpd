@@ -1728,6 +1728,11 @@ public abstract class NanoHTTPD {
         try {
             KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
             InputStream keystoreStream = NanoHTTPD.class.getResourceAsStream(keyAndTrustStoreClasspathPath);
+
+            if (keystoreStream == null) {
+                throw new IOException("Unable to load keystore from classpath: " + keyAndTrustStoreClasspathPath);
+            }
+
             keystore.load(keystoreStream, passphrase);
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
             keyManagerFactory.init(keystore, passphrase);
