@@ -468,11 +468,15 @@ public abstract class NanoHTTPD {
         }
     }
 
-    private static final String CHARSET_REGEX = "[ |\t]*(charset)[ |\t]*=[ |\t]*['|\"]?([^\"^'^;]*)['|\"]?";
+    private static final String CONTENT_REGEX = "[ |\t]*([^/^ ^;^,]+/[^ ^;^,]+)";
+
+    private static final Pattern MIME_PATTERN = Pattern.compile(CONTENT_REGEX, Pattern.CASE_INSENSITIVE);
+
+    private static final String CHARSET_REGEX = "[ |\t]*(charset)[ |\t]*=[ |\t]*['|\"]?([^\"^'^;^,]*)['|\"]?";
 
     private static final Pattern CHARSET_PATTERN = Pattern.compile(CHARSET_REGEX, Pattern.CASE_INSENSITIVE);
 
-    private static final String BOUNDARY_REGEX = "[ |\t]*(boundary)[ |\t]*=[ |\t]*['|\"]?([^\"^'^;]*)['|\"]?";
+    private static final String BOUNDARY_REGEX = "[ |\t]*(boundary)[ |\t]*=[ |\t]*['|\"]?([^\"^'^;^,]*)['|\"]?";
 
     private static final Pattern BOUNDARY_PATTERN = Pattern.compile(BOUNDARY_REGEX, Pattern.CASE_INSENSITIVE);
 
@@ -625,7 +629,7 @@ public abstract class NanoHTTPD {
                     NanoHTTPD.LOG.log(Level.FINE, "no protocol version specified, strange. Assuming HTTP/1.1.");
                 }
                 String line = in.readLine();
-                while (line != null && line.trim().length() > 0) {
+                while (line != null && !line.trim().isEmpty()) {
                     int p = line.indexOf(':');
                     if (p >= 0) {
                         headers.put(line.substring(0, p).trim().toLowerCase(Locale.US), line.substring(p + 1).trim());
@@ -1041,28 +1045,23 @@ public abstract class NanoHTTPD {
                 // in data section, too, read it:
                 if (Method.POST.equals(this.method)) {
                     String contentType = "";
+                    String encoding = "UTF-8";
                     String contentTypeHeader = this.headers.get("content-type");
-
-                    StringTokenizer st = null;
                     if (contentTypeHeader != null) {
-                        st = new StringTokenizer(contentTypeHeader, ",; ");
-                        if (st.hasMoreTokens()) {
-                            contentType = st.nextToken();
-                        }
+                        contentType = getDetailFromContentHeader(contentTypeHeader, MIME_PATTERN, "", 1);
+                        encoding = getDetailFromContentHeader(contentTypeHeader, CHARSET_PATTERN, "US-ASCII", 2);
                     }
-
                     if ("multipart/form-data".equalsIgnoreCase(contentType)) {
-                        // Handle multipart/form-data
-                        if (!st.hasMoreTokens()) {
+                        String boundary = getDetailFromContentHeader(contentTypeHeader, BOUNDARY_PATTERN, null, 2);
+                        if (boundary == null) {
                             throw new ResponseException(Response.Status.BAD_REQUEST,
                                     "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
                         }
-                        decodeMultipartFormData(getAttributeFromContentHeader(contentTypeHeader, BOUNDARY_PATTERN, null), //
-                                getAttributeFromContentHeader(contentTypeHeader, CHARSET_PATTERN, "US-ASCII"), fbuf, this.parms, files);
+                        decodeMultipartFormData(boundary, encoding, fbuf, this.parms, files);
                     } else {
                         byte[] postBytes = new byte[fbuf.remaining()];
                         fbuf.get(postBytes);
-                        String postLine = new String(postBytes).trim();
+                        String postLine = new String(postBytes, encoding).trim();
                         // Handle application/x-www-form-urlencoded
                         if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType)) {
                             decodeParms(postLine, this.parms);
@@ -1081,9 +1080,9 @@ public abstract class NanoHTTPD {
             }
         }
 
-        private String getAttributeFromContentHeader(String contentTypeHeader, Pattern pattern, String defaultValue) {
+        private String getDetailFromContentHeader(String contentTypeHeader, Pattern pattern, String defaultValue, int group) {
             Matcher matcher = pattern.matcher(contentTypeHeader);
-            return matcher.find() ? matcher.group(2) : defaultValue;
+            return matcher.find() ? matcher.group(group) : defaultValue;
         }
 
         /**
@@ -1380,7 +1379,6 @@ public abstract class NanoHTTPD {
          * Sends given response to the socket.
          */
         protected void send(OutputStream outputStream) {
-            String mime = this.mimeType;
             SimpleDateFormat gmtFrmt = new SimpleDateFormat("E, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
             gmtFrmt.setTimeZone(TimeZone.getTimeZone("GMT"));
 
@@ -1390,8 +1388,8 @@ public abstract class NanoHTTPD {
                 }
                 PrintWriter pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8")), false);
                 pw.append("HTTP/1.1 ").append(this.status.getDescription()).append(" \r\n");
-                if (mime != null) {
-                    printHeader(pw, "Content-Type", mime);
+                if (this.mimeType != null) {
+                    printHeader(pw, "Content-Type", this.mimeType);
                 }
                 if (getHeader("date") == null) {
                     printHeader(pw, "Date", gmtFrmt.format(new Date()));
