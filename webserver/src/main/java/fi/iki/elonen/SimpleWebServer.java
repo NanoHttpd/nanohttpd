@@ -74,17 +74,17 @@ public class SimpleWebServer extends NanoHTTPD {
     private static final String LICENCE;
     static {
         mimeTypes();
-        InputStream stream = SimpleWebServer.class.getResourceAsStream("/LICENSE.txt");
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int count;
         String text;
         try {
+            InputStream stream = SimpleWebServer.class.getResourceAsStream("/LICENSE.txt");
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int count;
             while ((count = stream.read(buffer)) >= 0) {
                 bytes.write(buffer, 0, count);
             }
             text = bytes.toString("UTF-8");
-        } catch (IOException e) {
+        } catch (Exception e) {
             text = "unknown";
         }
         LICENCE = text;
