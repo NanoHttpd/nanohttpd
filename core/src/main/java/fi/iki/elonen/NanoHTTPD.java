@@ -569,7 +569,7 @@ public abstract class NanoHTTPD {
         private String queryParameterString;
 
         private String remoteIp;
-        
+
         private String remoteHostname;
 
         private String protocolVersion;
@@ -847,7 +847,7 @@ public abstract class NanoHTTPD {
 
                 // TODO: long body_size = getBodySize();
                 // TODO: long pos_before_serve = this.inputStream.totalRead()
-                // (requires implementaion for totalRead())
+                // (requires implementation for totalRead())
                 r = serve(this);
                 // TODO: this.inputStream.skip(body_size -
                 // (this.inputStream.totalRead() - pos_before_serve))
@@ -862,7 +862,7 @@ public abstract class NanoHTTPD {
                     r.setKeepAlive(keepAlive);
                     r.send(this.outputStream);
                 }
-                if (!keepAlive || "close".equalsIgnoreCase(r.getHeader("connection"))) {
+                if (!keepAlive || r.isCloseConnection()) {
                     throw new SocketException("NanoHttpd Shutdown");
                 }
             } catch (SocketException e) {
@@ -1163,15 +1163,17 @@ public abstract class NanoHTTPD {
          *            map to modify
          */
         void parseBody(Map<String, String> files) throws IOException, ResponseException;
-        
+
         /**
          * Get the remote ip address of the requester.
+         * 
          * @return the IP address.
          */
         String getRemoteIpAddress();
-        
+
         /**
          * Get the remote hostname of the requester.
+         * 
          * @return the hostname.
          */
         String getRemoteHostName();
@@ -1377,6 +1379,28 @@ public abstract class NanoHTTPD {
          */
         public void addHeader(String name, String value) {
             this.header.put(name, value);
+        }
+
+        /**
+         * Indicate to close the connection after the Response has been sent.
+         * 
+         * @param close
+         *            {@code true} to hint connection closing, {@code false} to
+         *            let connection be closed by client.
+         */
+        public void closeConnection(boolean close) {
+            if (close)
+                this.header.put("connection", "close");
+            else
+                this.header.remove("connection");
+        }
+
+        /**
+         * @return {@code true} if connection is to be closed after this
+         *         Response has been sent.
+         */
+        public boolean isCloseConnection() {
+            return "close".equals(getHeader("connection"));
         }
 
         public InputStream getData() {
