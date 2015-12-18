@@ -34,41 +34,41 @@ Edit `pom.xml`, and add this between \<dependencies\>:
 	
 Edit `src/main/java/com/example/App.java` and replace it with:
 ```java
-package com.example;
-
-import java.util.Map;
-import java.io.IOException;
-import fi.iki.elonen.NanoHTTPD;
-
-public class App extends NanoHTTPD {
-
-    public App() throws IOException {
-        super(8080);
-        start();
-		System.out.println( "\nRunning! Point your browers to http://localhost:8080/ \n" );
-    }
-
-    public static void main(String[] args) {
-		try {
-		    new App();
-		}
-		catch( IOException ioe ) {
-			System.err.println( "Couldn't start server:\n" + ioe );
-		}
-    }
-
-    @Override
-    public Response serve(IHTTPSession session) {
-        String msg = "<html><body><h1>Hello server</h1>\n";
-        Map<String, String> parms = session.getParms();
-        if (parms.get("username") == null) {
-            msg += "<form action='?' method='get'>\n  <p>Your name: <input type='text' name='username'></p>\n" + "</form>\n";
-        } else {
-            msg += "<p>Hello, " + parms.get("username") + "!</p>";
+    package com.example;
+    
+    import java.io.IOException;
+    import java.util.Map;
+    
+    import fi.iki.elonen.NanoHTTPD;
+    
+    public class App extends NanoHTTPD {
+    
+        public App() throws IOException {
+            super(8080);
+            start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+            System.out.println("\nRunning! Point your browers to http://localhost:8080/ \n");
         }
-        return newFixedLengthResponse( msg + "</body></html>\n" );
+    
+        public static void main(String[] args) {
+            try {
+                new App();
+            } catch (IOException ioe) {
+                System.err.println("Couldn't start server:\n" + ioe);
+            }
+        }
+    
+        @Override
+        public Response serve(IHTTPSession session) {
+            String msg = "<html><body><h1>Hello server</h1>\n";
+            Map<String, String> parms = session.getParms();
+            if (parms.get("username") == null) {
+                msg += "<form action='?' method='get'>\n  <p>Your name: <input type='text' name='username'></p>\n" + "</form>\n";
+            } else {
+                msg += "<p>Hello, " + parms.get("username") + "!</p>";
+            }
+            return newFixedLengthResponse(msg + "</body></html>\n");
+        }
     }
-}
 ```
 
 Compile and run the server:
@@ -243,7 +243,7 @@ Just a hint how to generate a certificate for localhost.
 This will generate a keystore file named 'keystore.jks' with a self signed certificate for a host named localhost with the ip adress 127.0.0.1 . Now 
 you can use:
 
-	server.makeSecure(NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()));
+	server.makeSecure(NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()), null);
 
 Before you start the server to make Nanohttpd serve https connections, when you make sure 'keystore.jks' is in your classpath .  
  
