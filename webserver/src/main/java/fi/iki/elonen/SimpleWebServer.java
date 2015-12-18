@@ -84,7 +84,7 @@ public class SimpleWebServer extends NanoHTTPD {
                 bytes.write(buffer, 0, count);
             }
             text = bytes.toString("UTF-8");
-        } catch (IOException e) {
+        } catch (Exception e) {
             text = "unknown";
         }
         LICENCE = text;
