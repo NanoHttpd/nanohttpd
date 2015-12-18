@@ -1227,6 +1227,7 @@ public abstract class NanoHTTPD {
             NO_CONTENT(204, "No Content"),
             PARTIAL_CONTENT(206, "Partial Content"),
             REDIRECT(301, "Moved Permanently"),
+            REDIRECT_SEE_OTHER(303, "Moved Permanently"),
             NOT_MODIFIED(304, "Not Modified"),
             BAD_REQUEST(400, "Bad Request"),
             UNAUTHORIZED(401, "Unauthorized"),
@@ -2023,6 +2024,23 @@ public abstract class NanoHTTPD {
         return new Response(status, mimeType, data, -1);
     }
 
+    
+    /**
+     * Create a 303 redirect
+     */
+    public static Response newRedirectSeeOtherResponse(URL url) {
+        Response r = new Response(Status.REDIRECT_SEE_OTHER, MIME_HTML, new ByteArrayInputStream(new byte[0]), 0);
+        r.header.put("Location", url.toString());
+        return r;
+    }
+
+    /**
+     * Create a response with no content.
+     */
+    public static Response newNoContentResponse() {
+        return newFixedLengthResponse(Status.NO_CONTENT, MIME_HTML, null);
+    }
+
     /**
      * Create a response with known length.
      */
@@ -2194,4 +2212,5 @@ public abstract class NanoHTTPD {
     public final boolean wasStarted() {
         return this.myServerSocket != null && this.myThread != null;
     }
+
 }
