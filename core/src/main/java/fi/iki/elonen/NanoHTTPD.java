@@ -88,6 +88,7 @@ import java.util.zip.GZIPOutputStream;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
@@ -781,7 +782,9 @@ public abstract class NanoHTTPD {
                 this.inputStream.mark(HTTPSession.BUFSIZE);
                 try {
                     read = this.inputStream.read(buf, 0, HTTPSession.BUFSIZE);
-                } catch (Exception e) {
+                } catch (SSLException e) {
+                    throw e;
+                } catch (IOException e) {
                     safeClose(this.inputStream);
                     safeClose(this.outputStream);
                     throw new SocketException("NanoHttpd Shutdown");
@@ -867,6 +870,10 @@ public abstract class NanoHTTPD {
                 // i.e. close the stream & finalAccept object by throwing the
                 // exception up the call stack.
                 throw ste;
+            } catch (SSLException ssle) {
+                Response resp = newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SSL PROTOCOL FAILURE: " + ssle.getMessage());
+                resp.send(this.outputStream);
+                safeClose(this.outputStream);
             } catch (IOException ioe) {
                 Response resp = newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
                 resp.send(this.outputStream);
