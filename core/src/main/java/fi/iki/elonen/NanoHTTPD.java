@@ -569,6 +569,8 @@ public abstract class NanoHTTPD {
         private String queryParameterString;
 
         private String remoteIp;
+        
+        private String remoteHostname;
 
         private String protocolVersion;
 
@@ -583,6 +585,7 @@ public abstract class NanoHTTPD {
             this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
             this.outputStream = outputStream;
             this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
+            this.remoteHostname = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "localhost" : inetAddress.getHostName().toString();
             this.headers = new HashMap<String, String>();
         }
 
@@ -1116,6 +1119,16 @@ public abstract class NanoHTTPD {
             }
             return path;
         }
+
+        @Override
+        public String getRemoteIpAddress() {
+            return this.remoteIp;
+        }
+
+        @Override
+        public String getRemoteHostName() {
+            return this.remoteHostname;
+        }
     }
 
     /**
@@ -1150,6 +1163,18 @@ public abstract class NanoHTTPD {
          *            map to modify
          */
         void parseBody(Map<String, String> files) throws IOException, ResponseException;
+        
+        /**
+         * Get the remote ip address of the requester.
+         * @return the IP address.
+         */
+        String getRemoteIpAddress();
+        
+        /**
+         * Get the remote hostname of the requester.
+         * @return the hostname.
+         */
+        String getRemoteHostName();
     }
 
     /**
