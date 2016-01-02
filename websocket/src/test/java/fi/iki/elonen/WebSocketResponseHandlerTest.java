@@ -38,10 +38,13 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +56,7 @@ import fi.iki.elonen.NanoHTTPD.IHTTPSession;
 import fi.iki.elonen.NanoHTTPD.Response;
 import fi.iki.elonen.NanoWSD.WebSocketFrame;
 import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseCode;
+import fi.iki.elonen.NanoWSD.WebSocketFrame.OpCode;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WebSocketResponseHandlerTest {
@@ -166,4 +170,91 @@ public class WebSocketResponseHandlerTest {
         assertNotNull(handshakeResponse);
         assertEquals(Response.Status.BAD_REQUEST, handshakeResponse.getStatus());
     }
+
+	@Test
+	public void testSetMaskingKeyThrowsExceptionMaskingKeyLengthIsNotFour() {
+		WebSocketFrame webSocketFrame = new NanoWSD.WebSocketFrame(OpCode.Text, true, new byte[0]);
+		for (int maskingKeyLength = 0; maskingKeyLength < 10; maskingKeyLength++) {
+			if (maskingKeyLength == 4)
+				continue;
+			try {
+				webSocketFrame.setMaskingKey(new byte[maskingKeyLength]);
+				Assert.fail("IllegalArgumentException expected but not thrown");
+			} catch (IllegalArgumentException e) {
+
+			}
+		}
+	}
+
+	@Test
+	public void testIsMasked() {
+		WebSocketFrame webSocketFrame = new NanoWSD.WebSocketFrame(OpCode.Text, true, new byte[0]);
+		Assert.assertFalse("isMasked should return true if masking key is not set.", webSocketFrame.isMasked());
+
+		webSocketFrame.setMaskingKey(new byte[4]);
+		Assert.assertTrue("isMasked should return true if correct masking key is set.", webSocketFrame.isMasked());
+
+	}
+
+	@Test
+	public void testWriteWhenNotMasked() throws IOException {
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		WebSocketFrame webSocketFrame = new NanoWSD.WebSocketFrame(OpCode.Text, true, "payload".getBytes());
+		webSocketFrame.write(byteArrayOutputStream);
+		byte[] writtenBytes = byteArrayOutputStream.toByteArray();
+		Assert.assertEquals(9, writtenBytes.length);
+		Assert.assertEquals("Header byte incorrect.", -127, writtenBytes[0]);
+		Assert.assertEquals("Payload length byte incorrect.", 7, writtenBytes[1]);
+		Assert.assertArrayEquals(new byte[] { -127, 7, 112, 97, 121, 108, 111, 97, 100 }, writtenBytes);
+	}
+
+	@Test
+	public void testWriteWhenMasked() throws IOException {
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		WebSocketFrame webSocketFrame = new NanoWSD.WebSocketFrame(OpCode.Binary, true, "payload".getBytes());
+		webSocketFrame.setMaskingKey(new byte[] { 12, 45, 33, 32 });
+		webSocketFrame.write(byteArrayOutputStream);
+		byte[] writtenBytes = byteArrayOutputStream.toByteArray();
+		Assert.assertEquals(13, writtenBytes.length);
+		Assert.assertEquals("Header byte incorrect.", -126, writtenBytes[0]);
+		Assert.assertEquals("Payload length byte incorrect.", -121, writtenBytes[1]);
+		Assert.assertArrayEquals(new byte[] { -126, -121, 12, 45, 33, 32, 124, 76, 88, 76, 99, 76, 69 }, writtenBytes);
+	}
+
+	@Test
+	public void testWriteWhenNotMaskedPayloadLengthGreaterThan125() throws IOException {
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		WebSocketFrame webSocketFrame = new NanoWSD.WebSocketFrame(OpCode.Ping, true, new byte[257]);
+		webSocketFrame.write(byteArrayOutputStream);
+		byte[] writtenBytes = byteArrayOutputStream.toByteArray();
+		Assert.assertEquals(261, writtenBytes.length);
+		Assert.assertEquals("Header byte incorrect.", -119, writtenBytes[0]);
+		Assert.assertArrayEquals("Payload length bytes incorrect.", new byte[] { 126, 1, 1 },
+				new byte[] { writtenBytes[1], writtenBytes[2], writtenBytes[3] });
+	}
+	
+	@Test
+	public void testWriteWhenMaskedPayloadLengthGreaterThan125() throws IOException {
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		WebSocketFrame webSocketFrame = new NanoWSD.WebSocketFrame(OpCode.Ping, false, new byte[257]);
+		webSocketFrame.setMaskingKey(new byte[] { 19, 25, 79, 11 });
+		webSocketFrame.write(byteArrayOutputStream);
+		byte[] writtenBytes = byteArrayOutputStream.toByteArray();
+		Assert.assertEquals(265, writtenBytes.length);
+		Assert.assertEquals("Header byte incorrect.", 9, writtenBytes[0]);
+		Assert.assertArrayEquals("Payload length bytes incorrect.", new byte[] { -2, 1, 1 },
+				new byte[] { writtenBytes[1], writtenBytes[2], writtenBytes[3] });
+	}
+	
+	@Test
+	public void testWriteWhenNotMaskedPayloadLengthGreaterThan65535() throws IOException {
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		WebSocketFrame webSocketFrame = new NanoWSD.WebSocketFrame(OpCode.Ping, true, new byte[65536]);
+		webSocketFrame.write(byteArrayOutputStream);
+		byte[] writtenBytes = byteArrayOutputStream.toByteArray();
+		Assert.assertEquals(65546, writtenBytes.length);
+		Assert.assertEquals("Header byte incorrect.", -119, writtenBytes[0]);
+		Assert.assertArrayEquals("Payload length bytes incorrect.", new byte[] { 127, 0, 0, 0, 0, 0, 1, 0, 0 },
+				Arrays.copyOfRange(writtenBytes, 1, 10));
+	}
 }
