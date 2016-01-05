@@ -1987,7 +1987,8 @@ public abstract class NanoHTTPD {
      *         accespts it. Default this option is on for text content and off
      *         for everything. Override this for custom semantics.
      */
-    protected static boolean useGzipWhenAccepted(Response r) {
+    @SuppressWarnings("static-method")
+	protected boolean useGzipWhenAccepted(Response r) {
         return r.getMimeType() != null && r.getMimeType().toLowerCase().contains("text/");
     }
 
