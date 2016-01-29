@@ -34,6 +34,7 @@ package fi.iki.elonen;
  */
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -49,20 +50,18 @@ public class HttpSessionHeadersTest extends HttpServerTest {
     private static final TestTempFileManager TEST_TEMP_FILE_MANAGER = new TestTempFileManager();
 
     @Test
-    @Ignore
     public void testHeadersRemoteIp() throws Exception {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(HttpSessionHeadersTest.DUMMY_REQUEST_CONTENT.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         String[] ipAddresses = {
             "127.0.0.1",
-            "192.168.1.1",
-            "192.30.252.129"
+            "8.8.8.8",
         };
         for (String ipAddress : ipAddresses) {
             InetAddress inetAddress = InetAddress.getByName(ipAddress);
             NanoHTTPD.HTTPSession session = this.testServer.createSession(HttpSessionHeadersTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
-            assertEquals(ipAddress, session.getHeaders().get("remote-addr"));
-            assertEquals(ipAddress, session.getHeaders().get("http-client-ip"));
+            assertNotNull(ipAddress, session.getRemoteHostName());
+            assertEquals(ipAddress, session.getRemoteIpAddress());
         }
     }
 
