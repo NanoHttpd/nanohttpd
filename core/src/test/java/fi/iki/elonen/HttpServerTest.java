@@ -33,15 +33,18 @@ package fi.iki.elonen;
  * #L%
  */
 
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.InetAddress;
@@ -50,6 +53,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -189,5 +200,120 @@ public class HttpServerTest {
     @Test
     public void testServerExists() {
         assertNotNull(this.testServer);
+    }
+
+    @Test
+    public void testMultipartFormData() throws IOException {
+        final int testPort = 4589;
+        NanoHTTPD server = null;
+
+        try {
+            server = new NanoHTTPD(testPort) {
+
+                final Map<String, String> files = new HashMap<String, String>();
+
+                @Override
+                public Response serve(IHTTPSession session) {
+                    StringBuilder responseMsg = new StringBuilder();
+
+                    try {
+                        session.parseBody(this.files);
+                        for (String key : files.keySet()) {
+                            responseMsg.append(key);
+                        }
+                    } catch (Exception e) {
+                        responseMsg.append(e.getMessage());
+                    }
+
+                    return newFixedLengthResponse(responseMsg.toString());
+                }
+            };
+            server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost("http://localhost:" + testPort);
+
+            final String fileName = "file-upload-test.htm";
+            FileBody bin = new FileBody(new File(getClass().getClassLoader().getResource(fileName).getFile()));
+            StringBody comment = new StringBody("Filename: " + fileName);
+
+            MultipartEntity reqEntity = new MultipartEntity();
+            reqEntity.addPart("bin", bin);
+            reqEntity.addPart("comment", comment);
+            httppost.setEntity(reqEntity);
+
+            HttpResponse response = httpclient.execute(httppost);
+            HttpEntity entity = response.getEntity();
+
+            if (entity != null) {
+                InputStream instream = entity.getContent();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(instream, "UTF-8"));
+                String line = reader.readLine();
+                assertNotNull(line, "Invalid server reponse");
+                assertEquals("Server failed multi-part data parse" + line, "bincomment", line);
+                reader.close();
+                instream.close();
+            }
+        } finally {
+            if (server != null) {
+                server.stop();
+            }
+        }
+    }
+
+    @Test
+    public void testTempFileInterface() throws IOException {
+        final int testPort = 4589;
+        NanoHTTPD server = new NanoHTTPD(testPort) {
+
+            final Map<String, String> files = new HashMap<String, String>();
+
+            @Override
+            public Response serve(IHTTPSession session) {
+                String responseMsg = "pass";
+
+                try {
+                    session.parseBody(this.files);
+                    for (String key : files.keySet()) {
+                        if (!(new File(files.get(key))).exists()) {
+                            responseMsg = "fail";
+                        }
+                    }
+                } catch (Exception e) {
+                    responseMsg = e.getMessage();
+                }
+
+                return newFixedLengthResponse(responseMsg.toString());
+            }
+        };
+        server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+
+        HttpClient httpclient = new DefaultHttpClient();
+        HttpPost httppost = new HttpPost("http://localhost:" + testPort);
+
+        final String fileName = "file-upload-test.htm";
+        FileBody bin = new FileBody(new File(getClass().getClassLoader().getResource(fileName).getFile()));
+        StringBody comment = new StringBody("Filename: " + fileName);
+
+        MultipartEntity reqEntity = new MultipartEntity();
+        reqEntity.addPart("bin", bin);
+        reqEntity.addPart("comment", comment);
+        httppost.setEntity(reqEntity);
+
+        HttpResponse response = httpclient.execute(httppost);
+        HttpEntity entity = response.getEntity();
+
+        if (entity != null) {
+            InputStream instream = entity.getContent();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(instream, "UTF-8"));
+            String line = reader.readLine();
+            assertNotNull(line, "Invalid server reponse");
+            assertEquals("Server file check failed: " + line, "pass", line);
+            reader.close();
+            instream.close();
+        } else {
+            fail("No server response");
+        }
+        server.stop();
     }
 }

@@ -33,10 +33,12 @@ package fi.iki.elonen;
  * #L%
  */
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -179,6 +181,77 @@ public class HttpPostRequestTest extends HttpServerTest {
         assertEquals(0, this.testServer.parms.size());
         assertEquals(1, this.testServer.files.size());
         assertEquals(HttpPostRequestTest.VALUE_TEST_SIMPLE_RAW_DATA_WITH_AMPHASIS, this.testServer.files.get(HttpPostRequestTest.POST_RAW_CONTENT_FILE_ENTRY));
+    }
+    
+    @Test
+    public void testPostWithMultipartFormFieldsAndFile() throws IOException {
+        String fileName = "GrandCanyon.txt";
+        String fileContent = HttpPostRequestTest.VALUE;
+       
+        String divider = UUID.randomUUID().toString();
+        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\n";
+        String content =
+                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"; filename=\"" + fileName + "\"\r\n"
+                		+ "Content-Type: image/jpeg\r\n" + "\r\n" + fileContent + "\r\n" +
+                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD2 + "\"\r\n" + "\r\n" + HttpPostRequestTest.VALUE2
+                        + "\r\n" + "--" + divider + "--\r\n";
+        int size = content.length() + header.length();
+        int contentLengthHeaderValueSize = String.valueOf(size).length();
+        int contentLength = size + contentLengthHeaderValueSize + HttpPostRequestTest.CONTENT_LENGTH.length();
+        String input = header + HttpPostRequestTest.CONTENT_LENGTH + (contentLength + 4) + "\r\n\r\n" + content;
+        invokeServer(input);
+
+		assertEquals("Parameter count did not match.", 2, this.testServer.parms.size());
+		assertEquals("Parameter value did not match", HttpPostRequestTest.VALUE2, this.testServer.parms.get(HttpPostRequestTest.FIELD2));
+		BufferedReader reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
+		List<String> lines = readLinesFromFile(reader);
+		assertLinesOfText(new String[] { fileContent }, lines);
+	}
+    
+    @Test
+    public void testPostWithMultipartFormUploadMultipleFiles() throws IOException {
+    	
+        String fileName = "GrandCanyon.txt";
+        String fileContent = HttpPostRequestTest.VALUE;
+        String file2Name = "AnotherPhoto.txt";
+        String file2Content = HttpPostRequestTest.VALUE2;
+        String divider = UUID.randomUUID().toString();
+        String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\n";
+        String content =
+                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"; filename=\"" + fileName + "\"\r\n"
+                        + "Content-Type: image/jpeg\r\n" + "\r\n" + fileContent + "\r\n" +
+                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD2 + "\"; filename=\"" + file2Name + "\"\r\n"
+                        + "Content-Type: image/jpeg\r\n" + "\r\n" + file2Content + "\r\n" 
+                        + "\r\n" + "--" + divider + "--\r\n";
+        int size = content.length() + header.length();
+        int contentLengthHeaderValueSize = String.valueOf(size).length();
+        int contentLength = size + contentLengthHeaderValueSize + HttpPostRequestTest.CONTENT_LENGTH.length();
+        String input = header + HttpPostRequestTest.CONTENT_LENGTH + (contentLength + 4) + "\r\n\r\n" + content;
+        invokeServer(input);
+
+		assertEquals("Parameter count did not match.", 2, this.testServer.parms.size());
+		BufferedReader reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
+		List<String> lines = readLinesFromFile(reader);
+		assertLinesOfText(new String[] { fileContent }, lines);			
+		reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD2)));
+		lines = readLinesFromFile(reader);
+		assertLinesOfText(new String[] { file2Content }, lines);
+	
+    }
+    
+    @Test
+    public void testPostWithMultipartFormUploadFileWithMultilineContent() throws Exception {
+        String filename = "GrandCanyon.txt";
+		String lineSeparator = "\n";
+		String fileContent = HttpPostRequestTest.VALUE + lineSeparator + HttpPostRequestTest.VALUE+ lineSeparator + HttpPostRequestTest.VALUE;
+        String input = preparePostWithMultipartForm(filename, fileContent);
+
+        invokeServer(input);
+
+        assertEquals("Parameter count did not match.",1, this.testServer.parms.size());
+        BufferedReader reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD)));
+        List<String> lines = readLinesFromFile(reader);
+        assertLinesOfText( fileContent.split(lineSeparator), lines);
     }
 
 }
