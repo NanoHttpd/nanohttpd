@@ -42,6 +42,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -56,6 +57,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.NanoHTTPD.Response.Status;
 import fi.iki.elonen.router.RouterNanoHTTPD.GeneralHandler;
 import fi.iki.elonen.router.RouterNanoHTTPD.UriResource;
 
@@ -138,6 +140,14 @@ public class TestNanolets {
         Assert.assertEquals(
                 "<html><body>User handler. Method: DELETE<br><h1>Uri parameters:</h1><div> Param: id&nbsp;Value: blabla</div><h1>Query parameters:</h1></body></html>", string);
         response.close();
+    }
+    
+    @Test
+    public void doEncodedRequest() throws ClientProtocolException, IOException {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        HttpGet httpget = new HttpGet("http://localhost:9090/general/param%201/param%202");
+        CloseableHttpResponse response = httpclient.execute(httpget);
+        Assert.assertEquals(Status.OK.getRequestStatus(), response.getStatusLine().getStatusCode());
     }
 
     @Test

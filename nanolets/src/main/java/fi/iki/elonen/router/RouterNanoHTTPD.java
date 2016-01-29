@@ -318,7 +318,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
         private static final Pattern PARAM_PATTERN = Pattern.compile("(?<=(^|/)):[a-zA-Z0-9_-]+(?=(/|$))");
 
-        private static final String PARAM_MATCHER = "([A-Za-z0-9\\-\\._~:/?#\\[\\]@!\\$&'\\(\\)\\*\\+,;=]+)";
+        private static final String PARAM_MATCHER = "([A-Za-z0-9\\-\\._~:/?#\\[\\]@!\\$&'\\(\\)\\*\\+,;=\\s]+)";
 
         private static final Map<String, String> EMPTY = Collections.unmodifiableMap(new HashMap<String, String>());
 
