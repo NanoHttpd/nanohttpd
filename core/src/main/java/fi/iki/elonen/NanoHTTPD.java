@@ -1227,6 +1227,7 @@ public abstract class NanoHTTPD {
             NO_CONTENT(204, "No Content"),
             PARTIAL_CONTENT(206, "Partial Content"),
             REDIRECT(301, "Moved Permanently"),
+            REDIRECT_SEE_OTHER(303, "See Other"),
             NOT_MODIFIED(304, "Not Modified"),
             BAD_REQUEST(400, "Bad Request"),
             UNAUTHORIZED(401, "Unauthorized"),
