@@ -651,6 +651,7 @@ public abstract class NanoHTTPD {
          * Decodes the Multipart Body data and put it into Key/Value pairs.
          */
         private void decodeMultipartFormData(String boundary, String encoding, ByteBuffer fbuf, Map<String, String> parms, Map<String, String> files) throws ResponseException {
+            int pcount = 0;
             try {
                 int[] boundary_idxs = getBoundaryPositions(fbuf, boundary.getBytes());
                 if (boundary_idxs.length < 2) {
@@ -687,6 +688,14 @@ public abstract class NanoHTTPD {
                                     part_name = matcher.group(2);
                                 } else if ("filename".equalsIgnoreCase(key)) {
                                     file_name = matcher.group(2);
+                                    // add these two line to support multiple
+                                    // files uploaded using the same field Id
+                                    if (!file_name.isEmpty()) {
+                                        if (pcount > 0)
+                                            part_name = part_name + String.valueOf(pcount++);
+                                        else
+                                            pcount++;
+                                    }
                                 }
                             }
                         }
