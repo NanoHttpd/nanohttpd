@@ -1195,12 +1195,15 @@ public abstract class NanoHTTPD {
         PATCH;
 
         static Method lookup(String method) {
-            for (Method m : Method.values()) {
-                if (m.toString().equalsIgnoreCase(method)) {
-                    return m;
-                }
+            if (method == null)
+                return null;
+
+            try {
+                return valueOf(method);
+            } catch (IllegalArgumentException e) {
+                // TODO: Log it?
+                return null;
             }
-            return null;
         }
     }
 
@@ -1321,8 +1324,9 @@ public abstract class NanoHTTPD {
 
         /**
          * Headers for the HTTP response. Use addHeader() to add lines. the
-         * lowercase map is automaticaly kept up to date.
+         * lowercase map is automatically kept up to date.
          */
+        @SuppressWarnings("serial")
         private final Map<String, String> header = new HashMap<String, String>() {
 
             public String put(String key, String value) {
@@ -1480,6 +1484,7 @@ public abstract class NanoHTTPD {
             }
         }
 
+        @SuppressWarnings("static-method")
         protected void printHeader(PrintWriter pw, String key, String value) {
             pw.append(key).append(": ").append(value).append("\r\n");
         }
@@ -1723,6 +1728,7 @@ public abstract class NanoHTTPD {
         return MIME_TYPES;
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private static void loadMimeTypes(Map<String, String> result, String resourceName) {
         try {
             Enumeration<URL> resources = NanoHTTPD.class.getClassLoader().getResources(resourceName);
@@ -1982,7 +1988,8 @@ public abstract class NanoHTTPD {
      *         accespts it. Default this option is on for text content and off
      *         for everything. Override this for custom semantics.
      */
-    protected boolean useGzipWhenAccepted(Response r) {
+    @SuppressWarnings("static-method")
+	protected boolean useGzipWhenAccepted(Response r) {
         return r.getMimeType() != null && r.getMimeType().toLowerCase().contains("text/");
     }
 
