@@ -141,7 +141,7 @@ public class TestNanolets {
                 "<html><body>User handler. Method: DELETE<br><h1>Uri parameters:</h1><div> Param: id&nbsp;Value: blabla</div><h1>Query parameters:</h1></body></html>", string);
         response.close();
     }
-    
+
     @Test
     public void doEncodedRequest() throws ClientProtocolException, IOException {
         CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -381,62 +381,54 @@ public class TestNanolets {
         serverStartThread.join(2000);
         Assert.assertFalse(serverStartThread.isAlive());
     }
-    
+
     @Test
-	public void testGeneralHandlerGetStatus() {
-		Assert.assertEquals("GeneralHandler#getStatus should return OK status", RouterNanoHTTPD.Response.Status.OK,
-				new RouterNanoHTTPD.GeneralHandler().getStatus());
-	}
+    public void testGeneralHandlerGetStatus() {
+        Assert.assertEquals("GeneralHandler#getStatus should return OK status", RouterNanoHTTPD.Response.Status.OK, new RouterNanoHTTPD.GeneralHandler().getStatus());
+    }
 
-	@Test
-	public void testStaticPageHandlerGetStatus() {
-		Assert.assertEquals("StaticPageHandler#getStatus should return OK status", RouterNanoHTTPD.Response.Status.OK,
-				new RouterNanoHTTPD.StaticPageHandler().getStatus());
-	}
+    @Test
+    public void testStaticPageHandlerGetStatus() {
+        Assert.assertEquals("StaticPageHandler#getStatus should return OK status", RouterNanoHTTPD.Response.Status.OK, new RouterNanoHTTPD.StaticPageHandler().getStatus());
+    }
 
-	@Test
-	public void testError404UriHandlerGetStatus() {
-		Assert.assertEquals("Error404UriHandler#getStatus should return NOT_FOUND status",
-				RouterNanoHTTPD.Response.Status.NOT_FOUND, new RouterNanoHTTPD.Error404UriHandler().getStatus());
-	}
+    @Test
+    public void testError404UriHandlerGetStatus() {
+        Assert.assertEquals("Error404UriHandler#getStatus should return NOT_FOUND status", RouterNanoHTTPD.Response.Status.NOT_FOUND,
+                new RouterNanoHTTPD.Error404UriHandler().getStatus());
+    }
 
-	@Test
-	public void testError404UriHandlerGetMimeType() {
-		Assert.assertEquals("Error404UriHandler mime type should be text/html", "text/html",
-				new RouterNanoHTTPD.Error404UriHandler().getMimeType());
-	}
+    @Test
+    public void testError404UriHandlerGetMimeType() {
+        Assert.assertEquals("Error404UriHandler mime type should be text/html", "text/html", new RouterNanoHTTPD.Error404UriHandler().getMimeType());
+    }
 
-	@Test
-	public void testNotImplementedHandlerGetStatus() {
-		Assert.assertEquals("NotImplementedHandler#getStatus should return OK status", RouterNanoHTTPD.Response.Status.OK,
-				new RouterNanoHTTPD.NotImplementedHandler().getStatus());
-	}
+    @Test
+    public void testNotImplementedHandlerGetStatus() {
+        Assert.assertEquals("NotImplementedHandler#getStatus should return OK status", RouterNanoHTTPD.Response.Status.OK,
+                new RouterNanoHTTPD.NotImplementedHandler().getStatus());
+    }
 
-	@Test
-	public void testIndexHandlerGetStatus() {
-		Assert.assertEquals("IndexHandler#getStatus should return OK status", RouterNanoHTTPD.Response.Status.OK,
-				new RouterNanoHTTPD.IndexHandler().getStatus());
-	}
+    @Test
+    public void testIndexHandlerGetStatus() {
+        Assert.assertEquals("IndexHandler#getStatus should return OK status", RouterNanoHTTPD.Response.Status.OK, new RouterNanoHTTPD.IndexHandler().getStatus());
+    }
 
-	@Test
-	public void testIndexHandlerGetMimeType() {
-		Assert.assertEquals("IndexHandler mime type should be text/html", "text/html",
-				new RouterNanoHTTPD.IndexHandler().getMimeType());
-	}
+    @Test
+    public void testIndexHandlerGetMimeType() {
+        Assert.assertEquals("IndexHandler mime type should be text/html", "text/html", new RouterNanoHTTPD.IndexHandler().getMimeType());
+    }
 
-	@Test
-	public void testNotImplementedHandlerGetMimeType() {
-		Assert.assertEquals("NotImplementedHandler mime type should be text/html", "text/html",
-				new RouterNanoHTTPD.NotImplementedHandler().getMimeType());
-	}
+    @Test
+    public void testNotImplementedHandlerGetMimeType() {
+        Assert.assertEquals("NotImplementedHandler mime type should be text/html", "text/html", new RouterNanoHTTPD.NotImplementedHandler().getMimeType());
+    }
 
-	@Test
-	public void testUriResourceMatch() {
-		UriResource resource = new RouterNanoHTTPD.UriResource("browse", 100, null, "init");
-		Assert.assertNull("UriResource should not match incorrect URL, and thus, should not return a URI parameter map",
-				resource.match("/xyz/pqr/"));
-		Assert.assertNotNull("UriResource should match the correct URL, and thus, should return a URI parameter map",
-				resource.match("browse"));
-	}
+    @Test
+    public void testUriResourceMatch() {
+        UriResource resource = new RouterNanoHTTPD.UriResource("browse", 100, null, "init");
+        Assert.assertNull("UriResource should not match incorrect URL, and thus, should not return a URI parameter map", resource.match("/xyz/pqr/"));
+        Assert.assertNotNull("UriResource should match the correct URL, and thus, should return a URI parameter map", resource.match("browse"));
+    }
 
 }

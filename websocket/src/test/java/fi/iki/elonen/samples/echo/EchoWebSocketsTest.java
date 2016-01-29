@@ -73,15 +73,19 @@ public class EchoWebSocketsTest {
         System.setIn(new PipedInputStream(stdIn));
 
         Thread testServer = new Thread(new Runnable() {
-          @Override
-          public void run() {
-            String[] args = { testPort, "-d" };
-            try {
-              EchoSocketSample.main(args);
-            } catch (IOException e) {
-            	fail("Exception: " + e.getMessage());
+
+            @Override
+            public void run() {
+                String[] args = {
+                    testPort,
+                    "-d"
+                };
+                try {
+                    EchoSocketSample.main(args);
+                } catch (IOException e) {
+                    fail("Exception: " + e.getMessage());
+                }
             }
-          }
         });
 
         testServer.start();

@@ -55,9 +55,9 @@ public class DummyPlugin implements WebServerPlugin {
 
     @Override
     public Response serveFile(String uri, Map<String, String> headers, IHTTPSession session, File file, String mimeType) {
-		if (uri.contains("rewrite")) {
-			return new InternalRewrite(headers, "/testdir/test.html");
-		}
+        if (uri.contains("rewrite")) {
+            return new InternalRewrite(headers, "/testdir/test.html");
+        }
         byte[] bytes = "<xml/>".getBytes();
         InputStream data = new ByteArrayInputStream(bytes);
         return new Response(Status.OK, "text/xml", data, bytes.length);

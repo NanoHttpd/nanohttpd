@@ -218,11 +218,16 @@ public class HttpPostRequestTest extends HttpServerTest {
         String file2Content = HttpPostRequestTest.VALUE2;
         String divider = UUID.randomUUID().toString();
         String header = "POST " + HttpServerTest.URI + " HTTP/1.1\nContent-Type: " + "multipart/form-data; boundary=" + divider + "\n";
-        String content =
-                "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"; filename=\"" + fileName + "\"\r\n"
-                        + "Content-Type: image/jpeg\r\n" + "\r\n" + fileContent + "\r\n" + "--" + divider + "\r\n" + "Content-Disposition: form-data; name=\""
-                        + HttpPostRequestTest.FIELD2 + "\"; filename=\"" + file2Name + "\"\r\n" + "Content-Type: image/jpeg\r\n" + "\r\n" + file2Content + "\r\n" + "\r\n"
-                        + "--" + divider + "--\r\n";
+        String content = "--" + divider + "\r\n"//
+                + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD + "\"; filename=\"" + fileName + "\"\r\n" //
+                + "Content-Type: image/jpeg\r\n" + "\r\n" //
+                + fileContent + "\r\n" //
+                + "--" + divider + "\r\n" //
+                + "Content-Disposition: form-data; name=\"" + HttpPostRequestTest.FIELD2 + "\"; filename=\"" + file2Name + "\"\r\n" //
+                + "Content-Type: image/jpeg\r\n" + "\r\n" //
+                + file2Content + "\r\n" //
+                + "\r\n" //
+                + "--" + divider + "--\r\n";
         int size = content.length() + header.length();
         int contentLengthHeaderValueSize = String.valueOf(size).length();
         int contentLength = size + contentLengthHeaderValueSize + HttpPostRequestTest.CONTENT_LENGTH.length();
@@ -235,7 +240,13 @@ public class HttpPostRequestTest extends HttpServerTest {
         assertLinesOfText(new String[]{
             fileContent
         }, lines);
-        reader = new BufferedReader(new FileReader(this.testServer.files.get(HttpPostRequestTest.FIELD2)));
+        String fileName2 = this.testServer.files.get(HttpPostRequestTest.FIELD2);
+        int testNumber = 0;
+        while (fileName2 == null && testNumber < 5) {
+            testNumber++;
+            fileName2 = this.testServer.files.get(HttpPostRequestTest.FIELD2 + testNumber);
+        }
+        reader = new BufferedReader(new FileReader(fileName2));
         lines = readLinesFromFile(reader);
         assertLinesOfText(new String[]{
             file2Content
