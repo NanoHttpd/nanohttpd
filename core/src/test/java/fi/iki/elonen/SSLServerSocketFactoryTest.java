@@ -65,27 +65,24 @@ public class SSLServerSocketFactoryTest extends HttpServerTest {
         Assert.assertEquals(9043, this.testServer.getListeningPort());
         Assert.assertTrue(this.testServer.isAlive());
     }
-    
-	@Test
-	public void testCreatePassesTheProtocolsToServerSocket() throws IOException {
-		// first find the supported protocols
-		SecureServerSocketFactory secureServerSocketFactory = new SecureServerSocketFactory(
-				NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()), null);
-		SSLServerSocket socket = (SSLServerSocket) secureServerSocketFactory.create();
-		String[] protocols = socket.getSupportedProtocols();
 
-		// remove one element from supported protocols
-		if (protocols.length > 0) {
-			protocols = Arrays.copyOfRange(protocols, 0, protocols.length - 1);
-		}
+    @Test
+    public void testCreatePassesTheProtocolsToServerSocket() throws IOException {
+        // first find the supported protocols
+        SecureServerSocketFactory secureServerSocketFactory = new SecureServerSocketFactory(NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()), null);
+        SSLServerSocket socket = (SSLServerSocket) secureServerSocketFactory.create();
+        String[] protocols = socket.getSupportedProtocols();
 
-		// test
-		secureServerSocketFactory = new SecureServerSocketFactory(
-				NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()), protocols);
-		socket = (SSLServerSocket) secureServerSocketFactory.create();
-		Assert.assertArrayEquals("Enabled protocols specified in the factory were not set to the socket.", protocols,
-				socket.getEnabledProtocols());
-	}
+        // remove one element from supported protocols
+        if (protocols.length > 0) {
+            protocols = Arrays.copyOfRange(protocols, 0, protocols.length - 1);
+        }
+
+        // test
+        secureServerSocketFactory = new SecureServerSocketFactory(NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()), protocols);
+        socket = (SSLServerSocket) secureServerSocketFactory.create();
+        Assert.assertArrayEquals("Enabled protocols specified in the factory were not set to the socket.", protocols, socket.getEnabledProtocols());
+    }
 
     @Before
     public void setUp() throws Exception {

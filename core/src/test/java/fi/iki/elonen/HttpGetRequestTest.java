@@ -205,34 +205,38 @@ public class HttpGetRequestTest extends HttpServerTest {
         assertEquals(NanoHTTPD.Method.GET, this.testServer.method);
         assertEquals(HttpServerTest.URI, this.testServer.uri);
     }
-    
+
     @Test
-    public void testGetQueryParameterContainsSpace(){
+    public void testGetQueryParameterContainsSpace() {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar%20baz HTTP/1.1");
-        assertEquals("Parameter count in URL and decodedParameters should match.",1, this.testServer.decodedParamters.size());
-		assertEquals("The query parameter value with space decoding incorrect", "bar baz", this.testServer.decodedParamters.get("foo").get(0));
+        assertEquals("Parameter count in URL and decodedParameters should match.", 1, this.testServer.decodedParamters.size());
+        assertEquals("The query parameter value with space decoding incorrect", "bar baz", this.testServer.decodedParamters.get("foo").get(0));
     }
-    
+
     @Test
-    public void testGetQueryParameterContainsQuestionMark(){
+    public void testGetQueryParameterContainsQuestionMark() {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar%3F HTTP/1.1");
-        assertEquals("Parameter count in URL and decodedParameters should match.",1, this.testServer.decodedParamters.size());
-		assertEquals("The query parameter value with question mark decoding incorrect", "bar?", this.testServer.decodedParamters.get("foo").get(0));
+        assertEquals("Parameter count in URL and decodedParameters should match.", 1, this.testServer.decodedParamters.size());
+        assertEquals("The query parameter value with question mark decoding incorrect", "bar?", this.testServer.decodedParamters.get("foo").get(0));
     }
-    
+
     @Test
-    public void testGetQueryParameterContainsAmpersand(){
+    public void testGetQueryParameterContainsAmpersand() {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar%26 HTTP/1.1");
-        assertEquals("Parameter count in URL and decodedParameters should match.",1, this.testServer.decodedParamters.size());
-		assertEquals("The query parameter value with ampersand decoding incorrect", "bar&", this.testServer.decodedParamters.get("foo").get(0));
+        assertEquals("Parameter count in URL and decodedParameters should match.", 1, this.testServer.decodedParamters.size());
+        assertEquals("The query parameter value with ampersand decoding incorrect", "bar&", this.testServer.decodedParamters.get("foo").get(0));
     }
-    
-	@Test
-	public void testGetQueryParameterContainsSpecialCharactersSingleFieldRepeated() {
+
+    @Test
+    public void testGetQueryParameterContainsSpecialCharactersSingleFieldRepeated() {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar%20baz&foo=bar%3F&foo=bar%26 HTTP/1.1");
-        assertEquals("Parameter count in URL and decodedParameters should match.",1, this.testServer.decodedParamters.size());
+        assertEquals("Parameter count in URL and decodedParameters should match.", 1, this.testServer.decodedParamters.size());
         String[] parametersAsArray = this.testServer.decodedParamters.get("foo").toArray(new String[0]);
-		String[] expected = new String[] { "bar baz", "bar?", "bar&" };
-		assertArrayEquals("Repeated parameter not decoded correctly",expected, parametersAsArray);
-	}
+        String[] expected = new String[]{
+            "bar baz",
+            "bar?",
+            "bar&"
+        };
+        assertArrayEquals("Repeated parameter not decoded correctly", expected, parametersAsArray);
+    }
 }

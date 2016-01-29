@@ -842,7 +842,7 @@ public abstract class NanoHTTPD {
 
                 this.method = Method.lookup(pre.get("method"));
                 if (this.method == null) {
-                    throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error. HTTP verb "+pre.get("method")+" unhandled.");
+                    throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error. HTTP verb " + pre.get("method") + " unhandled.");
                 }
 
                 this.uri = pre.get("uri");
@@ -1745,7 +1745,10 @@ public abstract class NanoHTTPD {
         return MIME_TYPES;
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({
+        "unchecked",
+        "rawtypes"
+    })
     private static void loadMimeTypes(Map<String, String> result, String resourceName) {
         try {
             Enumeration<URL> resources = NanoHTTPD.class.getClassLoader().getResources(resourceName);
@@ -2006,7 +2009,7 @@ public abstract class NanoHTTPD {
      *         for everything. Override this for custom semantics.
      */
     @SuppressWarnings("static-method")
-	protected boolean useGzipWhenAccepted(Response r) {
+    protected boolean useGzipWhenAccepted(Response r) {
         return r.getMimeType() != null && r.getMimeType().toLowerCase().contains("text/");
     }
 
