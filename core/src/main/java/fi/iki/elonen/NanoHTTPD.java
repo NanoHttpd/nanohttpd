@@ -63,6 +63,7 @@ import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
 import java.security.KeyStore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -469,18 +470,6 @@ public abstract class NanoHTTPD {
         }
     }
 
-    private static final String CONTENT_REGEX = "[ |\t]*([^/^ ^;^,]+/[^ ^;^,]+)";
-
-    private static final Pattern MIME_PATTERN = Pattern.compile(CONTENT_REGEX, Pattern.CASE_INSENSITIVE);
-
-    private static final String CHARSET_REGEX = "[ |\t]*(charset)[ |\t]*=[ |\t]*['|\"]?([^\"^'^;^,]*)['|\"]?";
-
-    private static final Pattern CHARSET_PATTERN = Pattern.compile(CHARSET_REGEX, Pattern.CASE_INSENSITIVE);
-
-    private static final String BOUNDARY_REGEX = "[ |\t]*(boundary)[ |\t]*=[ |\t]*['|\"]?([^\"^'^;^,]*)['|\"]?";
-
-    private static final Pattern BOUNDARY_PATTERN = Pattern.compile(BOUNDARY_REGEX, Pattern.CASE_INSENSITIVE);
-
     /**
      * Creates a normal ServerSocket for TCP connections
      */
@@ -535,6 +524,81 @@ public abstract class NanoHTTPD {
     private static final String CONTENT_DISPOSITION_ATTRIBUTE_REGEX = "[ |\t]*([a-zA-Z]*)[ |\t]*=[ |\t]*['|\"]([^\"^']*)['|\"]";
 
     private static final Pattern CONTENT_DISPOSITION_ATTRIBUTE_PATTERN = Pattern.compile(CONTENT_DISPOSITION_ATTRIBUTE_REGEX);
+
+    protected static class ContentType {
+
+        private static final String ASCII_ENCODING = "US-ASCII";
+
+        private static final String MULTIPART_FORM_DATA_HEADER = "multipart/form-data";
+
+        private static final String CONTENT_REGEX = "[ |\t]*([^/^ ^;^,]+/[^ ^;^,]+)";
+
+        private static final Pattern MIME_PATTERN = Pattern.compile(CONTENT_REGEX, Pattern.CASE_INSENSITIVE);
+
+        private static final String CHARSET_REGEX = "[ |\t]*(charset)[ |\t]*=[ |\t]*['|\"]?([^\"^'^;^,]*)['|\"]?";
+
+        private static final Pattern CHARSET_PATTERN = Pattern.compile(CHARSET_REGEX, Pattern.CASE_INSENSITIVE);
+
+        private static final String BOUNDARY_REGEX = "[ |\t]*(boundary)[ |\t]*=[ |\t]*['|\"]?([^\"^'^;^,]*)['|\"]?";
+
+        private static final Pattern BOUNDARY_PATTERN = Pattern.compile(BOUNDARY_REGEX, Pattern.CASE_INSENSITIVE);
+
+        private final String contentTypeHeader;
+
+        private final String contentType;
+
+        private final String encoding;
+
+        private final String boundary;
+
+        public ContentType(String contentTypeHeader) {
+            this.contentTypeHeader = contentTypeHeader;
+            if (contentTypeHeader != null) {
+                contentType = getDetailFromContentHeader(contentTypeHeader, MIME_PATTERN, "", 1);
+                encoding = getDetailFromContentHeader(contentTypeHeader, CHARSET_PATTERN, null, 2);
+            } else {
+                contentType = "";
+                encoding = "UTF-8";
+            }
+            if (MULTIPART_FORM_DATA_HEADER.equalsIgnoreCase(contentType)) {
+                boundary = getDetailFromContentHeader(contentTypeHeader, BOUNDARY_PATTERN, null, 2);
+            } else {
+                boundary = null;
+            }
+        }
+
+        private String getDetailFromContentHeader(String contentTypeHeader, Pattern pattern, String defaultValue, int group) {
+            Matcher matcher = pattern.matcher(contentTypeHeader);
+            return matcher.find() ? matcher.group(group) : defaultValue;
+        }
+
+        public String getContentTypeHeader() {
+            return contentTypeHeader;
+        }
+
+        public String getContentType() {
+            return contentType;
+        }
+
+        public String getEncoding() {
+            return encoding == null ? ASCII_ENCODING : encoding;
+        }
+
+        public String getBoundary() {
+            return boundary;
+        }
+
+        public boolean isMultipart() {
+            return MULTIPART_FORM_DATA_HEADER.equalsIgnoreCase(contentType);
+        }
+
+        public ContentType tryUTF8() {
+            if (encoding == null) {
+                return new ContentType(this.contentTypeHeader + "; charset=UTF-8");
+            }
+            return this;
+        }
+    }
 
     protected class HTTPSession implements IHTTPSession {
 
@@ -650,10 +714,10 @@ public abstract class NanoHTTPD {
         /**
          * Decodes the Multipart Body data and put it into Key/Value pairs.
          */
-        private void decodeMultipartFormData(String boundary, String encoding, ByteBuffer fbuf, Map<String, String> parms, Map<String, String> files) throws ResponseException {
+        private void decodeMultipartFormData(ContentType contentType, ByteBuffer fbuf, Map<String, String> parms, Map<String, String> files) throws ResponseException {
             int pcount = 0;
             try {
-                int[] boundaryIdxs = getBoundaryPositions(fbuf, boundary.getBytes());
+                int[] boundaryIdxs = getBoundaryPositions(fbuf, contentType.getBoundary().getBytes());
                 if (boundaryIdxs.length < 2) {
                     throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but contains less than two boundary strings.");
                 }
@@ -663,17 +727,18 @@ public abstract class NanoHTTPD {
                     fbuf.position(boundaryIdxs[boundaryIdx]);
                     int len = (fbuf.remaining() < MAX_HEADER_SIZE) ? fbuf.remaining() : MAX_HEADER_SIZE;
                     fbuf.get(partHeaderBuff, 0, len);
-                    BufferedReader in = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(partHeaderBuff, 0, len), Charset.forName(encoding)), len);
+                    BufferedReader in =
+                            new BufferedReader(new InputStreamReader(new ByteArrayInputStream(partHeaderBuff, 0, len), Charset.forName(contentType.getEncoding())), len);
 
                     int headerLines = 0;
                     // First line is boundary string
                     String mpline = in.readLine();
                     headerLines++;
-                    if (mpline == null || !mpline.contains(boundary)) {
+                    if (mpline == null || !mpline.contains(contentType.getBoundary())) {
                         throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but chunk does not start with boundary.");
                     }
 
-                    String partName = null, fileName = null, contentType = null;
+                    String partName = null, fileName = null, partContentType = null;
                     // Parse the reset of the header lines
                     mpline = in.readLine();
                     headerLines++;
@@ -701,7 +766,7 @@ public abstract class NanoHTTPD {
                         }
                         matcher = CONTENT_TYPE_PATTERN.matcher(mpline);
                         if (matcher.matches()) {
-                            contentType = matcher.group(2).trim();
+                            partContentType = matcher.group(2).trim();
                         }
                         mpline = in.readLine();
                         headerLines++;
@@ -718,11 +783,11 @@ public abstract class NanoHTTPD {
                     int partDataEnd = boundaryIdxs[boundaryIdx + 1] - 4;
 
                     fbuf.position(partDataStart);
-                    if (contentType == null) {
+                    if (partContentType == null) {
                         // Read the part into a string
                         byte[] data_bytes = new byte[partDataEnd - partDataStart];
                         fbuf.get(data_bytes);
-                        parms.put(partName, new String(data_bytes, encoding));
+                        parms.put(partName, new String(data_bytes, contentType.getEncoding()));
                     } else {
                         // Read it into a file
                         String path = saveTmpFile(fbuf, partDataStart, partDataEnd - partDataStart, fileName);
@@ -1063,26 +1128,20 @@ public abstract class NanoHTTPD {
                 // If the method is POST, there may be parameters
                 // in data section, too, read it:
                 if (Method.POST.equals(this.method)) {
-                    String contentType = "";
-                    String encoding = "UTF-8";
-                    String contentTypeHeader = this.headers.get("content-type");
-                    if (contentTypeHeader != null) {
-                        contentType = getDetailFromContentHeader(contentTypeHeader, MIME_PATTERN, "", 1);
-                        encoding = getDetailFromContentHeader(contentTypeHeader, CHARSET_PATTERN, "US-ASCII", 2);
-                    }
-                    if ("multipart/form-data".equalsIgnoreCase(contentType)) {
-                        String boundary = getDetailFromContentHeader(contentTypeHeader, BOUNDARY_PATTERN, null, 2);
+                    ContentType contentType = new ContentType(this.headers.get("content-type"));
+                    if (contentType.isMultipart()) {
+                        String boundary = contentType.getBoundary();
                         if (boundary == null) {
                             throw new ResponseException(Response.Status.BAD_REQUEST,
                                     "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
                         }
-                        decodeMultipartFormData(boundary, encoding, fbuf, this.parms, files);
+                        decodeMultipartFormData(contentType, fbuf, this.parms, files);
                     } else {
                         byte[] postBytes = new byte[fbuf.remaining()];
                         fbuf.get(postBytes);
-                        String postLine = new String(postBytes, encoding).trim();
+                        String postLine = new String(postBytes, contentType.getEncoding()).trim();
                         // Handle application/x-www-form-urlencoded
-                        if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType)) {
+                        if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType.getContentType())) {
                             decodeParms(postLine, this.parms);
                         } else if (postLine.length() != 0) {
                             // Special case for raw POST data => create a
@@ -1097,11 +1156,6 @@ public abstract class NanoHTTPD {
             } finally {
                 safeClose(randomAccessFile);
             }
-        }
-
-        private String getDetailFromContentHeader(String contentTypeHeader, Pattern pattern, String defaultValue, int group) {
-            Matcher matcher = pattern.matcher(contentTypeHeader);
-            return matcher.find() ? matcher.group(group) : defaultValue;
         }
 
         /**
@@ -1464,7 +1518,7 @@ public abstract class NanoHTTPD {
                 if (this.status == null) {
                     throw new Error("sendResponse(): Status can't be null.");
                 }
-                PrintWriter pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8")), false);
+                PrintWriter pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(outputStream, new ContentType(this.mimeType).getEncoding())), false);
                 pw.append("HTTP/1.1 ").append(this.status.getDescription()).append(" \r\n");
                 if (this.mimeType != null) {
                     printHeader(pw, "Content-Type", this.mimeType);
@@ -2062,17 +2116,22 @@ public abstract class NanoHTTPD {
      * Create a text response with known length.
      */
     public static Response newFixedLengthResponse(IStatus status, String mimeType, String txt) {
+        ContentType contentType = new ContentType(mimeType);
         if (txt == null) {
             return newFixedLengthResponse(status, mimeType, new ByteArrayInputStream(new byte[0]), 0);
         } else {
             byte[] bytes;
             try {
-                bytes = txt.getBytes("UTF-8");
+                CharsetEncoder newEncoder = Charset.forName(contentType.getEncoding()).newEncoder();
+                if (!newEncoder.canEncode(txt)) {
+                    contentType = contentType.tryUTF8();
+                }
+                bytes = txt.getBytes(contentType.getEncoding());
             } catch (UnsupportedEncodingException e) {
                 NanoHTTPD.LOG.log(Level.SEVERE, "encoding problem, responding nothing", e);
                 bytes = new byte[0];
             }
-            return newFixedLengthResponse(status, mimeType, new ByteArrayInputStream(bytes), bytes.length);
+            return newFixedLengthResponse(status, contentType.getContentTypeHeader(), new ByteArrayInputStream(bytes), bytes.length);
         }
     }
 

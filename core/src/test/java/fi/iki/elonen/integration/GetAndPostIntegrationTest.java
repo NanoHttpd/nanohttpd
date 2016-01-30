@@ -85,7 +85,9 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
                     sb.append(';').append(k).append('=').append(parms.get(k));
                 }
             }
-            if ("/chin".equals(uri)) {
+            if ("/encodingtest".equals(uri)) {
+                return newFixedLengthResponse(Response.Status.OK, MIME_HTML, "<html><head><title>Testé ça</title></head><body>Testé ça</body></html>");
+            } else if ("/chin".equals(uri)) {
                 return newFixedLengthResponse(Status.OK, "application/octet-stream", sb.toString());
             } else {
                 return newFixedLengthResponse(sb.toString());
@@ -184,5 +186,18 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
         String responseBody = EntityUtils.toString(entity, "UTF-8");
 
         assertEquals("POST:testPostRequestWithMultipartEncodedParameters-params=2;gender=图片名称;specialString=拖拉图片到浏览器，可以实现预览功能", responseBody);
+    }
+
+    @Test
+    public void testPostRequestWithEncodedParameters() throws Exception {
+        this.testServer.response = "testPostRequestWithEncodedParameters";
+
+        HttpPost httppost = new HttpPost("http://localhost:8192/encodingtest");
+        HttpResponse response = this.httpclient.execute(httppost);
+
+        HttpEntity entity = response.getEntity();
+        String responseBody = EntityUtils.toString(entity);
+
+        assertEquals("<html><head><title>Testé ça</title></head><body>Testé ça</body></html>", responseBody);
     }
 }
