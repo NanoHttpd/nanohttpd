@@ -121,7 +121,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
         String string = new String(readContents(entity), "UTF-8");
-        Assert.assertEquals("<html>\n<head>\n<title>dummy</title>\n</head>\n<body>\n\t<h1>it works</h1>\n</body>\n</html>", string);
+        Assert.assertEquals("<html><head><title>dummy</title></head><body><h1>it works</h1></body></html>", string);
         response.close();
 
         httpget = new HttpGet("http://localhost:9090/");
@@ -243,7 +243,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
         CloseableHttpResponse response = null;
         try {
             HttpGet httpGet = new HttpGet("http://localhost:9090/testdir/test.html");
-            httpGet.addHeader("range", "bytes=10-");
+            httpGet.addHeader("range", "bytes=12-");
             CloseableHttpClient httpClient = HttpClients.createDefault();
             response = httpClient.execute(httpGet);
             HttpEntity entity = response.getEntity();
@@ -252,8 +252,8 @@ public class TestHttpServer extends AbstractTestHttpServer {
                     not(containsString("<head>")));
             Assert.assertThat("The response should contain the data from the end of the file since end position was not given in the 'range' header", responseString,
                     containsString("</head>"));
-            Assert.assertEquals("The content length should be the length starting from the requested byte", "74", response.getHeaders("Content-Length")[0].getValue());
-            Assert.assertEquals("The 'Content-Range' header should contain the correct lengths and offsets based on the range served", "bytes 10-83/84",
+            Assert.assertEquals("The content length should be the length starting from the requested byte", "64", response.getHeaders("Content-Length")[0].getValue());
+            Assert.assertEquals("The 'Content-Range' header should contain the correct lengths and offsets based on the range served", "bytes 12-75/76",
                     response.getHeaders("Content-Range")[0].getValue());
             Assert.assertEquals("Response status for a successful range request should be PARTIAL_CONTENT(206)", 206, response.getStatusLine().getStatusCode());
         } finally {
@@ -273,7 +273,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
             response = httpClient.execute(httpGet);
             Assert.assertEquals("Response status for a request with 'range' header value which exceeds file length should be RANGE_NOT_SATISFIABLE(416)", 416, response
                     .getStatusLine().getStatusCode());
-            Assert.assertEquals("The 'Content-Range' header should contain the correct lengths and offsets based on the range served", "bytes */84",
+            Assert.assertEquals("The 'Content-Range' header should contain the correct lengths and offsets based on the range served", "bytes */76",
                     response.getHeaders("Content-Range")[0].getValue());
         } finally {
             if (response != null) {
@@ -287,7 +287,7 @@ public class TestHttpServer extends AbstractTestHttpServer {
         CloseableHttpResponse response = null;
         try {
             HttpGet httpGet = new HttpGet("http://localhost:9090/testdir/test.html");
-            httpGet.addHeader("range", "bytes=10-40");
+            httpGet.addHeader("range", "bytes=12-32");
             CloseableHttpClient httpClient = HttpClients.createDefault();
             response = httpClient.execute(httpGet);
             HttpEntity entity = response.getEntity();
@@ -295,9 +295,9 @@ public class TestHttpServer extends AbstractTestHttpServer {
             Assert.assertThat("The data from the beginning of the file should have been skipped as specified in the 'range' header", responseString,
                     not(containsString("<head>")));
             Assert.assertThat("The data from the end of the file should have been skipped as specified in the 'range' header", responseString, not(containsString("</head>")));
-            Assert.assertEquals("The 'Content-Length' should be the length from the requested start position to end position", "31",
+            Assert.assertEquals("The 'Content-Length' should be the length from the requested start position to end position", "21",
                     response.getHeaders("Content-Length")[0].getValue());
-            Assert.assertEquals("The 'Contnet-Range' header should contain the correct lengths and offsets based on the range served", "bytes 10-40/84",
+            Assert.assertEquals("The 'Contnet-Range' header should contain the correct lengths and offsets based on the range served", "bytes 12-32/76",
                     response.getHeaders("Content-Range")[0].getValue());
             Assert.assertEquals("Response status for a successful request with 'range' header should be PARTIAL_CONTENT(206)", 206, response.getStatusLine().getStatusCode());
         } finally {

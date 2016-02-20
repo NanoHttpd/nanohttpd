@@ -62,7 +62,7 @@ import fi.iki.elonen.router.RouterNanoHTTPD.GeneralHandler;
 import fi.iki.elonen.router.RouterNanoHTTPD.UriResource;
 import fi.iki.elonen.util.ServerRunner;
 
-public class TestNanolets {
+public class TestNanoletsConstruct {
 
     private static PipedOutputStream stdIn;
 
@@ -76,7 +76,7 @@ public class TestNanolets {
 
             @Override
             public void run() {
-                ServerRunner.run(AppNanolets.class);
+                ServerRunner.runAt(AppNanolets.class, AppNanolets.PORT);
             }
         });
         serverStartThread.start();

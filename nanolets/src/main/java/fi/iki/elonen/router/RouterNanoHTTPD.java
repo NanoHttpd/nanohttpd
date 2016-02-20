@@ -462,8 +462,10 @@ public class RouterNanoHTTPD extends NanoHTTPD {
          * is www.example.com/user/help - mapping 2 is returned if the incoming
          * uri is www.example.com/user/3232 - mapping 1 is returned
          * 
-         * @param url
-         * @return
+         * @param session
+         *            The IHTTPSession for the current request from the current
+         *            client.
+         * @return a Response object.
          */
         public Response process(IHTTPSession session) {
             String work = normalizeUri(session.getUri());
@@ -526,6 +528,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
     public RouterNanoHTTPD(int port) {
         super(port);
+
         router = new UriRouter();
     }
 

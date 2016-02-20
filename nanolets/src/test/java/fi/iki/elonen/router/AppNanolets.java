@@ -42,7 +42,6 @@ package fi.iki.elonen.router;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -50,11 +49,10 @@ import java.util.Map;
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.Response.IStatus;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
-import fi.iki.elonen.util.ServerRunner;
 
 public class AppNanolets extends RouterNanoHTTPD {
 
-    private static final int PORT = 9090;
+    public static final int PORT = 9090;
 
     public static class UserHandler extends DefaultHandler {
 
@@ -140,6 +138,12 @@ public class AppNanolets extends RouterNanoHTTPD {
         System.out.println("\nRunning! Point your browers to http://localhost:" + PORT + "/ \n");
     }
 
+    public AppNanolets(Integer port) {
+        super(port);
+        addMappings();
+        System.out.println("\nRunning With Host and Port! point your browser to http://localhost:" + port + "/\n");
+    }
+
     /**
      * Add the routes Every route is an absolute path Parameters starts with ":"
      * Handler class should implement @UriResponder interface If the handler not
@@ -160,14 +164,5 @@ public class AppNanolets extends RouterNanoHTTPD {
         removeRoute("/toBeDeleted");
         addRoute("/stream", StreamUrl.class);
         addRoute("/browse/(.)+", StaticPageTestHandler.class, new File("src/test/resources").getAbsoluteFile());
-    }
-
-    /**
-     * Main entry point
-     * 
-     * @param args
-     */
-    public static void main(String[] args) {
-        ServerRunner.run(AppNanolets.class);
     }
 }

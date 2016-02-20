@@ -115,7 +115,7 @@ public class TestCorsHttpServerWithSingleOrigin extends AbstractTestHttpServer {
         Assert.assertNotNull("Cors should have added a header: Access-Control-Allow-Origin", response.getLastHeader("Access-Control-Allow-Origin"));
         Assert.assertEquals("Cors should have added a header: Access-Control-Allow-Origin: http://localhost:9090", "http://localhost:9090",
                 response.getLastHeader("Access-Control-Allow-Origin").getValue());
-        Assert.assertEquals("<html>\n<head>\n<title>dummy</title>\n</head>\n<body>\n\t<h1>it works</h1>\n</body>\n</html>", string);
+        Assert.assertEquals("<html><head><title>dummy</title></head><body><h1>it works</h1></body></html>", string);
         response.close();
     }
 }
