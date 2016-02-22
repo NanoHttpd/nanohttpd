@@ -547,6 +547,17 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         router.addRoute("/index.html", Integer.MAX_VALUE / 2, IndexHandler.class);
     }
 
+    public void addExternalMappings(RouteMapping[] externalMappings) {
+        if (externalMappings != null) {
+            int eLen = externalMappings.length;
+
+            for (int i = 0; i < eLen; ++i) {
+                RouteMapping routeMapping = externalMappings[i];
+                addRoute(routeMapping.getRoute(), routeMapping.getMapping());
+            }
+        }
+    }
+
     public void addRoute(String url, Class<?> handler, Object... initParameter) {
         router.addRoute(url, 100, handler, initParameter);
     }

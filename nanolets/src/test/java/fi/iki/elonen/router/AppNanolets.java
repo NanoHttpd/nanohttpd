@@ -152,6 +152,18 @@ public class AppNanolets extends RouterNanoHTTPD {
     @Override
     public void addMappings() {
         super.addMappings();
+
+        // try with RouteMappings
+        RouteMapping mapping1 = new RouteMapping("/user", UserHandler.class);
+        RouteMapping mapping2 = new RouteMapping("/user/:id", UserHandler.class);
+
+        RouteMapping[] mappings = {
+            mapping1,
+            mapping2
+        };
+
+        addExternalMappings(mappings);
+
         addRoute("/user", UserHandler.class);
         addRoute("/user/:id", UserHandler.class);
         addRoute("/user/help", GeneralHandler.class);

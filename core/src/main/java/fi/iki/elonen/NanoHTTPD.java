@@ -56,6 +56,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
@@ -1685,7 +1686,14 @@ public abstract class NanoHTTPD {
         public void run() {
             try {
                 myServerSocket.bind(hostname != null ? new InetSocketAddress(hostname, myPort) : new InetSocketAddress(myPort));
-                hasBinded = true;
+
+                // insure the server socket binds
+                if (NanoHTTPD.this.getInetAddress() != null && NanoHTTPD.this.getSocketAddress() != null && NanoHTTPD.this.getListeningPort() != -1) {
+                    hasBinded = true;
+                } else {
+                    hasBinded = false;
+                    throw new IOException("Could not bind because one of the following was null or invalid (InetAddres, SocketAddres, or ListeningPort)!");
+                }
             } catch (IOException e) {
                 this.bindException = e;
                 return;
@@ -1938,6 +1946,22 @@ public abstract class NanoHTTPD {
      */
     public NanoHTTPD(int port) {
         this(null, port);
+    }
+
+    public SocketAddress getSocketAddress() {
+        if (myServerSocket != null) {
+            return myServerSocket.getLocalSocketAddress();
+        }
+
+        return null;
+    }
+
+    public InetAddress getInetAddress() {
+        if (myServerSocket != null) {
+            return myServerSocket.getInetAddress();
+        }
+
+        return null;
     }
 
     // -------------------------------------------------------------------------------
