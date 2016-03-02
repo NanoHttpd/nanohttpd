@@ -820,8 +820,8 @@ public abstract class NanoHTTPD {
         /**
          * Decodes parameters in percent-encoded URI-format ( e.g.
          * "name=Jack%20Daniels&pass=Single%20Malt" ) and adds them to given
-         * Map. NOTE: this doesn't support multiple identical keys due to the
-         * simplicity of Map.
+         * Map. NOTE: identical keys will be comma delimited for the key as a
+         * work around for the simplicity of Map.
          */
         private void decodeParms(String parms, Map<String, String> p) {
             if (parms == null) {
@@ -832,12 +832,18 @@ public abstract class NanoHTTPD {
             this.queryParameterString = parms;
             StringTokenizer st = new StringTokenizer(parms, "&");
             while (st.hasMoreTokens()) {
-                String e = st.nextToken();
-                int sep = e.indexOf('=');
+                String keyValue = st.nextToken();
+                int sep = keyValue.indexOf('=');
                 if (sep >= 0) {
-                    p.put(decodePercent(e.substring(0, sep)).trim(), decodePercent(e.substring(sep + 1)));
+                    String key = decodePercent(keyValue.substring(0, sep)).trim();
+                    String value = keyValue.substring(sep + 1);
+                    if (!p.containsKey(key)) {
+                        p.put(key, value);
+                    } else {
+                        p.put(key, p.get(key) + "," + value);
+                    }
                 } else {
-                    p.put(decodePercent(e).trim(), "");
+                    p.put(decodePercent(keyValue).trim(), "");
                 }
             }
         }
