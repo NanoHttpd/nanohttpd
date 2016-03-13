@@ -638,6 +638,8 @@ public abstract class NanoHTTPD {
 
         private String protocolVersion;
 
+        private Map<String, List<String>> complexParameters;
+
         public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
             this.tempFileManager = tempFileManager;
             this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
@@ -821,12 +823,15 @@ public abstract class NanoHTTPD {
          * Decodes parameters in percent-encoded URI-format ( e.g.
          * "name=Jack%20Daniels&pass=Single%20Malt" ) and adds them to given
          * Map. NOTE: identical keys will be comma delimited for the key as a
-         * work around for the simplicity of Map.
+         * work around for the simplicity of Map. Please
+         * 
+         * @see fi.iki.elonen.NanoHTTPD.HTTPSession.getComplexParameters()
          */
-        private void decodeParms(String parms, Map<String, String> p) {
+        private Map<String, List<String>> decodeParms(String parms, Map<String, String> p) {
+            HashMap<String, List<String>> parameters = new HashMap<String, List<String>>();
             if (parms == null) {
                 this.queryParameterString = "";
-                return;
+                return parameters;
             }
 
             this.queryParameterString = parms;
@@ -838,14 +843,26 @@ public abstract class NanoHTTPD {
                     String key = decodePercent(keyValue.substring(0, sep)).trim();
                     String value = keyValue.substring(sep + 1);
                     if (!p.containsKey(key)) {
+                        addParameter(parameters, key, value);
                         p.put(key, value);
                     } else {
-                        p.put(key, p.get(key) + "," + value);
+                        parameters.get(key).add(value);
                     }
                 } else {
                     p.put(decodePercent(keyValue).trim(), "");
+                    addParameter(parameters, keyValue, "");
                 }
             }
+            return parameters;
+        }
+
+        private void addParameter(HashMap<String, List<String>> parameters, String key, String value) {
+            if (!parameters.containsKey(key)) {
+                parameters.put(key, new ArrayList<String>());
+            } else {
+                LOG.warning("Duplicate parameter key value found please use getComplexParameters() for to access the values as seperate values");
+            }
+            parameters.get(key).add(value);
         }
 
         @Override
@@ -861,7 +878,7 @@ public abstract class NanoHTTPD {
                 this.splitbyte = 0;
                 this.rlen = 0;
 
-                int read = -1;
+                int read;
                 this.inputStream.mark(HTTPSession.BUFSIZE);
                 try {
                     read = this.inputStream.read(buf, 0, HTTPSession.BUFSIZE);
@@ -1064,6 +1081,10 @@ public abstract class NanoHTTPD {
             return this.parms;
         }
 
+        public Map<String, List<String>> getComplexParameters() {
+            return complexParameters;
+        }
+
         @Override
         public String getQueryParameterString() {
             return this.queryParameterString;
@@ -1148,7 +1169,7 @@ public abstract class NanoHTTPD {
                         String postLine = new String(postBytes, contentType.getEncoding()).trim();
                         // Handle application/x-www-form-urlencoded
                         if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType.getContentType())) {
-                            decodeParms(postLine, this.parms);
+                            this.complexParameters = decodeParms(postLine, this.parms);
                         } else if (postLine.length() != 0) {
                             // Special case for raw POST data => create a
                             // special files entry "postData" with raw content
@@ -1216,7 +1237,10 @@ public abstract class NanoHTTPD {
 
         Method getMethod();
 
+        @Deprecated()
         Map<String, String> getParms();
+
+        Map<String, List<String>> getComplexParameters();
 
         String getQueryParameterString();
 
