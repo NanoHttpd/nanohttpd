@@ -529,6 +529,11 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         router = new UriRouter();
     }
 
+    public RouterNanoHTTPD(String hostname, int port) {
+        super(hostname, port);
+        router = new UriRouter();
+    }
+
     /**
      * default routings, they are over writable.
      * 
