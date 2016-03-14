@@ -462,8 +462,10 @@ public class RouterNanoHTTPD extends NanoHTTPD {
          * is www.example.com/user/help - mapping 2 is returned if the incoming
          * uri is www.example.com/user/3232 - mapping 1 is returned
          * 
-         * @param url
-         * @return
+         * @param session
+         *            The IHTTPSession for the current request from the current
+         *            client.
+         * @return a Response object.
          */
         public Response process(IHTTPSession session) {
             String work = normalizeUri(session.getUri());
@@ -526,6 +528,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
     public RouterNanoHTTPD(int port) {
         super(port);
+
         router = new UriRouter();
     }
 
@@ -547,6 +550,17 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         router.setNotFoundHandler(Error404UriHandler.class);
         router.addRoute("/", Integer.MAX_VALUE / 2, IndexHandler.class);
         router.addRoute("/index.html", Integer.MAX_VALUE / 2, IndexHandler.class);
+    }
+
+    public void addExternalMappings(RouteMapping[] externalMappings) {
+        if (externalMappings != null) {
+            int eLen = externalMappings.length;
+
+            for (int i = 0; i < eLen; ++i) {
+                RouteMapping routeMapping = externalMappings[i];
+                addRoute(routeMapping.getRoute(), routeMapping.getMapping());
+            }
+        }
     }
 
     public void addRoute(String url, Class<?> handler, Object... initParameter) {

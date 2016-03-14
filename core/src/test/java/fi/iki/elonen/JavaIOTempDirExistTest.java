@@ -52,6 +52,7 @@ public class JavaIOTempDirExistTest {
         String tmpdir = System.getProperty("java.io.tmpdir");
         NanoHTTPD.DefaultTempFileManager manager = new NanoHTTPD.DefaultTempFileManager();
         DefaultTempFile tempFile = (DefaultTempFile) manager.createTempFile("xx");
+
         File tempFileBackRef = new File(tempFile.getName());
         Assert.assertEquals(tempFileBackRef.getParentFile(), new File(tmpdir));
 
@@ -63,7 +64,8 @@ public class JavaIOTempDirExistTest {
         } catch (Exception ex) {
             e = ex;
         }
-        Assert.assertNotNull(e);
+        // insure no exception was thrown
+        Assert.assertEquals(e, null);
         manager.clear();
     }
 

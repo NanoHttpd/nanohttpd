@@ -9,7 +9,7 @@
 	<artifactId>nanohttpd-project</artifactId>
 	<version>2.3.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>NanoHttpd-Project</name>
+	<name>NanoHttpd</name>
 	<description>NanoHttpd is a light-weight HTTP server designed for embedding in other applications.</description>
 	<url>http://www.nanohttpd.org</url>
 	<scm>
@@ -135,13 +135,12 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-release-plugin</artifactId>
-				<version>2.5.1</version>
-				<configuration>
-					<mavenExecutorId>forked-path</mavenExecutorId>
-				</configuration>
-			</plugin>
-			<plugin>
+	            <artifactId>maven-release-plugin</artifactId>
+	            <configuration>
+                    <mavenExecutorId>forked-path</mavenExecutorId>
+	            </configuration>
+		    </plugin>
+		    <plugin>
 				<groupId>org.tinyjee.dim</groupId>
 				<artifactId>doxia-include-macro</artifactId>
 				<version>1.1</version>
