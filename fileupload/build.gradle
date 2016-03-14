@@ -5,7 +5,7 @@ publishing {
         lib(MavenPublication) {
               group = 'org.nanohttpd'
               version = '2.3.1-SNAPSHOT'
-              artifactId 'nanohttpd-core'
+              artifactId 'nanohttpd-fileupload'
               
             from components.java
         }
@@ -13,18 +13,24 @@ publishing {
 }
 
 jar {
-    baseName = 'nanohttpd-core'
+    baseName = 'nanohttpd-fileupload'
 }
 
 compileJava{
 	options.fork = true
 }
 
-description = 'NanoHttpd-Core'
+description = 'NanoHttpd-apache file upload integration'
 dependencies {
-    testCompile group: 'org.apache.httpcomponents', name: 'httpclient', version:'4.2.5'
-    testCompile group: 'org.apache.httpcomponents', name: 'httpmime', version:'4.2.5'
+    compile project(':nanohttpd')
+    compile(group: 'javax.servlet', name: 'servlet-api', version:'2.5')
+    
+    compile group: 'commons-fileupload', name: 'commons-fileupload', version:'1.3.1'
+    
+    testCompile group: 'org.apache.httpcomponents', name: 'httpclient', version:'4.4.1'
+    testCompile group: 'org.apache.httpcomponents', name: 'httpmime', version:'4.4.1'
 }
+
 
 sourceSets {
     main {

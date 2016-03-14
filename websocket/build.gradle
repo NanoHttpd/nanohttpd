@@ -1,0 +1,23 @@
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+publishing {
+    publications {
+        lib(MavenPublication) {
+              group = 'org.nanohttpd'
+              version = '2.3.1-SNAPSHOT'
+              artifactId 'nanohttpd-websocket'
+              
+            from components.java
+        }
+    }
+}
+
+jar {
+    baseName = 'nanohttpd-websocket'
+}
+description = 'NanoHttpd-Websocket'
+dependencies {
+  compile project(':nanohttpd')
+    testCompile group: 'org.mockito', name: 'mockito-all', version:'1.9.5'
+    testCompile group: 'org.eclipse.jetty.websocket', name: 'websocket-client', version:'9.3.0.M2'
+}

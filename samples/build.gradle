@@ -5,7 +5,7 @@ publishing {
         lib(MavenPublication) {
               group = 'org.nanohttpd'
               version = '2.3.1-SNAPSHOT'
-              artifactId 'nanohttpd-core'
+              artifactId 'nanohttpd-samples'
               
             from components.java
         }
@@ -13,17 +13,17 @@ publishing {
 }
 
 jar {
-    baseName = 'nanohttpd-core'
+    baseName = 'nanohttpd-samples'
 }
 
 compileJava{
 	options.fork = true
 }
 
-description = 'NanoHttpd-Core'
+description = 'NanoHttpd-Samples'
 dependencies {
-    testCompile group: 'org.apache.httpcomponents', name: 'httpclient', version:'4.2.5'
-    testCompile group: 'org.apache.httpcomponents', name: 'httpmime', version:'4.2.5'
+  compile project(':nanohttpd')
+  compile project(':nanohttpd-webserver')
 }
 
 sourceSets {

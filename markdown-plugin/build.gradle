@@ -1,0 +1,7 @@
+
+description = 'NanoHttpd-Webserver-Markdown-Plugin'
+dependencies {
+    compile group: 'org.pegdown', name: 'pegdown', version:'1.4.1'
+  providedCompile project(':nanohttpd')
+  providedCompile project(':nanohttpd-webserver')
+}
