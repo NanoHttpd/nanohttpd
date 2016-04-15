@@ -201,6 +201,7 @@ public abstract class NanoWSD extends NanoHTTPD {
                 if (this.continuousOpCode == null) {
                     throw new WebSocketException(CloseCode.ProtocolError, "Continuous frame sequence was not started.");
                 }
+                this.continuousFrames.add(frame);
                 onMessage(new WebSocketFrame(this.continuousOpCode, this.continuousFrames));
                 this.continuousOpCode = null;
                 this.continuousFrames.clear();
