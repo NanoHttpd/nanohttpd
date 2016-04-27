@@ -36,33 +36,33 @@ package fi.iki.elonen;
 import org.junit.Assert;
 import org.junit.Test;
 
-import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.NanoHTTPD.Response.Status;
 
 public class StatusTest {
 
     @Test
     public void testLookup() throws Exception {
-        Assert.assertEquals(Response.Status.SWITCH_PROTOCOL, Response.Status.lookup(101));
-        Assert.assertEquals(Response.Status.OK, Response.Status.lookup(200));
-        Assert.assertEquals(Response.Status.CREATED, Response.Status.lookup(201));
-        Assert.assertEquals(Response.Status.ACCEPTED, Response.Status.lookup(202));
-        Assert.assertEquals(Response.Status.NO_CONTENT, Response.Status.lookup(204));
-        Assert.assertEquals(Response.Status.PARTIAL_CONTENT, Response.Status.lookup(206));
-        Assert.assertEquals(Response.Status.MULTI_STATUS, Response.Status.lookup(207));
-        Assert.assertEquals(Response.Status.REDIRECT, Response.Status.lookup(301));
-        Assert.assertEquals(Response.Status.REDIRECT_SEE_OTHER, Response.Status.lookup(303));
-        Assert.assertEquals(Response.Status.NOT_MODIFIED, Response.Status.lookup(304));
-        Assert.assertEquals(Response.Status.BAD_REQUEST, Response.Status.lookup(400));
-        Assert.assertEquals(Response.Status.UNAUTHORIZED, Response.Status.lookup(401));
-        Assert.assertEquals(Response.Status.FORBIDDEN, Response.Status.lookup(403));
-        Assert.assertEquals(Response.Status.NOT_FOUND, Response.Status.lookup(404));
-        Assert.assertEquals(Response.Status.METHOD_NOT_ALLOWED, Response.Status.lookup(405));
-        Assert.assertEquals(Response.Status.NOT_ACCEPTABLE, Response.Status.lookup(406));
-        Assert.assertEquals(Response.Status.REQUEST_TIMEOUT, Response.Status.lookup(408));
-        Assert.assertEquals(Response.Status.CONFLICT, Response.Status.lookup(409));
-        Assert.assertEquals(Response.Status.RANGE_NOT_SATISFIABLE, Response.Status.lookup(416));
-        Assert.assertEquals(Response.Status.INTERNAL_ERROR, Response.Status.lookup(500));
-        Assert.assertEquals(Response.Status.NOT_IMPLEMENTED, Response.Status.lookup(501));
-        Assert.assertEquals(Response.Status.UNSUPPORTED_HTTP_VERSION, Response.Status.lookup(505));
+        Assert.assertEquals(Status.SWITCH_PROTOCOL, Status.lookup(101));
+        Assert.assertEquals(Status.OK, Status.lookup(200));
+        Assert.assertEquals(Status.CREATED, Status.lookup(201));
+        Assert.assertEquals(Status.ACCEPTED, Status.lookup(202));
+        Assert.assertEquals(Status.NO_CONTENT, Status.lookup(204));
+        Assert.assertEquals(Status.PARTIAL_CONTENT, Status.lookup(206));
+        Assert.assertEquals(Status.MULTI_STATUS, Status.lookup(207));
+        Assert.assertEquals(Status.REDIRECT, Status.lookup(301));
+        Assert.assertEquals(Status.REDIRECT_SEE_OTHER, Status.lookup(303));
+        Assert.assertEquals(Status.NOT_MODIFIED, Status.lookup(304));
+        Assert.assertEquals(Status.BAD_REQUEST, Status.lookup(400));
+        Assert.assertEquals(Status.UNAUTHORIZED, Status.lookup(401));
+        Assert.assertEquals(Status.FORBIDDEN, Status.lookup(403));
+        Assert.assertEquals(Status.NOT_FOUND, Status.lookup(404));
+        Assert.assertEquals(Status.METHOD_NOT_ALLOWED, Status.lookup(405));
+        Assert.assertEquals(Status.NOT_ACCEPTABLE, Status.lookup(406));
+        Assert.assertEquals(Status.REQUEST_TIMEOUT, Status.lookup(408));
+        Assert.assertEquals(Status.CONFLICT, Status.lookup(409));
+        Assert.assertEquals(Status.RANGE_NOT_SATISFIABLE, Status.lookup(416));
+        Assert.assertEquals(Status.INTERNAL_ERROR, Status.lookup(500));
+        Assert.assertEquals(Status.NOT_IMPLEMENTED, Status.lookup(501));
+        Assert.assertEquals(Status.UNSUPPORTED_HTTP_VERSION, Status.lookup(505));
     }
 }
