@@ -1325,6 +1325,15 @@ public abstract class NanoHTTPD {
                 this.description = description;
             }
 
+            public static Status lookup(int requestStatus) {
+                for (Status status : Status.values()) {
+                    if (status.getRequestStatus() == requestStatus) {
+                        return status;
+                    }
+                }
+                return null;
+            }
+
             @Override
             public String getDescription() {
                 return "" + this.requestStatus + " " + this.description;
