@@ -553,6 +553,14 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         router.addRoute(url, 100, handler, initParameter);
     }
 
+    public <T extends UriResponder> void setNotImplementedHandler(Class<T> handler) {
+        router.setNotImplemented(handler);
+    }
+
+    public <T extends UriResponder> void setNotFoundHandler(Class<T> handler) {
+        router.setNotFoundHandler(handler);
+    }
+
     public void removeRoute(String url) {
         router.removeRoute(url);
     }

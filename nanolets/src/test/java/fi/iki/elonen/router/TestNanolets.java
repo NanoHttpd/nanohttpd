@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.lang.reflect.Field;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,6 +61,8 @@ import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
 import fi.iki.elonen.router.RouterNanoHTTPD.GeneralHandler;
 import fi.iki.elonen.router.RouterNanoHTTPD.UriResource;
+import fi.iki.elonen.router.RouterNanoHTTPD.UriResponder;
+import fi.iki.elonen.router.RouterNanoHTTPD.UriRouter;
 
 public class TestNanolets {
 
@@ -431,4 +434,38 @@ public class TestNanolets {
         Assert.assertNotNull("UriResource should match the correct URL, and thus, should return a URI parameter map", resource.match("browse"));
     }
 
+    @Test
+    public void testHandlerSetters() throws Exception {
+        final UriResponder notFoundHandler = new GeneralHandler() {};
+        final UriResponder notImplementedHandler = new GeneralHandler() {};
+
+        TestRouter router = new TestRouter();
+
+        RouterNanoHTTPD routerNanoHttpd = new RouterNanoHTTPD(9999);
+
+        Field routerField = RouterNanoHTTPD.class.getDeclaredField("router");
+        routerField.setAccessible(true);
+        routerField.set(routerNanoHttpd, router);
+
+        routerNanoHttpd.setNotFoundHandler(notFoundHandler.getClass());
+        routerNanoHttpd.setNotImplementedHandler(notImplementedHandler.getClass());
+
+        Assert.assertEquals(notFoundHandler.getClass(), router.notFoundHandlerClass);
+        Assert.assertEquals(notImplementedHandler.getClass(), router.notImplementedHandlerClass);
+    }
+
+    private static final class TestRouter extends UriRouter {
+        private Class<?> notFoundHandlerClass;
+        private Class<?> notImplementedHandlerClass;
+
+        @Override
+        public void setNotFoundHandler(Class<?> handler) {
+            notFoundHandlerClass = handler;
+        }
+
+        @Override
+        public void setNotImplemented(Class<?> handler) {
+            notImplementedHandlerClass = handler;
+        }
+    }
 }
