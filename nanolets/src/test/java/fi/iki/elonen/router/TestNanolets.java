@@ -454,6 +454,18 @@ public class TestNanolets {
         Assert.assertEquals(notImplementedHandler.getClass(), router.notImplementedHandlerClass);
     }
 
+    @Test
+    public void testHandlerConstructionWithInitParameter() throws Exception {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+
+        HttpGet httpget = new HttpGet("http://localhost:9090/testWithInitParam");
+        CloseableHttpResponse response = httpclient.execute(httpget);
+        HttpEntity entity = response.getEntity();
+        String string = new String(readContents(entity), "UTF-8");
+        Assert.assertEquals("Jenny/8675309", string);
+        response.close();
+    }
+
     private static final class TestRouter extends UriRouter {
         private Class<?> notFoundHandlerClass;
         private Class<?> notImplementedHandlerClass;

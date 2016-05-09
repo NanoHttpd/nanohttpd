@@ -42,7 +42,6 @@ package fi.iki.elonen.router;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -131,6 +130,20 @@ public class AppNanolets extends RouterNanoHTTPD {
         }
     }
 
+    static class InitParamTestHandler extends GeneralHandler {
+        private String p1;
+        private Long p2;
+
+        public InitParamTestHandler(String p1, Long p2) {
+            this.p1 = p1;
+            this.p2 = p2;
+        }
+
+        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+            return NanoHTTPD.newFixedLengthResponse(String.format("%s/%s", p1, p2));
+        }
+    }
+
     /**
      * Create the server instance
      */
@@ -154,6 +167,7 @@ public class AppNanolets extends RouterNanoHTTPD {
         addRoute("/general/:param1/:param2", GeneralHandler.class);
         addRoute("/photos/:customer_id/:photo_id", null);
         addRoute("/test", String.class);
+        addRoute("/testWithInitParam", InitParamTestHandler.class, "Jenny", 8675309l);
         addRoute("/interface", UriResponder.class); // this will cause an error
                                                     // when called
         addRoute("/toBeDeleted", String.class);
