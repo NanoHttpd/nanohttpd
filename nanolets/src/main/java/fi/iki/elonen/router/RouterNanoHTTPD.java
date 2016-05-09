@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -332,11 +333,22 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
         private final Object[] initParameter;
 
+        private final Class<?>[] initParameterTypes;
+
         private List<String> uriParams = new ArrayList<String>();
 
         public UriResource(String uri, int priority, Class<?> handler, Object... initParameter) {
             this.handler = handler;
             this.initParameter = initParameter;
+            if (initParameter != null) {
+                initParameterTypes = new Class[initParameter.length];
+                for (int i = 0; i < initParameter.length; i++) {
+                    initParameterTypes[i] = initParameter[i].getClass();
+                }
+            } else {
+                initParameterTypes = null;
+            }
+
             if (uri != null) {
                 this.uri = normalizeUri(uri);
                 parse();
@@ -370,7 +382,8 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             String error = "General error!";
             if (handler != null) {
                 try {
-                    Object object = handler.newInstance();
+                    Constructor<?> constructor = handler.getConstructor(initParameterTypes);
+                    Object object = constructor.newInstance(initParameter);
                     if (object instanceof UriResponder) {
                         UriResponder responder = (UriResponder) object;
                         switch (session.getMethod()) {
