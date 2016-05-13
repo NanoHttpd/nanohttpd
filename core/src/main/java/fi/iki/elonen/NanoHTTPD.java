@@ -1303,8 +1303,16 @@ public abstract class NanoHTTPD {
             MULTI_STATUS(207, "Multi-Status"),
 
             REDIRECT(301, "Moved Permanently"),
+            /**
+             * Many user agents mishandle 302 in ways that violate the RFC1945 spec (i.e., redirect a POST to a GET).
+             * 303 and 307 were added in RFC2616 to address this.  You should prefer 303 and 307 unless the calling
+             * user agent does not support 303 and 307 functionality
+             */
+            @Deprecated
+            FOUND(302, "Found"),
             REDIRECT_SEE_OTHER(303, "See Other"),
             NOT_MODIFIED(304, "Not Modified"),
+            TEMPORARY_REDIRECT(307,"Temporary Redirect"),
 
             BAD_REQUEST(400, "Bad Request"),
             UNAUTHORIZED(401, "Unauthorized"),

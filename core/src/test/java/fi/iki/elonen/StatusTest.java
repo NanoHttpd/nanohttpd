@@ -95,8 +95,10 @@ public class StatusTest {
         Assert.assertEquals(Status.MULTI_STATUS, Status.lookup(207));
 
         Assert.assertEquals(Status.REDIRECT, Status.lookup(301));
+        Assert.assertEquals(Status.FOUND, Status.lookup(302));
         Assert.assertEquals(Status.REDIRECT_SEE_OTHER, Status.lookup(303));
         Assert.assertEquals(Status.NOT_MODIFIED, Status.lookup(304));
+        Assert.assertEquals(Status.TEMPORARY_REDIRECT, Status.lookup(307));
 
         Assert.assertEquals(Status.BAD_REQUEST, Status.lookup(400));
         Assert.assertEquals(Status.UNAUTHORIZED, Status.lookup(401));
