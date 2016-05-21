@@ -46,7 +46,7 @@ Edit `src/main/java/com/example/App.java` and replace it with:
         public App() throws IOException {
             super(8080);
             start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
-            System.out.println("\nRunning! Point your browers to http://localhost:8080/ \n");
+            System.out.println("\nRunning! Point your browsers to http://localhost:8080/ \n");
         }
     
         public static void main(String[] args) {
