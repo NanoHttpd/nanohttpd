@@ -38,7 +38,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,6 +62,10 @@ import org.junit.Test;
 
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
+import fi.iki.elonen.router.RouterNanoHTTPD.DefaultRoutePrioritizer;
+import fi.iki.elonen.router.RouterNanoHTTPD.InsertionOrderRoutePrioritizer;
+import fi.iki.elonen.router.RouterNanoHTTPD.ProvidedPriorityRoutePrioritizer;
+import fi.iki.elonen.router.RouterNanoHTTPD.NotImplementedHandler;
 import fi.iki.elonen.router.RouterNanoHTTPD.GeneralHandler;
 import fi.iki.elonen.router.RouterNanoHTTPD.UriResource;
 import fi.iki.elonen.router.RouterNanoHTTPD.UriResponder;
@@ -428,10 +435,124 @@ public class TestNanolets {
     }
 
     @Test
+    public void testBaseRoutePrioritizerAddNullRoute() {
+        DefaultRoutePrioritizer routePrioritizer = new DefaultRoutePrioritizer();
+        routePrioritizer.addRoute(null, 100, null);
+        Assert.assertEquals(0, routePrioritizer.getPrioritizedRoutes().size());
+    }
+
+    @Test
+    public void testInsertionOrderRoutePrioritizer() throws IOException {
+        InsertionOrderRoutePrioritizer routePrioritizer = new InsertionOrderRoutePrioritizer();
+
+        Class<?> handler1 = String.class;
+        Class<?> handler2 = Boolean.class;
+        Class<?> handler3 = Long.class;
+
+        ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
+        classes.add(handler1);
+        classes.add(handler2);
+        classes.add(handler3);
+
+        routePrioritizer.addRoute("/user", 100, handler1);
+        routePrioritizer.addRoute("/user", 100, handler2);
+        routePrioritizer.addRoute("/user", 100, handler3);
+        List<UriResource> prioritizedResources = new ArrayList<UriResource>();
+        prioritizedResources.addAll(routePrioritizer.getPrioritizedRoutes());
+
+        for (int i = 0; i < classes.size(); i++) {
+            Class<?> handler = classes.get(i);
+            UriResource resource = prioritizedResources.get(i);
+
+            InputStream inputStream = resource.process(null, null).getData();
+            byte[] bytes = new byte[inputStream.available()];
+            inputStream.read(bytes);
+            String message = new String(bytes);
+
+            Assert.assertTrue(message.contains(handler.getCanonicalName()));
+
+        }
+    }
+
+    @Test
+    public void testProvidedPriorityRoutePrioritizerNullUri() {
+        ProvidedPriorityRoutePrioritizer routePrioritizer = new ProvidedPriorityRoutePrioritizer();
+        Assert.assertEquals(0, routePrioritizer.getPrioritizedRoutes().size());
+        routePrioritizer.addRoute(null, 100, null);
+        Assert.assertEquals(0, routePrioritizer.getPrioritizedRoutes().size());
+    }
+    
+    @Test
+    public void testProvidedPriorityRoutePrioritizerNullHandler() {
+        ProvidedPriorityRoutePrioritizer routePrioritizer = new ProvidedPriorityRoutePrioritizer();
+        Assert.assertEquals(0, routePrioritizer.getPrioritizedRoutes().size());
+        routePrioritizer.addRoute("/help", 100, null);
+        Assert.assertEquals(1, routePrioritizer.getPrioritizedRoutes().size());
+    }
+
+    @Test
+    public void testProvidedPriorityRoutePrioritizer() throws IOException {
+        ProvidedPriorityRoutePrioritizer routePrioritizer = new ProvidedPriorityRoutePrioritizer();
+
+        Class<?> handler1 = String.class;
+        Class<?> handler2 = Boolean.class;
+        Class<?> handler3 = Long.class;
+
+        ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
+        classes.add(handler2);
+        classes.add(handler1);
+        classes.add(handler3);
+
+        routePrioritizer.addRoute("/user", 101, handler1);
+        routePrioritizer.addRoute("/user", 100, handler2);
+        routePrioritizer.addRoute("/user", 102, handler3);
+        List<UriResource> prioritizedResources = new ArrayList<UriResource>();
+        prioritizedResources.addAll(routePrioritizer.getPrioritizedRoutes());
+
+        for (int i = 0; i < classes.size(); i++) {
+            Class<?> handler = classes.get(i);
+            UriResource resource = prioritizedResources.get(i);
+
+            InputStream inputStream = resource.process(null, null).getData();
+            byte[] bytes = new byte[inputStream.available()];
+            inputStream.read(bytes);
+            String message = new String(bytes);
+
+            Assert.assertTrue(message.contains(handler.getCanonicalName()));
+        }
+    }
+
+    @Test
+    public void testUriResourceComparator() {
+        UriResource r1 = new UriResource("uri", null);
+        r1.setPriority(100);
+        Assert.assertTrue(r1.compareTo(null) >= 1);
+
+        UriResource r2 = new UriResource("uri", null);
+        r2.setPriority(100);
+        Assert.assertEquals(0, r1.compareTo(r2));
+
+        r2.setPriority(99);
+        Assert.assertTrue(r1.compareTo(r2) >= 1);
+
+        r2.setPriority(101);
+        Assert.assertTrue(r1.compareTo(r2) <= 1);
+    }
+
+    @Test
     public void testUriResourceMatch() {
         UriResource resource = new RouterNanoHTTPD.UriResource("browse", 100, null, "init");
         Assert.assertNull("UriResource should not match incorrect URL, and thus, should not return a URI parameter map", resource.match("/xyz/pqr/"));
         Assert.assertNotNull("UriResource should match the correct URL, and thus, should return a URI parameter map", resource.match("browse"));
+    }
+
+    @Test
+    public void testRoutePrioritizerRemoveRouteNoRouteMatches() {
+        DefaultRoutePrioritizer prioritizer = new DefaultRoutePrioritizer();
+        prioritizer.addRoute("/world", 100, NotImplementedHandler.class);
+        prioritizer.removeRoute("/hello");
+
+        Assert.assertEquals(1, prioritizer.getPrioritizedRoutes().size());
     }
 
     @Test
@@ -455,7 +576,9 @@ public class TestNanolets {
     }
 
     private static final class TestRouter extends UriRouter {
+
         private Class<?> notFoundHandlerClass;
+
         private Class<?> notImplementedHandlerClass;
 
         @Override
