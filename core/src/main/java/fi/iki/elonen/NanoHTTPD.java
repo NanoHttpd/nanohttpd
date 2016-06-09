@@ -171,7 +171,7 @@ public abstract class NanoHTTPD {
 
         private final Socket acceptSocket;
 
-        private ClientHandler(InputStream inputStream, Socket acceptSocket) {
+        public ClientHandler(InputStream inputStream, Socket acceptSocket) {
             this.inputStream = inputStream;
             this.acceptSocket = acceptSocket;
         }
@@ -1706,7 +1706,7 @@ public abstract class NanoHTTPD {
 
         private boolean hasBinded = false;
 
-        private ServerRunnable(int timeout) {
+        public ServerRunnable(int timeout) {
             this.timeout = timeout;
         }
 
