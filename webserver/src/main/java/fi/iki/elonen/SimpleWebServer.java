@@ -317,12 +317,12 @@ public class SimpleWebServer extends NanoHTTPD {
             if (up != null || directories.size() > 0) {
                 msg.append("<section class=\"directories\">");
                 if (up != null) {
-                    msg.append("<li><a rel=\"directory\" href=\"").append(up).append("\"><span class=\"dirname\">..</span></a></b></li>");
+                    msg.append("<li><a rel=\"directory\" href=\"").append(up).append("\"><span class=\"dirname\">..</span></a></li>");
                 }
                 for (String directory : directories) {
                     String dir = directory + "/";
                     msg.append("<li><a rel=\"directory\" href=\"").append(encodeUri(uri + dir)).append("\"><span class=\"dirname\">").append(dir)
-                            .append("</span></a></b></li>");
+                            .append("</span></a></li>");
                 }
                 msg.append("</section>");
             }
