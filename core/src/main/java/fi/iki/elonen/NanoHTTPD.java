@@ -1841,7 +1841,7 @@ public abstract class NanoHTTPD {
                 InputStream stream = null;
                 try {
                     stream = url.openStream();
-                    properties.load(url.openStream());
+                    properties.load(stream);
                 } catch (IOException e) {
                     LOG.log(Level.SEVERE, "could not load mimetypes from " + url, e);
                 } finally {
