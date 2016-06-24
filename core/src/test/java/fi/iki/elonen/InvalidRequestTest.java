@@ -44,6 +44,7 @@ public class InvalidRequestTest extends HttpServerTest {
         invokeServer("GET " + HttpServerTest.URI + "\r\nX-Important-Header: foo");
 
         assertNotNull(this.testServer.parms);
+        assertNotNull(this.testServer.parameters);
         assertTrue(this.testServer.header.size() > 0);
         assertNotNull(this.testServer.files);
         assertNotNull(this.testServer.uri);
@@ -54,6 +55,7 @@ public class InvalidRequestTest extends HttpServerTest {
         invokeServer("GET " + HttpServerTest.URI + " HTTP/1.1\r\nX-Important-Header: foo");
 
         assertNotNull(this.testServer.parms);
+        assertNotNull(this.testServer.parameters);
         assertTrue(this.testServer.header.size() > 0);
         assertNotNull(this.testServer.files);
         assertNotNull(this.testServer.uri);
@@ -63,6 +65,7 @@ public class InvalidRequestTest extends HttpServerTest {
     public void testPostRequestWithoutProtocol() {
         invokeServer("POST " + HttpServerTest.URI + "\r\nContent-Length: 123");
         assertNotNull(this.testServer.parms);
+        assertNotNull(this.testServer.parameters);
         assertTrue(this.testServer.header.size() > 0);
         assertNotNull(this.testServer.files);
         assertNotNull(this.testServer.uri);
@@ -72,6 +75,7 @@ public class InvalidRequestTest extends HttpServerTest {
     public void testPostRequestWithProtocol() {
         invokeServer("POST " + HttpServerTest.URI + " HTTP/1.1\r\nContent-Length: 123");
         assertNotNull(this.testServer.parms);
+        assertNotNull(this.testServer.parameters);
         assertTrue(this.testServer.header.size() > 0);
         assertNotNull(this.testServer.files);
         assertNotNull(this.testServer.uri);

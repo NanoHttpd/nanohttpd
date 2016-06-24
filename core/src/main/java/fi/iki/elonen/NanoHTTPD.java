@@ -400,7 +400,7 @@ public abstract class NanoHTTPD {
         public void delete() throws Exception {
             safeClose(this.fstream);
             if (!this.file.delete()) {
-                throw new Exception("could not delete temporary file");
+                throw new Exception("could not delete temporary file: " + this.file.getAbsolutePath());
             }
         }
 
@@ -624,7 +624,7 @@ public abstract class NanoHTTPD {
 
         private Method method;
 
-        private Map<String, String> parms;
+        private Map<String, List<String>> parms;
 
         private Map<String, String> headers;
 
@@ -656,7 +656,7 @@ public abstract class NanoHTTPD {
         /**
          * Decodes the sent headers and loads the data into Key/value pairs
          */
-        private void decodeHeader(BufferedReader in, Map<String, String> pre, Map<String, String> parms, Map<String, String> headers) throws ResponseException {
+        private void decodeHeader(BufferedReader in, Map<String, String> pre, Map<String, List<String>> parms, Map<String, String> headers) throws ResponseException {
             try {
                 // Read the request line
                 String inLine = in.readLine();
@@ -714,7 +714,7 @@ public abstract class NanoHTTPD {
         /**
          * Decodes the Multipart Body data and put it into Key/Value pairs.
          */
-        private void decodeMultipartFormData(ContentType contentType, ByteBuffer fbuf, Map<String, String> parms, Map<String, String> files) throws ResponseException {
+        private void decodeMultipartFormData(ContentType contentType, ByteBuffer fbuf, Map<String, List<String>> parms, Map<String, String> files) throws ResponseException {
             int pcount = 0;
             try {
                 int[] boundaryIdxs = getBoundaryPositions(fbuf, contentType.getBoundary().getBytes());
@@ -783,11 +783,19 @@ public abstract class NanoHTTPD {
                     int partDataEnd = boundaryIdxs[boundaryIdx + 1] - 4;
 
                     fbuf.position(partDataStart);
+
+                    List<String> values = parms.get(partName);
+                    if (values == null) {
+                        values = new ArrayList<String>();
+                        parms.put(partName, values);
+                    }
+
                     if (partContentType == null) {
                         // Read the part into a string
                         byte[] data_bytes = new byte[partDataEnd - partDataStart];
                         fbuf.get(data_bytes);
-                        parms.put(partName, new String(data_bytes, contentType.getEncoding()));
+
+                        values.add(new String(data_bytes, contentType.getEncoding()));
                     } else {
                         // Read it into a file
                         String path = saveTmpFile(fbuf, partDataStart, partDataEnd - partDataStart, fileName);
@@ -800,7 +808,7 @@ public abstract class NanoHTTPD {
                             }
                             files.put(partName + count, path);
                         }
-                        parms.put(partName, fileName);
+                        values.add(fileName);
                     }
                 }
             } catch (ResponseException re) {
@@ -820,10 +828,9 @@ public abstract class NanoHTTPD {
         /**
          * Decodes parameters in percent-encoded URI-format ( e.g.
          * "name=Jack%20Daniels&pass=Single%20Malt" ) and adds them to given
-         * Map. NOTE: this doesn't support multiple identical keys due to the
-         * simplicity of Map.
+         * Map.
          */
-        private void decodeParms(String parms, Map<String, String> p) {
+        private void decodeParms(String parms, Map<String, List<String>> p) {
             if (parms == null) {
                 this.queryParameterString = "";
                 return;
@@ -834,11 +841,24 @@ public abstract class NanoHTTPD {
             while (st.hasMoreTokens()) {
                 String e = st.nextToken();
                 int sep = e.indexOf('=');
+                String key = null;
+                String value = null;
+
                 if (sep >= 0) {
-                    p.put(decodePercent(e.substring(0, sep)).trim(), decodePercent(e.substring(sep + 1)));
+                    key = decodePercent(e.substring(0, sep)).trim();
+                    value = decodePercent(e.substring(sep + 1));
                 } else {
-                    p.put(decodePercent(e).trim(), "");
+                    key = decodePercent(e).trim();
+                    value = "";
                 }
+
+                List<String> values = p.get(key);
+                if (values == null) {
+                    values = new ArrayList<String>();
+                    p.put(key, values);
+                }
+
+                values.add(value);
             }
         }
 
@@ -886,7 +906,7 @@ public abstract class NanoHTTPD {
                     this.inputStream.skip(this.splitbyte);
                 }
 
-                this.parms = new HashMap<String, String>();
+                this.parms = new HashMap<String, List<String>>();
                 if (null == this.headers) {
                     this.headers = new HashMap<String, String>();
                 } else {
@@ -1053,8 +1073,22 @@ public abstract class NanoHTTPD {
             return this.method;
         }
 
+        /**
+         * @deprecated use {@link #getParameters()} instead.
+         */
         @Override
+        @Deprecated
         public final Map<String, String> getParms() {
+            Map<String, String> result = new HashMap<String, String>();
+            for (String key : this.parms.keySet()) {
+                result.put(key, this.parms.get(key).get(0));
+            }
+
+            return result;
+        }
+
+        @Override
+        public final Map<String, List<String>> getParameters() {
             return this.parms;
         }
 
@@ -1210,7 +1244,17 @@ public abstract class NanoHTTPD {
 
         Method getMethod();
 
+        /**
+         * This method will only return the first value for a given parameter.
+         * You will want to use getParameters if you expect multiple values for
+         * a given key.
+         * 
+         * @deprecated use {@link #getParameters()} instead.
+         */
+        @Deprecated
         Map<String, String> getParms();
+
+        Map<String, List<String>> getParameters();
 
         String getQueryParameterString();
 
