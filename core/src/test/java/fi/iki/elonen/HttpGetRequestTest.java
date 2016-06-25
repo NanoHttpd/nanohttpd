@@ -114,6 +114,7 @@ public class HttpGetRequestTest extends HttpServerTest {
     public void testEmptyHeadersSuppliedToServeMethodFromSimpleWorkingGetRequest() {
         invokeServer("GET " + HttpServerTest.URI + " HTTP/1.1");
         assertNotNull(this.testServer.parms);
+        assertNotNull(this.testServer.parameters);
         assertNotNull(this.testServer.header);
         assertNotNull(this.testServer.files);
         assertNotNull(this.testServer.uri);
@@ -140,6 +141,8 @@ public class HttpGetRequestTest extends HttpServerTest {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar&baz=zot HTTP/1.1");
         assertEquals("bar", this.testServer.parms.get("foo"));
         assertEquals("zot", this.testServer.parms.get("baz"));
+        assertEquals("bar", this.testServer.parameters.get("foo").get(0));
+        assertEquals("zot", this.testServer.parameters.get("baz").get(0));
     }
 
     @Test
@@ -147,6 +150,8 @@ public class HttpGetRequestTest extends HttpServerTest {
         invokeServer("GET " + HttpServerTest.URI + "?foo=&baz=zot HTTP/1.1");
         assertEquals("", this.testServer.parms.get("foo"));
         assertEquals("zot", this.testServer.parms.get("baz"));
+        assertEquals("", this.testServer.parameters.get("foo").get(0));
+        assertEquals("zot", this.testServer.parameters.get("baz").get(0));
     }
 
     @Test
@@ -154,6 +159,8 @@ public class HttpGetRequestTest extends HttpServerTest {
         invokeServer("GET " + HttpServerTest.URI + "?foo=&baz=zot HTTP/1.1\nAccept: text/html");
         assertEquals("", this.testServer.parms.get("foo"));
         assertEquals("zot", this.testServer.parms.get("baz"));
+        assertEquals("", this.testServer.parameters.get("foo").get(0));
+        assertEquals("zot", this.testServer.parameters.get("baz").get(0));
         assertEquals("text/html", this.testServer.header.get("accept"));
     }
 
@@ -189,12 +196,23 @@ public class HttpGetRequestTest extends HttpServerTest {
     public void testSingleGetParameter() {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar HTTP/1.1");
         assertEquals("bar", this.testServer.parms.get("foo"));
+        assertEquals("bar", this.testServer.parameters.get("foo").get(0));
+    }
+
+    @Test
+    public void testMultipleValueGetParameter() {
+        invokeServer("GET " + HttpServerTest.URI + "?foo=bar&foo=baz HTTP/1.1");
+        assertEquals("bar", this.testServer.parms.get("foo"));
+        assertEquals(2, this.testServer.parameters.get("foo").size());
+        assertEquals("bar", this.testServer.parameters.get("foo").get(0));
+        assertEquals("baz", this.testServer.parameters.get("foo").get(1));
     }
 
     @Test
     public void testSingleGetParameterWithNoValue() {
         invokeServer("GET " + HttpServerTest.URI + "?foo HTTP/1.1");
         assertEquals("", this.testServer.parms.get("foo"));
+        assertEquals("", this.testServer.parameters.get("foo").get(0));
     }
 
     @Test

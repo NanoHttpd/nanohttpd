@@ -82,6 +82,8 @@ public class HttpServerTest {
 
         public Map<String, String> parms;
 
+        public Map<String, List<String>> parameters;
+
         public Map<String, String> files;
 
         public Map<String, List<String>> decodedParamters;
@@ -111,16 +113,18 @@ public class HttpServerTest {
             this.uri = session.getUri();
             this.method = session.getMethod();
             this.header = session.getHeaders();
-            this.parms = session.getParms();
             this.files = new HashMap<String, String>();
             try {
                 session.parseBody(this.files);
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            this.parms = session.getParms();
+            this.parameters = session.getParameters();
             this.queryParameterString = session.getQueryParameterString();
             this.decodedParamtersFromParameter = decodeParameters(this.queryParameterString);
             this.decodedParamters = decodeParameters(session.getQueryParameterString());
+
             return this.response;
         }
     }
