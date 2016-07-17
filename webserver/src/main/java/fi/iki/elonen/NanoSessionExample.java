@@ -1,6 +1,6 @@
 package fi.iki.elonen;
 
-import com.spidren.main.NanoSession.ISession;
+import fi.ike.elonen.NanoSession.ISession;
 
 import fi.iki.elonen.NanoHTTPD;
 
