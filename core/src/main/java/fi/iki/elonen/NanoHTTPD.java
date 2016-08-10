@@ -2137,7 +2137,7 @@ public abstract class NanoHTTPD {
      */
     @SuppressWarnings("static-method")
     protected boolean useGzipWhenAccepted(Response r) {
-        return r.getMimeType() != null && r.getMimeType().toLowerCase().contains("text/");
+        return r.getMimeType() != null && (r.getMimeType().toLowerCase().contains("text/") || r.getMimeType().toLowerCase().contains("/json"));
     }
 
     public final int getListeningPort() {
