@@ -481,7 +481,7 @@ public class TestNanolets {
         routePrioritizer.addRoute(null, 100, null);
         Assert.assertEquals(0, routePrioritizer.getPrioritizedRoutes().size());
     }
-    
+
     @Test
     public void testProvidedPriorityRoutePrioritizerNullHandler() {
         ProvidedPriorityRoutePrioritizer routePrioritizer = new ProvidedPriorityRoutePrioritizer();
@@ -557,8 +557,10 @@ public class TestNanolets {
 
     @Test
     public void testHandlerSetters() throws Exception {
-        final UriResponder notFoundHandler = new GeneralHandler() {};
-        final UriResponder notImplementedHandler = new GeneralHandler() {};
+        final UriResponder notFoundHandler = new GeneralHandler() {
+        };
+        final UriResponder notImplementedHandler = new GeneralHandler() {
+        };
 
         TestRouter router = new TestRouter();
 

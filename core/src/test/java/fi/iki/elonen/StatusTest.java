@@ -11,18 +11,18 @@ import java.util.Map;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
+ * 
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- *
+ * 
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- *
+ * 
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -43,45 +43,47 @@ import fi.iki.elonen.NanoHTTPD.Response.Status;
 
 public class StatusTest {
 
-	@Test
-	public void testMessages() {
-		// These are values where the name of the enum does not match the status code description.
-		// By default you should not need to add any new values to this map if you
-		// make the name of the enum name match the status code description.
-		Map<Status, String> overrideValues = new HashMap<Status, String>();
-		overrideValues.put(Status.INTERNAL_ERROR, "500 Internal Server Error");
-		overrideValues.put(Status.SWITCH_PROTOCOL, "101 Switching Protocols");
-		overrideValues.put(Status.OK, "200 OK");
-		overrideValues.put(Status.MULTI_STATUS, "207 Multi-Status");
-		overrideValues.put(Status.REDIRECT, "301 Moved Permanently");
-		overrideValues.put(Status.REDIRECT_SEE_OTHER, "303 See Other");
-		overrideValues.put(Status.RANGE_NOT_SATISFIABLE, "416 Requested Range Not Satisfiable");
-		overrideValues.put(Status.UNSUPPORTED_HTTP_VERSION, "505 HTTP Version Not Supported");
+    @Test
+    public void testMessages() {
+        // These are values where the name of the enum does not match the status
+        // code description.
+        // By default you should not need to add any new values to this map if
+        // you
+        // make the name of the enum name match the status code description.
+        Map<Status, String> overrideValues = new HashMap<Status, String>();
+        overrideValues.put(Status.INTERNAL_ERROR, "500 Internal Server Error");
+        overrideValues.put(Status.SWITCH_PROTOCOL, "101 Switching Protocols");
+        overrideValues.put(Status.OK, "200 OK");
+        overrideValues.put(Status.MULTI_STATUS, "207 Multi-Status");
+        overrideValues.put(Status.REDIRECT, "301 Moved Permanently");
+        overrideValues.put(Status.REDIRECT_SEE_OTHER, "303 See Other");
+        overrideValues.put(Status.RANGE_NOT_SATISFIABLE, "416 Requested Range Not Satisfiable");
+        overrideValues.put(Status.UNSUPPORTED_HTTP_VERSION, "505 HTTP Version Not Supported");
 
-		for(Status status : Status.values()) {
-			if (overrideValues.containsKey(status)) {
-				Assert.assertEquals(overrideValues.get(status), status.getDescription());
-			} else {
-				Assert.assertEquals(getExpectedMessage(status), status.getDescription());
-			}
-		}
-	}
+        for (Status status : Status.values()) {
+            if (overrideValues.containsKey(status)) {
+                Assert.assertEquals(overrideValues.get(status), status.getDescription());
+            } else {
+                Assert.assertEquals(getExpectedMessage(status), status.getDescription());
+            }
+        }
+    }
 
-	private String getExpectedMessage(Status status) {
-		String name = status.name().toLowerCase();
-		String[] words = name.split("_");
-		StringBuilder builder = new StringBuilder();
-		builder.append(status.getRequestStatus());
-		builder.append(' ');
+    private String getExpectedMessage(Status status) {
+        String name = status.name().toLowerCase();
+        String[] words = name.split("_");
+        StringBuilder builder = new StringBuilder();
+        builder.append(status.getRequestStatus());
+        builder.append(' ');
 
-		for(int i = 0; i < words.length; i++) {
-			builder.append(Character.toUpperCase(words[i].charAt(0)));
-			builder.append(words[i].substring(1));
-			builder.append(' ');
-		}
+        for (int i = 0; i < words.length; i++) {
+            builder.append(Character.toUpperCase(words[i].charAt(0)));
+            builder.append(words[i].substring(1));
+            builder.append(' ');
+        }
 
-		return builder.toString().trim();
-	}
+        return builder.toString().trim();
+    }
 
     @Test
     public void testLookup() throws Exception {
