@@ -74,17 +74,17 @@ public class SimpleWebServer extends NanoHTTPD {
     private static final String LICENCE;
     static {
         mimeTypes();
-        InputStream stream = SimpleWebServer.class.getResourceAsStream("/LICENSE.txt");
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int count;
         String text;
         try {
+            InputStream stream = SimpleWebServer.class.getResourceAsStream("/LICENSE.txt");
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int count;
             while ((count = stream.read(buffer)) >= 0) {
                 bytes.write(buffer, 0, count);
             }
             text = bytes.toString("UTF-8");
-        } catch (IOException e) {
+        } catch (Exception e) {
             text = "unknown";
         }
         LICENCE = text;
@@ -317,12 +317,11 @@ public class SimpleWebServer extends NanoHTTPD {
             if (up != null || directories.size() > 0) {
                 msg.append("<section class=\"directories\">");
                 if (up != null) {
-                    msg.append("<li><a rel=\"directory\" href=\"").append(up).append("\"><span class=\"dirname\">..</span></a></b></li>");
+                    msg.append("<li><a rel=\"directory\" href=\"").append(up).append("\"><span class=\"dirname\">..</span></a></li>");
                 }
                 for (String directory : directories) {
                     String dir = directory + "/";
-                    msg.append("<li><a rel=\"directory\" href=\"").append(encodeUri(uri + dir)).append("\"><span class=\"dirname\">").append(dir)
-                            .append("</span></a></b></li>");
+                    msg.append("<li><a rel=\"directory\" href=\"").append(encodeUri(uri + dir)).append("\"><span class=\"dirname\">").append(dir).append("</span></a></li>");
                 }
                 msg.append("</section>");
             }

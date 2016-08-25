@@ -34,41 +34,41 @@ Edit `pom.xml`, and add this between \<dependencies\>:
 	
 Edit `src/main/java/com/example/App.java` and replace it with:
 ```java
-package com.example;
-
-import java.util.Map;
-import java.io.IOException;
-import fi.iki.elonen.NanoHTTPD;
-
-public class App extends NanoHTTPD {
-
-    public App() throws IOException {
-        super(8080);
-        start();
-		System.out.println( "\nRunning! Point your browers to http://localhost:8080/ \n" );
-    }
-
-    public static void main(String[] args) {
-		try {
-		    new App();
-		}
-		catch( IOException ioe ) {
-			System.err.println( "Couldn't start server:\n" + ioe );
-		}
-    }
-
-    @Override
-    public Response serve(IHTTPSession session) {
-        String msg = "<html><body><h1>Hello server</h1>\n";
-        Map<String, String> parms = session.getParms();
-        if (parms.get("username") == null) {
-            msg += "<form action='?' method='get'>\n  <p>Your name: <input type='text' name='username'></p>\n" + "</form>\n";
-        } else {
-            msg += "<p>Hello, " + parms.get("username") + "!</p>";
+    package com.example;
+    
+    import java.io.IOException;
+    import java.util.Map;
+    
+    import fi.iki.elonen.NanoHTTPD;
+    
+    public class App extends NanoHTTPD {
+    
+        public App() throws IOException {
+            super(8080);
+            start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+            System.out.println("\nRunning! Point your browsers to http://localhost:8080/ \n");
         }
-        return newFixedLengthResponse( msg + "</body></html>\n" );
+    
+        public static void main(String[] args) {
+            try {
+                new App();
+            } catch (IOException ioe) {
+                System.err.println("Couldn't start server:\n" + ioe);
+            }
+        }
+    
+        @Override
+        public Response serve(IHTTPSession session) {
+            String msg = "<html><body><h1>Hello server</h1>\n";
+            Map<String, String> parms = session.getParms();
+            if (parms.get("username") == null) {
+                msg += "<form action='?' method='get'>\n  <p>Your name: <input type='text' name='username'></p>\n" + "</form>\n";
+            } else {
+                msg += "<p>Hello, " + parms.get("username") + "!</p>";
+            }
+            return newFixedLengthResponse(msg + "</body></html>\n");
+        }
     }
-}
 ```
 
 Compile and run the server:
@@ -80,18 +80,18 @@ If it started ok, point your browser at <http://localhost:8080/> and enjoy a web
 
 ### Nanolets
 
-Nanolets are like sevlet's only that they have a extrem low profile. They offer an easy to use system for a more complex server application. 
-This text has to be extrended with an example, so for now take a look at the unit tests for the usage. <https://github.com/NanoHttpd/nanohttpd/blob/master/nanolets/src/test/java/fi/iki/elonen/router/AppNanolets.java>
+Nanolets are like servlets only that they have a extremely low profile. They offer an easy to use system for a more complex server application.
+This text has to be extended with an example, so for now take a look at the unit tests for the usage. <https://github.com/NanoHttpd/nanohttpd/blob/master/nanolets/src/test/java/fi/iki/elonen/router/AppNanolets.java>
 
 ## Status
 
-We are currently in the process of stabilizing NanoHttpd from the many pull requests and feature requests that were integrated over the last few months. The next release will come soon, and there will not be any more "intended" major changes before the next release. If you want to use the bleeding edge version, you can clone it from Github, or get it from sonatype.org (see "Maven dependencies / Living on the edge" below).
+We are currently in the process of stabilizing NanoHTTPD from the many pull requests and feature requests that were integrated over the last few months. The next release will come soon, and there will not be any more "intended" major changes before the next release. If you want to use the bleeding edge version, you can clone it from Github, or get it from sonatype.org (see "Maven dependencies / Living on the edge" below).
 
 ## Project structure
 
 NanoHTTPD project currently consist of four parts:
 
- * `/core` – Fully functional HTTP(s) server consisting of one (1) Java file, ready to be customized/inherited for your own project
+ * `/core` – Fully functional HTTP(s) server consisting of one (1) Java file, ready to be customized/inherited for your own project.
 
  * `/samples` – Simple examples on how to customize NanoHTTPD. See *HelloServer.java* for a killer app that greets you enthusiastically!
 
@@ -107,8 +107,8 @@ NanoHTTPD project currently consist of four parts:
 ### Core
 * Only one Java file, providing HTTP 1.1 support.
 * No fixed config files, logging, authorization etc. (Implement by yourself if you need them. Errors are passed to java.util.logging, though.)
-* Support for HTTPS (SSL)
-* Basic support for cookies
+* Support for HTTPS (SSL).
+* Basic support for cookies.
 * Supports parameter parsing of GET and POST methods.
 * Some built-in support for HEAD, POST and DELETE requests. You can easily implement/customize any HTTP method, though.
 * Supports file upload. Uses memory for small uploads, temp files for large ones.
@@ -130,19 +130,19 @@ NanoHTTPD project currently consist of four parts:
 * File server serves also very long files without memory overhead.
 * Contains a built-in list of most common MIME types.
 * Runtime extension support (extensions that serve particular MIME types) - example extension that serves Markdown formatted files. Simply including an extension JAR in the webserver classpath is enough for the extension to be loaded.
-* Simple [CORS](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing) support via `--cors` paramater
+* Simple [CORS](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing) support via `--cors` parameter
   * by default serves `Access-Control-Allow-Headers: origin,accept,content-type`
   * possibility to set `Access-Control-Allow-Headers` by setting System property: `AccessControlAllowHeader`
   * _example: _ `-DAccessControlAllowHeader=origin,accept,content-type,Authorization`
   * possible values:
-      * `--cors`: activates CORS support, `Access-Control-Allow-Origin` will be set to `*`
+      * `--cors`: activates CORS support, `Access-Control-Allow-Origin` will be set to `*`.
       * `--cors=some_value`: `Access-Control-Allow-Origin` will be set to `some_value`. 
 
 **_CORS argument examples_**
 
 
 * `--cors=http://appOne.company.com`
-* `--cors="http://appOne.company.com, http://appTwo.company.com"`: note the double quotes so that the 2 URLs are considered part of a single argument.
+* `--cors="http://appOne.company.com, http://appTwo.company.com"`: note the double quotes so that the two URLs are considered part of a single argument.
 
 ## Maven dependencies
 
@@ -160,11 +160,11 @@ NanoHTTPD is a Maven based project and deployed to central. Most development env
 
 The coordinates for your development environment should correspond to these. When looking for an older version take care because we switched groupId from *com.nanohttpd* to *org.nanohttpd* in mid 2015.
 
-Next it depends what you are useing nanohttpd for, there are tree main usages.
+Next it depends what you are using NanoHTTPD for, there are three main usages.
 
 ## Gradle dependencies
 
-In gradle you can use nano http the same way because gradle accesses the same central repository:
+In gradle you can use NanoHTTPD the same way because gradle accesses the same central repository:
 
 	dependencies {
 		runtime(
@@ -202,7 +202,7 @@ Here you write your own subclass of *fi.iki.elonen.NanoWebSocketServer* to confi
 
 ### Develop a custom HTTP file server    
 
-For a more classic aproach, perhaps to just create a HTTP server serving mostly service files from your disk, you can use the module with artifactId *nanohttpd-webserver*.
+For a more classic approach, perhaps to just create a HTTP server serving mostly service files from your disk, you can use the module with artifactId *nanohttpd-webserver*.
 
 		<dependency>
 			<groupId>org.nanohttpd</groupId>
@@ -210,7 +210,7 @@ For a more classic aproach, perhaps to just create a HTTP server serving mostly 
 			<version>CURRENT_VERSION</version>
 		</dependency>
 
-The included class *fi.iki.elonen.SimpleWebServer* is intended to be used as a starting point for your own implementation but it also can be used as is. Staring the class as is will start a http server on port 8080 and publishing the current directory.  
+The included class *fi.iki.elonen.SimpleWebServer* is intended to be used as a starting point for your own implementation but it also can be used as is. Starting the class as is will start a HTTP server on port 8080 and publishing the current directory.
 
 ### Living on the edge
 
@@ -234,18 +234,18 @@ The latest Github master version can be fetched through sonatype.org:
 		</repository>
 	</repositories>
 
-### generating an self signed ssl certificate
+### generating an self signed SSL certificate
 
 Just a hint how to generate a certificate for localhost.
 
 	keytool -genkey -keyalg RSA -alias selfsigned -keystore keystore.jks -storepass password -validity 360 -keysize 2048 -ext SAN=DNS:localhost,IP:127.0.0.1  -validity 9999
 
-This will generate a keystore file named 'keystore.jks' with a self signed certificate for a host named localhost with the ip adress 127.0.0.1 . Now 
+This will generate a keystore file named 'keystore.jks' with a self signed certificate for a host named localhost with the IP address 127.0.0.1 . Now
 you can use:
 
-	server.makeSecure(NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()));
+	server.makeSecure(NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()), null);
 
-Before you start the server to make Nanohttpd serve https connections, when you make sure 'keystore.jks' is in your classpath .  
+Before you start the server to make NanoHTTPD serve HTTPS connections, when you make sure 'keystore.jks' is in your classpath.
  
 -----
 

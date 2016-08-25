@@ -33,6 +33,11 @@ package fi.iki.elonen.samples.echo;
  * #L%
  */
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
@@ -58,6 +63,36 @@ public class EchoWebSocketsTest {
     @AfterClass
     public static void tearDown() throws Exception {
         EchoWebSocketsTest.server.stop();
+    }
+
+    @Test
+    public void testDirectoryArgument() throws IOException, InterruptedException {
+        final String testPort = "9458";
+
+        PipedOutputStream stdIn = new PipedOutputStream();
+        System.setIn(new PipedInputStream(stdIn));
+
+        Thread testServer = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                String[] args = {
+                    testPort,
+                    "-d"
+                };
+                try {
+                    EchoSocketSample.main(args);
+                } catch (IOException e) {
+                    fail("Exception: " + e.getMessage());
+                }
+            }
+        });
+
+        testServer.start();
+        Thread.sleep(1000);
+        stdIn.write(System.getProperty("line.separator").getBytes());
+        testServer.join(1000);
+        assertFalse("Test server failed to close", testServer.isAlive());
     }
 
     @Test

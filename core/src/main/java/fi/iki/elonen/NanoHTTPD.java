@@ -63,6 +63,7 @@ import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
 import java.security.KeyStore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -75,6 +76,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
@@ -87,6 +89,7 @@ import java.util.zip.GZIPOutputStream;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
@@ -168,7 +171,7 @@ public abstract class NanoHTTPD {
 
         private final Socket acceptSocket;
 
-        private ClientHandler(InputStream inputStream, Socket acceptSocket) {
+        public ClientHandler(InputStream inputStream, Socket acceptSocket) {
             this.inputStream = inputStream;
             this.acceptSocket = acceptSocket;
         }
@@ -197,7 +200,7 @@ public abstract class NanoHTTPD {
                 // SocketTimeoutException, print the
                 // stacktrace
                 if (!(e instanceof SocketException && "NanoHttpd Shutdown".equals(e.getMessage())) && !(e instanceof SocketTimeoutException)) {
-                    NanoHTTPD.LOG.log(Level.FINE, "Communication with the client broken", e);
+                    NanoHTTPD.LOG.log(Level.SEVERE, "Communication with the client broken, or an bug in the handler code", e);
                 }
             } finally {
                 safeClose(outputStream);
@@ -397,7 +400,7 @@ public abstract class NanoHTTPD {
         public void delete() throws Exception {
             safeClose(this.fstream);
             if (!this.file.delete()) {
-                throw new Exception("could not delete temporary file");
+                throw new Exception("could not delete temporary file: " + this.file.getAbsolutePath());
             }
         }
 
@@ -467,14 +470,6 @@ public abstract class NanoHTTPD {
         }
     }
 
-    private static final String CHARSET_REGEX = "[ |\t]*(charset)[ |\t]*=[ |\t]*['|\"]?([^\"^'^;]*)['|\"]?";
-
-    private static final Pattern CHARSET_PATTERN = Pattern.compile(CHARSET_REGEX, Pattern.CASE_INSENSITIVE);
-
-    private static final String BOUNDARY_REGEX = "[ |\t]*(boundary)[ |\t]*=[ |\t]*['|\"]?([^\"^'^;]*)['|\"]?";
-
-    private static final Pattern BOUNDARY_PATTERN = Pattern.compile(BOUNDARY_REGEX, Pattern.CASE_INSENSITIVE);
-
     /**
      * Creates a normal ServerSocket for TCP connections
      */
@@ -530,6 +525,81 @@ public abstract class NanoHTTPD {
 
     private static final Pattern CONTENT_DISPOSITION_ATTRIBUTE_PATTERN = Pattern.compile(CONTENT_DISPOSITION_ATTRIBUTE_REGEX);
 
+    protected static class ContentType {
+
+        private static final String ASCII_ENCODING = "US-ASCII";
+
+        private static final String MULTIPART_FORM_DATA_HEADER = "multipart/form-data";
+
+        private static final String CONTENT_REGEX = "[ |\t]*([^/^ ^;^,]+/[^ ^;^,]+)";
+
+        private static final Pattern MIME_PATTERN = Pattern.compile(CONTENT_REGEX, Pattern.CASE_INSENSITIVE);
+
+        private static final String CHARSET_REGEX = "[ |\t]*(charset)[ |\t]*=[ |\t]*['|\"]?([^\"^'^;^,]*)['|\"]?";
+
+        private static final Pattern CHARSET_PATTERN = Pattern.compile(CHARSET_REGEX, Pattern.CASE_INSENSITIVE);
+
+        private static final String BOUNDARY_REGEX = "[ |\t]*(boundary)[ |\t]*=[ |\t]*['|\"]?([^\"^'^;^,]*)['|\"]?";
+
+        private static final Pattern BOUNDARY_PATTERN = Pattern.compile(BOUNDARY_REGEX, Pattern.CASE_INSENSITIVE);
+
+        private final String contentTypeHeader;
+
+        private final String contentType;
+
+        private final String encoding;
+
+        private final String boundary;
+
+        public ContentType(String contentTypeHeader) {
+            this.contentTypeHeader = contentTypeHeader;
+            if (contentTypeHeader != null) {
+                contentType = getDetailFromContentHeader(contentTypeHeader, MIME_PATTERN, "", 1);
+                encoding = getDetailFromContentHeader(contentTypeHeader, CHARSET_PATTERN, null, 2);
+            } else {
+                contentType = "";
+                encoding = "UTF-8";
+            }
+            if (MULTIPART_FORM_DATA_HEADER.equalsIgnoreCase(contentType)) {
+                boundary = getDetailFromContentHeader(contentTypeHeader, BOUNDARY_PATTERN, null, 2);
+            } else {
+                boundary = null;
+            }
+        }
+
+        private String getDetailFromContentHeader(String contentTypeHeader, Pattern pattern, String defaultValue, int group) {
+            Matcher matcher = pattern.matcher(contentTypeHeader);
+            return matcher.find() ? matcher.group(group) : defaultValue;
+        }
+
+        public String getContentTypeHeader() {
+            return contentTypeHeader;
+        }
+
+        public String getContentType() {
+            return contentType;
+        }
+
+        public String getEncoding() {
+            return encoding == null ? ASCII_ENCODING : encoding;
+        }
+
+        public String getBoundary() {
+            return boundary;
+        }
+
+        public boolean isMultipart() {
+            return MULTIPART_FORM_DATA_HEADER.equalsIgnoreCase(contentType);
+        }
+
+        public ContentType tryUTF8() {
+            if (encoding == null) {
+                return new ContentType(this.contentTypeHeader + "; charset=UTF-8");
+            }
+            return this;
+        }
+    }
+
     protected class HTTPSession implements IHTTPSession {
 
         private static final int REQUEST_BUFFER_LEN = 512;
@@ -554,7 +624,7 @@ public abstract class NanoHTTPD {
 
         private Method method;
 
-        private Map<String, String> parms;
+        private Map<String, List<String>> parms;
 
         private Map<String, String> headers;
 
@@ -563,6 +633,8 @@ public abstract class NanoHTTPD {
         private String queryParameterString;
 
         private String remoteIp;
+
+        private String remoteHostname;
 
         private String protocolVersion;
 
@@ -577,13 +649,14 @@ public abstract class NanoHTTPD {
             this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
             this.outputStream = outputStream;
             this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
+            this.remoteHostname = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "localhost" : inetAddress.getHostName().toString();
             this.headers = new HashMap<String, String>();
         }
 
         /**
          * Decodes the sent headers and loads the data into Key/value pairs
          */
-        private void decodeHeader(BufferedReader in, Map<String, String> pre, Map<String, String> parms, Map<String, String> headers) throws ResponseException {
+        private void decodeHeader(BufferedReader in, Map<String, String> pre, Map<String, List<String>> parms, Map<String, String> headers) throws ResponseException {
             try {
                 // Read the request line
                 String inLine = in.readLine();
@@ -624,7 +697,7 @@ public abstract class NanoHTTPD {
                     NanoHTTPD.LOG.log(Level.FINE, "no protocol version specified, strange. Assuming HTTP/1.1.");
                 }
                 String line = in.readLine();
-                while (line != null && line.trim().length() > 0) {
+                while (line != null && !line.trim().isEmpty()) {
                     int p = line.indexOf(':');
                     if (p >= 0) {
                         headers.put(line.substring(0, p).trim().toLowerCase(Locale.US), line.substring(p + 1).trim());
@@ -641,29 +714,31 @@ public abstract class NanoHTTPD {
         /**
          * Decodes the Multipart Body data and put it into Key/Value pairs.
          */
-        private void decodeMultipartFormData(String boundary, String encoding, ByteBuffer fbuf, Map<String, String> parms, Map<String, String> files) throws ResponseException {
+        private void decodeMultipartFormData(ContentType contentType, ByteBuffer fbuf, Map<String, List<String>> parms, Map<String, String> files) throws ResponseException {
+            int pcount = 0;
             try {
-                int[] boundary_idxs = getBoundaryPositions(fbuf, boundary.getBytes());
-                if (boundary_idxs.length < 2) {
+                int[] boundaryIdxs = getBoundaryPositions(fbuf, contentType.getBoundary().getBytes());
+                if (boundaryIdxs.length < 2) {
                     throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but contains less than two boundary strings.");
                 }
 
-                byte[] part_header_buff = new byte[MAX_HEADER_SIZE];
-                for (int bi = 0; bi < boundary_idxs.length - 1; bi++) {
-                    fbuf.position(boundary_idxs[bi]);
+                byte[] partHeaderBuff = new byte[MAX_HEADER_SIZE];
+                for (int boundaryIdx = 0; boundaryIdx < boundaryIdxs.length - 1; boundaryIdx++) {
+                    fbuf.position(boundaryIdxs[boundaryIdx]);
                     int len = (fbuf.remaining() < MAX_HEADER_SIZE) ? fbuf.remaining() : MAX_HEADER_SIZE;
-                    fbuf.get(part_header_buff, 0, len);
-                    BufferedReader in = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(part_header_buff, 0, len), Charset.forName(encoding)), len);
+                    fbuf.get(partHeaderBuff, 0, len);
+                    BufferedReader in =
+                            new BufferedReader(new InputStreamReader(new ByteArrayInputStream(partHeaderBuff, 0, len), Charset.forName(contentType.getEncoding())), len);
 
                     int headerLines = 0;
                     // First line is boundary string
                     String mpline = in.readLine();
                     headerLines++;
-                    if (mpline == null || !mpline.contains(boundary)) {
+                    if (mpline == null || !mpline.contains(contentType.getBoundary())) {
                         throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but chunk does not start with boundary.");
                     }
 
-                    String part_name = null, file_name = null, content_type = null;
+                    String partName = null, fileName = null, partContentType = null;
                     // Parse the reset of the header lines
                     mpline = in.readLine();
                     headerLines++;
@@ -675,49 +750,65 @@ public abstract class NanoHTTPD {
                             while (matcher.find()) {
                                 String key = matcher.group(1);
                                 if ("name".equalsIgnoreCase(key)) {
-                                    part_name = matcher.group(2);
+                                    partName = matcher.group(2);
                                 } else if ("filename".equalsIgnoreCase(key)) {
-                                    file_name = matcher.group(2);
+                                    fileName = matcher.group(2);
+                                    // add these two line to support multiple
+                                    // files uploaded using the same field Id
+                                    if (!fileName.isEmpty()) {
+                                        if (pcount > 0)
+                                            partName = partName + String.valueOf(pcount++);
+                                        else
+                                            pcount++;
+                                    }
                                 }
                             }
                         }
                         matcher = CONTENT_TYPE_PATTERN.matcher(mpline);
                         if (matcher.matches()) {
-                            content_type = matcher.group(2).trim();
+                            partContentType = matcher.group(2).trim();
                         }
                         mpline = in.readLine();
                         headerLines++;
                     }
-                    int part_header_len = 0;
+                    int partHeaderLength = 0;
                     while (headerLines-- > 0) {
-                        part_header_len = scipOverNewLine(part_header_buff, part_header_len);
+                        partHeaderLength = scipOverNewLine(partHeaderBuff, partHeaderLength);
                     }
                     // Read the part data
-                    if (part_header_len >= len - 4) {
+                    if (partHeaderLength >= len - 4) {
                         throw new ResponseException(Response.Status.INTERNAL_ERROR, "Multipart header size exceeds MAX_HEADER_SIZE.");
                     }
-                    int part_data_start = boundary_idxs[bi] + part_header_len;
-                    int part_data_end = boundary_idxs[bi + 1] - 4;
+                    int partDataStart = boundaryIdxs[boundaryIdx] + partHeaderLength;
+                    int partDataEnd = boundaryIdxs[boundaryIdx + 1] - 4;
 
-                    fbuf.position(part_data_start);
-                    if (content_type == null) {
+                    fbuf.position(partDataStart);
+
+                    List<String> values = parms.get(partName);
+                    if (values == null) {
+                        values = new ArrayList<String>();
+                        parms.put(partName, values);
+                    }
+
+                    if (partContentType == null) {
                         // Read the part into a string
-                        byte[] data_bytes = new byte[part_data_end - part_data_start];
+                        byte[] data_bytes = new byte[partDataEnd - partDataStart];
                         fbuf.get(data_bytes);
-                        parms.put(part_name, new String(data_bytes, encoding));
+
+                        values.add(new String(data_bytes, contentType.getEncoding()));
                     } else {
                         // Read it into a file
-                        String path = saveTmpFile(fbuf, part_data_start, part_data_end - part_data_start, file_name);
-                        if (!files.containsKey(part_name)) {
-                            files.put(part_name, path);
+                        String path = saveTmpFile(fbuf, partDataStart, partDataEnd - partDataStart, fileName);
+                        if (!files.containsKey(partName)) {
+                            files.put(partName, path);
                         } else {
                             int count = 2;
-                            while (files.containsKey(part_name + count)) {
+                            while (files.containsKey(partName + count)) {
                                 count++;
                             }
-                            files.put(part_name + count, path);
+                            files.put(partName + count, path);
                         }
-                        parms.put(part_name, file_name);
+                        values.add(fileName);
                     }
                 }
             } catch (ResponseException re) {
@@ -727,8 +818,8 @@ public abstract class NanoHTTPD {
             }
         }
 
-        private int scipOverNewLine(byte[] part_header_buff, int index) {
-            while (part_header_buff[index] != '\n') {
+        private int scipOverNewLine(byte[] partHeaderBuff, int index) {
+            while (partHeaderBuff[index] != '\n') {
                 index++;
             }
             return ++index;
@@ -737,10 +828,9 @@ public abstract class NanoHTTPD {
         /**
          * Decodes parameters in percent-encoded URI-format ( e.g.
          * "name=Jack%20Daniels&pass=Single%20Malt" ) and adds them to given
-         * Map. NOTE: this doesn't support multiple identical keys due to the
-         * simplicity of Map.
+         * Map.
          */
-        private void decodeParms(String parms, Map<String, String> p) {
+        private void decodeParms(String parms, Map<String, List<String>> p) {
             if (parms == null) {
                 this.queryParameterString = "";
                 return;
@@ -751,11 +841,24 @@ public abstract class NanoHTTPD {
             while (st.hasMoreTokens()) {
                 String e = st.nextToken();
                 int sep = e.indexOf('=');
+                String key = null;
+                String value = null;
+
                 if (sep >= 0) {
-                    p.put(decodePercent(e.substring(0, sep)).trim(), decodePercent(e.substring(sep + 1)));
+                    key = decodePercent(e.substring(0, sep)).trim();
+                    value = decodePercent(e.substring(sep + 1));
                 } else {
-                    p.put(decodePercent(e).trim(), "");
+                    key = decodePercent(e).trim();
+                    value = "";
                 }
+
+                List<String> values = p.get(key);
+                if (values == null) {
+                    values = new ArrayList<String>();
+                    p.put(key, values);
+                }
+
+                values.add(value);
             }
         }
 
@@ -776,7 +879,9 @@ public abstract class NanoHTTPD {
                 this.inputStream.mark(HTTPSession.BUFSIZE);
                 try {
                     read = this.inputStream.read(buf, 0, HTTPSession.BUFSIZE);
-                } catch (Exception e) {
+                } catch (SSLException e) {
+                    throw e;
+                } catch (IOException e) {
                     safeClose(this.inputStream);
                     safeClose(this.outputStream);
                     throw new SocketException("NanoHttpd Shutdown");
@@ -801,7 +906,7 @@ public abstract class NanoHTTPD {
                     this.inputStream.skip(this.splitbyte);
                 }
 
-                this.parms = new HashMap<String, String>();
+                this.parms = new HashMap<String, List<String>>();
                 if (null == this.headers) {
                     this.headers = new HashMap<String, String>();
                 } else {
@@ -822,7 +927,7 @@ public abstract class NanoHTTPD {
 
                 this.method = Method.lookup(pre.get("method"));
                 if (this.method == null) {
-                    throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error.");
+                    throw new ResponseException(Response.Status.BAD_REQUEST, "BAD REQUEST: Syntax error. HTTP verb " + pre.get("method") + " unhandled.");
                 }
 
                 this.uri = pre.get("uri");
@@ -836,7 +941,7 @@ public abstract class NanoHTTPD {
 
                 // TODO: long body_size = getBodySize();
                 // TODO: long pos_before_serve = this.inputStream.totalRead()
-                // (requires implementaion for totalRead())
+                // (requires implementation for totalRead())
                 r = serve(this);
                 // TODO: this.inputStream.skip(body_size -
                 // (this.inputStream.totalRead() - pos_before_serve))
@@ -851,7 +956,7 @@ public abstract class NanoHTTPD {
                     r.setKeepAlive(keepAlive);
                     r.send(this.outputStream);
                 }
-                if (!keepAlive || "close".equalsIgnoreCase(r.getHeader("connection"))) {
+                if (!keepAlive || r.isCloseConnection()) {
                     throw new SocketException("NanoHttpd Shutdown");
                 }
             } catch (SocketException e) {
@@ -862,6 +967,10 @@ public abstract class NanoHTTPD {
                 // i.e. close the stream & finalAccept object by throwing the
                 // exception up the call stack.
                 throw ste;
+            } catch (SSLException ssle) {
+                Response resp = newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SSL PROTOCOL FAILURE: " + ssle.getMessage());
+                resp.send(this.outputStream);
+                safeClose(this.outputStream);
             } catch (IOException ioe) {
                 Response resp = newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
                 resp.send(this.outputStream);
@@ -964,8 +1073,22 @@ public abstract class NanoHTTPD {
             return this.method;
         }
 
+        /**
+         * @deprecated use {@link #getParameters()} instead.
+         */
         @Override
+        @Deprecated
         public final Map<String, String> getParms() {
+            Map<String, String> result = new HashMap<String, String>();
+            for (String key : this.parms.keySet()) {
+                result.put(key, this.parms.get(key).get(0));
+            }
+
+            return result;
+        }
+
+        @Override
+        public final Map<String, List<String>> getParameters() {
             return this.parms;
         }
 
@@ -1007,15 +1130,15 @@ public abstract class NanoHTTPD {
             try {
                 long size = getBodySize();
                 ByteArrayOutputStream baos = null;
-                DataOutput request_data_output = null;
+                DataOutput requestDataOutput = null;
 
                 // Store the request in memory or a file, depending on size
                 if (size < MEMORY_STORE_LIMIT) {
                     baos = new ByteArrayOutputStream();
-                    request_data_output = new DataOutputStream(baos);
+                    requestDataOutput = new DataOutputStream(baos);
                 } else {
                     randomAccessFile = getTmpBucket();
-                    request_data_output = randomAccessFile;
+                    requestDataOutput = randomAccessFile;
                 }
 
                 // Read all the body and write it to request_data_output
@@ -1024,7 +1147,7 @@ public abstract class NanoHTTPD {
                     this.rlen = this.inputStream.read(buf, 0, (int) Math.min(size, REQUEST_BUFFER_LEN));
                     size -= this.rlen;
                     if (this.rlen > 0) {
-                        request_data_output.write(buf, 0, this.rlen);
+                        requestDataOutput.write(buf, 0, this.rlen);
                     }
                 }
 
@@ -1039,31 +1162,20 @@ public abstract class NanoHTTPD {
                 // If the method is POST, there may be parameters
                 // in data section, too, read it:
                 if (Method.POST.equals(this.method)) {
-                    String contentType = "";
-                    String contentTypeHeader = this.headers.get("content-type");
-
-                    StringTokenizer st = null;
-                    if (contentTypeHeader != null) {
-                        st = new StringTokenizer(contentTypeHeader, ",; ");
-                        if (st.hasMoreTokens()) {
-                            contentType = st.nextToken();
-                        }
-                    }
-
-                    if ("multipart/form-data".equalsIgnoreCase(contentType)) {
-                        // Handle multipart/form-data
-                        if (!st.hasMoreTokens()) {
+                    ContentType contentType = new ContentType(this.headers.get("content-type"));
+                    if (contentType.isMultipart()) {
+                        String boundary = contentType.getBoundary();
+                        if (boundary == null) {
                             throw new ResponseException(Response.Status.BAD_REQUEST,
                                     "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
                         }
-                        decodeMultipartFormData(getAttributeFromContentHeader(contentTypeHeader, BOUNDARY_PATTERN, null), //
-                                getAttributeFromContentHeader(contentTypeHeader, CHARSET_PATTERN, "US-ASCII"), fbuf, this.parms, files);
+                        decodeMultipartFormData(contentType, fbuf, this.parms, files);
                     } else {
                         byte[] postBytes = new byte[fbuf.remaining()];
                         fbuf.get(postBytes);
-                        String postLine = new String(postBytes).trim();
+                        String postLine = new String(postBytes, contentType.getEncoding()).trim();
                         // Handle application/x-www-form-urlencoded
-                        if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType)) {
+                        if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType.getContentType())) {
                             decodeParms(postLine, this.parms);
                         } else if (postLine.length() != 0) {
                             // Special case for raw POST data => create a
@@ -1078,11 +1190,6 @@ public abstract class NanoHTTPD {
             } finally {
                 safeClose(randomAccessFile);
             }
-        }
-
-        private String getAttributeFromContentHeader(String contentTypeHeader, Pattern pattern, String defaultValue) {
-            Matcher matcher = pattern.matcher(contentTypeHeader);
-            return matcher.find() ? matcher.group(2) : defaultValue;
         }
 
         /**
@@ -1109,6 +1216,16 @@ public abstract class NanoHTTPD {
             }
             return path;
         }
+
+        @Override
+        public String getRemoteIpAddress() {
+            return this.remoteIp;
+        }
+
+        @Override
+        public String getRemoteHostName() {
+            return this.remoteHostname;
+        }
     }
 
     /**
@@ -1127,7 +1244,17 @@ public abstract class NanoHTTPD {
 
         Method getMethod();
 
+        /**
+         * This method will only return the first value for a given parameter.
+         * You will want to use getParameters if you expect multiple values for
+         * a given key.
+         * 
+         * @deprecated use {@link #getParameters()} instead.
+         */
+        @Deprecated
         Map<String, String> getParms();
+
+        Map<String, List<String>> getParameters();
 
         String getQueryParameterString();
 
@@ -1143,6 +1270,20 @@ public abstract class NanoHTTPD {
          *            map to modify
          */
         void parseBody(Map<String, String> files) throws IOException, ResponseException;
+
+        /**
+         * Get the remote ip address of the requester.
+         * 
+         * @return the IP address.
+         */
+        String getRemoteIpAddress();
+
+        /**
+         * Get the remote hostname of the requester.
+         * 
+         * @return the hostname.
+         */
+        String getRemoteHostName();
     }
 
     /**
@@ -1158,15 +1299,25 @@ public abstract class NanoHTTPD {
         OPTIONS,
         TRACE,
         CONNECT,
-        PATCH;
+        PATCH,
+        PROPFIND,
+        PROPPATCH,
+        MKCOL,
+        MOVE,
+        COPY,
+        LOCK,
+        UNLOCK;
 
         static Method lookup(String method) {
-            for (Method m : Method.values()) {
-                if (m.toString().equalsIgnoreCase(method)) {
-                    return m;
-                }
+            if (method == null)
+                return null;
+
+            try {
+                return valueOf(method);
+            } catch (IllegalArgumentException e) {
+                // TODO: Log it?
+                return null;
             }
-            return null;
         }
     }
 
@@ -1187,13 +1338,27 @@ public abstract class NanoHTTPD {
          */
         public enum Status implements IStatus {
             SWITCH_PROTOCOL(101, "Switching Protocols"),
+
             OK(200, "OK"),
             CREATED(201, "Created"),
             ACCEPTED(202, "Accepted"),
             NO_CONTENT(204, "No Content"),
             PARTIAL_CONTENT(206, "Partial Content"),
+            MULTI_STATUS(207, "Multi-Status"),
+
             REDIRECT(301, "Moved Permanently"),
+            /**
+             * Many user agents mishandle 302 in ways that violate the RFC1945
+             * spec (i.e., redirect a POST to a GET). 303 and 307 were added in
+             * RFC2616 to address this. You should prefer 303 and 307 unless the
+             * calling user agent does not support 303 and 307 functionality
+             */
+            @Deprecated
+            FOUND(302, "Found"),
+            REDIRECT_SEE_OTHER(303, "See Other"),
             NOT_MODIFIED(304, "Not Modified"),
+            TEMPORARY_REDIRECT(307, "Temporary Redirect"),
+
             BAD_REQUEST(400, "Bad Request"),
             UNAUTHORIZED(401, "Unauthorized"),
             FORBIDDEN(403, "Forbidden"),
@@ -1202,9 +1367,18 @@ public abstract class NanoHTTPD {
             NOT_ACCEPTABLE(406, "Not Acceptable"),
             REQUEST_TIMEOUT(408, "Request Timeout"),
             CONFLICT(409, "Conflict"),
+            GONE(410, "Gone"),
+            LENGTH_REQUIRED(411, "Length Required"),
+            PRECONDITION_FAILED(412, "Precondition Failed"),
+            PAYLOAD_TOO_LARGE(413, "Payload Too Large"),
+            UNSUPPORTED_MEDIA_TYPE(415, "Unsupported Media Type"),
             RANGE_NOT_SATISFIABLE(416, "Requested Range Not Satisfiable"),
+            EXPECTATION_FAILED(417, "Expectation Failed"),
+            TOO_MANY_REQUESTS(429, "Too Many Requests"),
+
             INTERNAL_ERROR(500, "Internal Server Error"),
             NOT_IMPLEMENTED(501, "Not Implemented"),
+            SERVICE_UNAVAILABLE(503, "Service Unavailable"),
             UNSUPPORTED_HTTP_VERSION(505, "HTTP Version Not Supported");
 
             private final int requestStatus;
@@ -1214,6 +1388,15 @@ public abstract class NanoHTTPD {
             Status(int requestStatus, String description) {
                 this.requestStatus = requestStatus;
                 this.description = description;
+            }
+
+            public static Status lookup(int requestStatus) {
+                for (Status status : Status.values()) {
+                    if (status.getRequestStatus() == requestStatus) {
+                        return status;
+                    }
+                }
+                return null;
             }
 
             @Override
@@ -1285,9 +1468,23 @@ public abstract class NanoHTTPD {
         private long contentLength;
 
         /**
-         * Headers for the HTTP response. Use addHeader() to add lines.
+         * Headers for the HTTP response. Use addHeader() to add lines. the
+         * lowercase map is automatically kept up to date.
          */
-        private final Map<String, String> header = new HashMap<String, String>();
+        @SuppressWarnings("serial")
+        private final Map<String, String> header = new HashMap<String, String>() {
+
+            public String put(String key, String value) {
+                lowerCaseHeader.put(key == null ? key : key.toLowerCase(), value);
+                return super.put(key, value);
+            };
+        };
+
+        /**
+         * copy of the header map with all the keys lowercase for faster
+         * searching.
+         */
+        private final Map<String, String> lowerCaseHeader = new HashMap<String, String>();
 
         /**
          * The request method that spawned this response.
@@ -1334,17 +1531,34 @@ public abstract class NanoHTTPD {
             this.header.put(name, value);
         }
 
+        /**
+         * Indicate to close the connection after the Response has been sent.
+         * 
+         * @param close
+         *            {@code true} to hint connection closing, {@code false} to
+         *            let connection be closed by client.
+         */
+        public void closeConnection(boolean close) {
+            if (close)
+                this.header.put("connection", "close");
+            else
+                this.header.remove("connection");
+        }
+
+        /**
+         * @return {@code true} if connection is to be closed after this
+         *         Response has been sent.
+         */
+        public boolean isCloseConnection() {
+            return "close".equals(getHeader("connection"));
+        }
+
         public InputStream getData() {
             return this.data;
         }
 
         public String getHeader(String name) {
-            for (String headerName : header.keySet()) {
-                if (headerName.equalsIgnoreCase(name)) {
-                    return header.get(headerName);
-                }
-            }
-            return null;
+            return this.lowerCaseHeader.get(name.toLowerCase());
         }
 
         public String getMimeType() {
@@ -1367,19 +1581,10 @@ public abstract class NanoHTTPD {
             this.keepAlive = useKeepAlive;
         }
 
-        private static boolean headerAlreadySent(Map<String, String> header, String name) {
-            boolean alreadySent = false;
-            for (String headerName : header.keySet()) {
-                alreadySent |= headerName.equalsIgnoreCase(name);
-            }
-            return alreadySent;
-        }
-
         /**
          * Sends given response to the socket.
          */
         protected void send(OutputStream outputStream) {
-            String mime = this.mimeType;
             SimpleDateFormat gmtFrmt = new SimpleDateFormat("E, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
             gmtFrmt.setTimeZone(TimeZone.getTimeZone("GMT"));
 
@@ -1387,44 +1592,34 @@ public abstract class NanoHTTPD {
                 if (this.status == null) {
                     throw new Error("sendResponse(): Status can't be null.");
                 }
-                PrintWriter pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8")), false);
-                pw.print("HTTP/1.1 " + this.status.getDescription() + " \r\n");
-
-                if (mime != null) {
-                    pw.print("Content-Type: " + mime + "\r\n");
+                PrintWriter pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(outputStream, new ContentType(this.mimeType).getEncoding())), false);
+                pw.append("HTTP/1.1 ").append(this.status.getDescription()).append(" \r\n");
+                if (this.mimeType != null) {
+                    printHeader(pw, "Content-Type", this.mimeType);
                 }
-
-                if (this.header == null || this.header.get("Date") == null) {
-                    pw.print("Date: " + gmtFrmt.format(new Date()) + "\r\n");
+                if (getHeader("date") == null) {
+                    printHeader(pw, "Date", gmtFrmt.format(new Date()));
                 }
-
-                if (this.header != null) {
-                    for (String key : this.header.keySet()) {
-                        String value = this.header.get(key);
-                        pw.print(key + ": " + value + "\r\n");
-                    }
+                for (Entry<String, String> entry : this.header.entrySet()) {
+                    printHeader(pw, entry.getKey(), entry.getValue());
                 }
-
-                if (!headerAlreadySent(header, "connection")) {
-                    pw.print("Connection: " + (this.keepAlive ? "keep-alive" : "close") + "\r\n");
+                if (getHeader("connection") == null) {
+                    printHeader(pw, "Connection", (this.keepAlive ? "keep-alive" : "close"));
                 }
-
-                if (headerAlreadySent(this.header, "content-length")) {
+                if (getHeader("content-length") != null) {
                     encodeAsGzip = false;
                 }
-
                 if (encodeAsGzip) {
-                    pw.print("Content-Encoding: gzip\r\n");
+                    printHeader(pw, "Content-Encoding", "gzip");
                     setChunkedTransfer(true);
                 }
-
                 long pending = this.data != null ? this.contentLength : 0;
                 if (this.requestMethod != Method.HEAD && this.chunkedTransfer) {
-                    pw.print("Transfer-Encoding: chunked\r\n");
+                    printHeader(pw, "Transfer-Encoding", "chunked");
                 } else if (!encodeAsGzip) {
-                    pending = sendContentLengthHeaderIfNotAlreadyPresent(pw, this.header, pending);
+                    pending = sendContentLengthHeaderIfNotAlreadyPresent(pw, pending);
                 }
-                pw.print("\r\n");
+                pw.append("\r\n");
                 pw.flush();
                 sendBodyWithCorrectTransferAndEncoding(outputStream, pending);
                 outputStream.flush();
@@ -1432,6 +1627,25 @@ public abstract class NanoHTTPD {
             } catch (IOException ioe) {
                 NanoHTTPD.LOG.log(Level.SEVERE, "Could not send response to the client", ioe);
             }
+        }
+
+        @SuppressWarnings("static-method")
+        protected void printHeader(PrintWriter pw, String key, String value) {
+            pw.append(key).append(": ").append(value).append("\r\n");
+        }
+
+        protected long sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, long defaultSize) {
+            String contentLengthString = getHeader("content-length");
+            long size = defaultSize;
+            if (contentLengthString != null) {
+                try {
+                    size = Long.parseLong(contentLengthString);
+                } catch (NumberFormatException ex) {
+                    LOG.severe("content-length was no number " + contentLengthString);
+                }
+            }
+            pw.print("Content-Length: " + size + "\r\n");
+            return size;
         }
 
         private void sendBodyWithCorrectTransferAndEncoding(OutputStream outputStream, long pending) throws IOException {
@@ -1482,21 +1696,6 @@ public abstract class NanoHTTPD {
                     pending -= read;
                 }
             }
-        }
-
-        protected static long sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header, long size) {
-            for (String headerName : header.keySet()) {
-                if ("content-length".equalsIgnoreCase(headerName)) {
-                    try {
-                        return Long.parseLong(header.get(headerName));
-                    } catch (NumberFormatException ex) {
-                        return size;
-                    }
-                }
-            }
-
-            pw.print("Content-Length: " + size + "\r\n");
-            return size;
         }
 
         public void setChunkedTransfer(boolean chunkedTransfer) {
@@ -1552,7 +1751,7 @@ public abstract class NanoHTTPD {
 
         private boolean hasBinded = false;
 
-        private ServerRunnable(int timeout) {
+        public ServerRunnable(int timeout) {
             this.timeout = timeout;
         }
 
@@ -1674,6 +1873,10 @@ public abstract class NanoHTTPD {
         return MIME_TYPES;
     }
 
+    @SuppressWarnings({
+        "unchecked",
+        "rawtypes"
+    })
     private static void loadMimeTypes(Map<String, String> result, String resourceName) {
         try {
             Enumeration<URL> resources = NanoHTTPD.class.getClassLoader().getResources(resourceName);
@@ -1683,7 +1886,7 @@ public abstract class NanoHTTPD {
                 InputStream stream = null;
                 try {
                     stream = url.openStream();
-                    properties.load(url.openStream());
+                    properties.load(stream);
                 } catch (IOException e) {
                     LOG.log(Level.SEVERE, "could not load mimetypes from " + url, e);
                 } finally {
@@ -1736,6 +1939,11 @@ public abstract class NanoHTTPD {
         try {
             KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
             InputStream keystoreStream = NanoHTTPD.class.getResourceAsStream(keyAndTrustStoreClasspathPath);
+
+            if (keystoreStream == null) {
+                throw new IOException("Unable to load keystore from classpath: " + keyAndTrustStoreClasspathPath);
+            }
+
             keystore.load(keystoreStream, passphrase);
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
             keyManagerFactory.init(keystore, passphrase);
@@ -1928,8 +2136,9 @@ public abstract class NanoHTTPD {
      *         accespts it. Default this option is on for text content and off
      *         for everything. Override this for custom semantics.
      */
+    @SuppressWarnings("static-method")
     protected boolean useGzipWhenAccepted(Response r) {
-        return r.getMimeType() != null && r.getMimeType().toLowerCase().contains("text/");
+        return r.getMimeType() != null && (r.getMimeType().toLowerCase().contains("text/") || r.getMimeType().toLowerCase().contains("/json"));
     }
 
     public final int getListeningPort() {
@@ -1981,17 +2190,22 @@ public abstract class NanoHTTPD {
      * Create a text response with known length.
      */
     public static Response newFixedLengthResponse(IStatus status, String mimeType, String txt) {
+        ContentType contentType = new ContentType(mimeType);
         if (txt == null) {
             return newFixedLengthResponse(status, mimeType, new ByteArrayInputStream(new byte[0]), 0);
         } else {
             byte[] bytes;
             try {
-                bytes = txt.getBytes("UTF-8");
+                CharsetEncoder newEncoder = Charset.forName(contentType.getEncoding()).newEncoder();
+                if (!newEncoder.canEncode(txt)) {
+                    contentType = contentType.tryUTF8();
+                }
+                bytes = txt.getBytes(contentType.getEncoding());
             } catch (UnsupportedEncodingException e) {
                 NanoHTTPD.LOG.log(Level.SEVERE, "encoding problem, responding nothing", e);
                 bytes = new byte[0];
             }
-            return newFixedLengthResponse(status, mimeType, new ByteArrayInputStream(bytes), bytes.length);
+            return newFixedLengthResponse(status, contentType.getContentTypeHeader(), new ByteArrayInputStream(bytes), bytes.length);
         }
     }
 
