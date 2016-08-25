@@ -46,8 +46,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
+import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.IStatus;
+import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.response.Status;
 import org.nanohttpd.util.ServerRunner;
 
 public class AppNanolets extends RouterNanoHTTPD {
@@ -61,7 +64,7 @@ public class AppNanolets extends RouterNanoHTTPD {
             return "not implemented";
         }
 
-        public String getText(Map<String, String> urlParams, NanoHTTPD.IHTTPSession session) {
+        public String getText(Map<String, String> urlParams, IHTTPSession session) {
             String text = "<html><body>User handler. Method: " + session.getMethod().toString() + "<br>";
             text += "<h1>Uri parameters:</h1>";
             for (Map.Entry<String, String> entry : urlParams.entrySet()) {
@@ -86,15 +89,15 @@ public class AppNanolets extends RouterNanoHTTPD {
         }
 
         @Override
-        public NanoHTTPD.Response.IStatus getStatus() {
-            return NanoHTTPD.Response.Status.OK;
+        public IStatus getStatus() {
+            return Status.OK;
         }
 
-        public NanoHTTPD.Response get(UriResource uriResource, Map<String, String> urlParams, NanoHTTPD.IHTTPSession session) {
+        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
             String text = getText(urlParams, session);
             ByteArrayInputStream inp = new ByteArrayInputStream(text.getBytes());
             int size = text.getBytes().length;
-            return NanoHTTPD.newFixedLengthResponse(getStatus(), getMimeType(), inp, size);
+            return Response.newFixedLengthResponse(getStatus(), getMimeType(), inp, size);
         }
 
     }

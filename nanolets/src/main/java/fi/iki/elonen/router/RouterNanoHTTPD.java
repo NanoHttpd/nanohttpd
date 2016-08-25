@@ -54,6 +54,8 @@ import java.util.regex.Pattern;
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.IStatus;
+import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.response.Status;
 
 /**
  * @author vnnv
@@ -92,7 +94,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         public abstract InputStream getData();
 
         public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
-            return NanoHTTPD.newChunkedResponse(getStatus(), getMimeType(), getData());
+            return Response.newChunkedResponse(getStatus(), getMimeType(), getData());
         }
 
         public Response post(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
@@ -123,7 +125,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         public abstract IStatus getStatus();
 
         public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
-            return NanoHTTPD.newFixedLengthResponse(getStatus(), getMimeType(), getText());
+            return Response.newFixedLengthResponse(getStatus(), getMimeType(), getText());
         }
 
         @Override
@@ -171,7 +173,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             } else {
                 text.append("<p>no params in url</p><br>");
             }
-            return NanoHTTPD.newFixedLengthResponse(getStatus(), getMimeType(), text.toString());
+            return Response.newFixedLengthResponse(getStatus(), getMimeType(), text.toString());
         }
     }
 
@@ -231,9 +233,9 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                 return new Error404UriHandler().get(uriResource, urlParams, session);
             } else {
                 try {
-                    return NanoHTTPD.newChunkedResponse(getStatus(), getMimeTypeForFile(fileOrdirectory.getName()), fileToInputStream(fileOrdirectory));
+                    return Response.newChunkedResponse(getStatus(), getMimeTypeForFile(fileOrdirectory.getName()), fileToInputStream(fileOrdirectory));
                 } catch (IOException ioe) {
-                    return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.REQUEST_TIMEOUT, "text/plain", null);
+                    return Response.newFixedLengthResponse(Status.REQUEST_TIMEOUT, "text/plain", null);
                 }
             }
         }
@@ -391,7 +393,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                                 return responder.other(session.getMethod().toString(), this, urlParams, session);
                         }
                     } else {
-                        return NanoHTTPD.newFixedLengthResponse(Status.OK, "text/plain", //
+                        return Response.newFixedLengthResponse(Status.OK, "text/plain", //
                                 new StringBuilder("Return: ")//
                                         .append(handler.getCanonicalName())//
                                         .append(".toString() -> ")//
@@ -403,7 +405,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                     LOG.log(Level.SEVERE, error, e);
                 }
             }
-            return NanoHTTPD.newFixedLengthResponse(Status.INTERNAL_ERROR, "text/plain", error);
+            return Response.newFixedLengthResponse(Status.INTERNAL_ERROR, "text/plain", error);
         }
 
         @Override

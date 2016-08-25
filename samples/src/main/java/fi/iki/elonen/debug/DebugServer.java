@@ -39,6 +39,7 @@ import java.util.Map;
 
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.util.ServerRunner;
 
 public class DebugServer extends NanoHTTPD {
@@ -85,7 +86,7 @@ public class DebugServer extends NanoHTTPD {
 
         sb.append("</body>");
         sb.append("</html>");
-        return newFixedLengthResponse(sb.toString());
+        return Response.newFixedLengthResponse(sb.toString());
     }
 
     private String toString(Map<String, ? extends Object> map) {

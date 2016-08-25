@@ -59,6 +59,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.response.Status;
 
 import fi.iki.elonen.router.RouterNanoHTTPD.DefaultRoutePrioritizer;
 import fi.iki.elonen.router.RouterNanoHTTPD.GeneralHandler;
@@ -376,7 +377,7 @@ public class TestNanolets {
 
         httphead = new HttpTrace("http://localhost:9090/browse/exception.html");
         response = httpclient.execute(httphead);
-        Assert.assertEquals(NanoHTTPD.Response.Status.REQUEST_TIMEOUT.getRequestStatus(), response.getStatusLine().getStatusCode());
+        Assert.assertEquals(Status.REQUEST_TIMEOUT.getRequestStatus(), response.getStatusLine().getStatusCode());
         entity = response.getEntity();
         string = new String(readContents(entity), "UTF-8");
         Assert.assertEquals("", string);
@@ -392,17 +393,17 @@ public class TestNanolets {
 
     @Test
     public void testGeneralHandlerGetStatus() {
-        Assert.assertEquals("GeneralHandler#getStatus should return OK status", RouterNanoHTTPD.Response.Status.OK, new RouterNanoHTTPD.GeneralHandler().getStatus());
+        Assert.assertEquals("GeneralHandler#getStatus should return OK status", Status.OK, new RouterNanoHTTPD.GeneralHandler().getStatus());
     }
 
     @Test
     public void testStaticPageHandlerGetStatus() {
-        Assert.assertEquals("StaticPageHandler#getStatus should return OK status", RouterNanoHTTPD.Response.Status.OK, new RouterNanoHTTPD.StaticPageHandler().getStatus());
+        Assert.assertEquals("StaticPageHandler#getStatus should return OK status", Status.OK, new RouterNanoHTTPD.StaticPageHandler().getStatus());
     }
 
     @Test
     public void testError404UriHandlerGetStatus() {
-        Assert.assertEquals("Error404UriHandler#getStatus should return NOT_FOUND status", RouterNanoHTTPD.Response.Status.NOT_FOUND,
+        Assert.assertEquals("Error404UriHandler#getStatus should return NOT_FOUND status", Status.NOT_FOUND,
                 new RouterNanoHTTPD.Error404UriHandler().getStatus());
     }
 
@@ -413,13 +414,13 @@ public class TestNanolets {
 
     @Test
     public void testNotImplementedHandlerGetStatus() {
-        Assert.assertEquals("NotImplementedHandler#getStatus should return OK status", RouterNanoHTTPD.Response.Status.OK,
+        Assert.assertEquals("NotImplementedHandler#getStatus should return OK status", Status.OK,
                 new RouterNanoHTTPD.NotImplementedHandler().getStatus());
     }
 
     @Test
     public void testIndexHandlerGetStatus() {
-        Assert.assertEquals("IndexHandler#getStatus should return OK status", RouterNanoHTTPD.Response.Status.OK, new RouterNanoHTTPD.IndexHandler().getStatus());
+        Assert.assertEquals("IndexHandler#getStatus should return OK status", Status.OK, new RouterNanoHTTPD.IndexHandler().getStatus());
     }
 
     @Test

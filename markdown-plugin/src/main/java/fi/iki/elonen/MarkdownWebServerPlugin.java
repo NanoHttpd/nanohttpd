@@ -10,7 +10,10 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.response.Status;
 import org.pegdown.PegDownProcessor;
 
 /**
@@ -73,7 +76,7 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
     }
 
     @Override
-    public NanoHTTPD.Response serveFile(String uri, Map<String, String> headers, NanoHTTPD.IHTTPSession session, File file, String mimeType) {
+    public Response serveFile(String uri, Map<String, String> headers, IHTTPSession session, File file, String mimeType) {
         String markdownSource = readSource(file);
         byte[] bytes;
         try {
@@ -82,6 +85,6 @@ public class MarkdownWebServerPlugin implements WebServerPlugin {
             MarkdownWebServerPlugin.LOG.log(Level.SEVERE, "encoding problem, responding nothing", e);
             bytes = new byte[0];
         }
-        return markdownSource == null ? null : new NanoHTTPD.Response(OK, NanoHTTPD.MIME_HTML, new ByteArrayInputStream(bytes), bytes.length);
+        return markdownSource == null ? null : Response.newFixedLengthResponse(Status.OK, NanoHTTPD.MIME_HTML, new ByteArrayInputStream(bytes), bytes.length);
     }
 }
