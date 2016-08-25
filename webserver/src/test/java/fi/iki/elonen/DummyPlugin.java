@@ -39,6 +39,8 @@ import java.io.InputStream;
 import java.util.Map;
 
 import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.response.Status;
 
 public class DummyPlugin implements WebServerPlugin {
 
@@ -58,7 +60,7 @@ public class DummyPlugin implements WebServerPlugin {
         }
         byte[] bytes = "<xml/>".getBytes();
         InputStream data = new ByteArrayInputStream(bytes);
-        return new Response(Status.OK, "text/xml", data, bytes.length);
+        return Response.newFixedLengthResponse(Status.OK, "text/xml", data, bytes.length);
     }
 
 }
