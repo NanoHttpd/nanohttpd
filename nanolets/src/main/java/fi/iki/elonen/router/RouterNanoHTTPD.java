@@ -39,12 +39,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -314,11 +316,11 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
     }
 
-    public static class UriResource {
+    public static class UriResource implements Comparable<UriResource> {
 
         private static final Pattern PARAM_PATTERN = Pattern.compile("(?<=(^|/)):[a-zA-Z0-9_-]+(?=(/|$))");
 
-        private static final String PARAM_MATCHER = "([A-Za-z0-9\\-\\._~:/?#\\[\\]@!\\$&'\\(\\)\\*\\+,;=]+)";
+        private static final String PARAM_MATCHER = "([A-Za-z0-9\\-\\._~:/?#\\[\\]@!\\$&'\\(\\)\\*\\+,;=\\s]+)";
 
         private static final Map<String, String> EMPTY = Collections.unmodifiableMap(new HashMap<String, String>());
 
@@ -326,15 +328,20 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
         private final Pattern uriPattern;
 
-        private final int priority;
+        private int priority;
 
         private final Class<?> handler;
 
         private final Object[] initParameter;
 
-        private List<String> uriParams = new ArrayList<String>();
+        private final List<String> uriParams = new ArrayList<String>();
 
         public UriResource(String uri, int priority, Class<?> handler, Object... initParameter) {
+            this(uri, handler, initParameter);
+            this.priority = priority + uriParams.size() * 1000;
+        }
+
+        public UriResource(String uri, Class<?> handler, Object... initParameter) {
             this.handler = handler;
             this.initParameter = initParameter;
             if (uri != null) {
@@ -345,7 +352,6 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                 this.uriPattern = null;
                 this.uri = null;
             }
-            this.priority = priority + uriParams.size() * 1000;
         }
 
         private void parse() {
@@ -441,18 +447,129 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             return null;
         }
 
+        @Override
+        public int compareTo(UriResource that) {
+            if (that == null) {
+                return 1;
+            } else if (this.priority > that.priority) {
+                return 1;
+            } else if (this.priority < that.priority) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
+
+        public void setPriority(int priority) {
+            this.priority = priority;
+        }
+
+    }
+
+    public static interface IRoutePrioritizer {
+
+        void addRoute(String url, int priority, Class<?> handler, Object... initParameter);
+
+        void removeRoute(String url);
+
+        Collection<UriResource> getPrioritizedRoutes();
+
+        void setNotImplemented(Class<?> notImplemented);
+    }
+
+    public static abstract class BaseRoutePrioritizer implements IRoutePrioritizer {
+
+        protected Class<?> notImplemented;
+
+        protected final Collection<UriResource> mappings;
+
+        public BaseRoutePrioritizer() {
+            this.mappings = newMappingCollection();
+            this.notImplemented = NotImplementedHandler.class;
+        }
+
+        @Override
+        public void addRoute(String url, int priority, Class<?> handler, Object... initParameter) {
+            if (url != null) {
+                if (handler != null) {
+                    mappings.add(new UriResource(url, priority + mappings.size(), handler, initParameter));
+                } else {
+                    mappings.add(new UriResource(url, priority + mappings.size(), notImplemented));
+                }
+            }
+        }
+
+        public void removeRoute(String url) {
+            String uriToDelete = normalizeUri(url);
+            Iterator<UriResource> iter = mappings.iterator();
+            while (iter.hasNext()) {
+                UriResource uriResource = iter.next();
+                if (uriToDelete.equals(uriResource.getUri())) {
+                    iter.remove();
+                    break;
+                }
+            }
+        }
+
+        @Override
+        public Collection<UriResource> getPrioritizedRoutes() {
+            return Collections.unmodifiableCollection(mappings);
+        }
+
+        @Override
+        public void setNotImplemented(Class<?> handler) {
+            notImplemented = handler;
+        }
+
+        protected abstract Collection<UriResource> newMappingCollection();
+    }
+
+    public static class ProvidedPriorityRoutePrioritizer extends BaseRoutePrioritizer {
+
+        @Override
+        public void addRoute(String url, int priority, Class<?> handler, Object... initParameter) {
+            if (url != null) {
+                UriResource resource = null;
+                if (handler != null) {
+                    resource = new UriResource(url, handler, initParameter);
+                } else {
+                    resource = new UriResource(url, handler, notImplemented);
+                }
+
+                resource.setPriority(priority);
+                mappings.add(resource);
+            }
+        }
+
+        @Override
+        protected Collection<UriResource> newMappingCollection() {
+            return new PriorityQueue<UriResource>();
+        }
+
+    }
+
+    public static class DefaultRoutePrioritizer extends BaseRoutePrioritizer {
+
+        protected Collection<UriResource> newMappingCollection() {
+            return new PriorityQueue<UriResource>();
+        }
+    }
+
+    public static class InsertionOrderRoutePrioritizer extends BaseRoutePrioritizer {
+
+        protected Collection<UriResource> newMappingCollection() {
+            return new ArrayList<UriResource>();
+        }
     }
 
     public static class UriRouter {
 
-        private List<UriResource> mappings;
-
         private UriResource error404Url;
 
-        private Class<?> notImplemented;
+        private IRoutePrioritizer routePrioritizer;
 
         public UriRouter() {
-            mappings = new ArrayList<UriResource>();
+            this.routePrioritizer = new DefaultRoutePrioritizer();
         }
 
         /**
@@ -469,7 +586,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             String work = normalizeUri(session.getUri());
             Map<String, String> params = null;
             UriResource uriResource = error404Url;
-            for (UriResource u : mappings) {
+            for (UriResource u : routePrioritizer.getPrioritizedRoutes()) {
                 params = u.match(work);
                 if (params != null) {
                     uriResource = u;
@@ -480,36 +597,11 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         }
 
         private void addRoute(String url, int priority, Class<?> handler, Object... initParameter) {
-            if (url != null) {
-                if (handler != null) {
-                    mappings.add(new UriResource(url, priority + mappings.size(), handler, initParameter));
-                } else {
-                    mappings.add(new UriResource(url, priority + mappings.size(), notImplemented));
-                }
-                sortMappings();
-            }
-        }
-
-        private void sortMappings() {
-            Collections.sort(mappings, new Comparator<UriResource>() {
-
-                @Override
-                public int compare(UriResource o1, UriResource o2) {
-                    return o1.priority - o2.priority;
-                }
-            });
+            routePrioritizer.addRoute(url, priority, handler, initParameter);
         }
 
         private void removeRoute(String url) {
-            String uriToDelete = normalizeUri(url);
-            Iterator<UriResource> iter = mappings.iterator();
-            while (iter.hasNext()) {
-                UriResource uriResource = iter.next();
-                if (uriToDelete.equals(uriResource.getUri())) {
-                    iter.remove();
-                    break;
-                }
-            }
+            routePrioritizer.removeRoute(url);
         }
 
         public void setNotFoundHandler(Class<?> handler) {
@@ -517,7 +609,11 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         }
 
         public void setNotImplemented(Class<?> handler) {
-            notImplemented = handler;
+            routePrioritizer.setNotImplemented(handler);
+        }
+
+        public void setRoutePrioritizer(IRoutePrioritizer routePrioritizer) {
+            this.routePrioritizer = routePrioritizer;
         }
 
     }
@@ -526,6 +622,11 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
     public RouterNanoHTTPD(int port) {
         super(port);
+        router = new UriRouter();
+    }
+
+    public RouterNanoHTTPD(String hostname, int port) {
+        super(hostname, port);
         router = new UriRouter();
     }
 
@@ -548,8 +649,20 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         router.addRoute(url, 100, handler, initParameter);
     }
 
+    public <T extends UriResponder> void setNotImplementedHandler(Class<T> handler) {
+        router.setNotImplemented(handler);
+    }
+
+    public <T extends UriResponder> void setNotFoundHandler(Class<T> handler) {
+        router.setNotFoundHandler(handler);
+    }
+
     public void removeRoute(String url) {
         router.removeRoute(url);
+    }
+
+    public void setRoutePrioritizer(IRoutePrioritizer routePrioritizer) {
+        router.setRoutePrioritizer(routePrioritizer);
     }
 
     @Override

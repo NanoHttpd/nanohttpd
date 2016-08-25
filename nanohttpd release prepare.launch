@@ -16,5 +16,5 @@
 <mapEntry key="JAVA_HOME" value="/home/nir/java/jdk1.7.0_79"/>
 </mapAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dmaven.multiModuleProjectDirectory=/home/nir/java/apache-maven-3.3.3"/>
-<stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:/nanohttpd-parent}"/>
+<stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:/nanohttpd}"/>
 </launchConfiguration>

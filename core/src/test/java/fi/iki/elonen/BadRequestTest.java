@@ -2,9 +2,9 @@ package fi.iki.elonen;
 
 /*
  * #%L
- * NanoHttpd-Webserver
+ * NanoHttpd-Core
  * %%
- * Copyright (C) 2012 - 2015 nanohttpd
+ * Copyright (C) 2012 - 2016 nanohttpd
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -33,34 +33,38 @@ package fi.iki.elonen;
  * #L%
  */
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.util.Map;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
-import fi.iki.elonen.NanoHTTPD.IHTTPSession;
-import fi.iki.elonen.NanoHTTPD.Response;
-import fi.iki.elonen.NanoHTTPD.Response.Status;
+import org.junit.Test;
 
-public class DummyPlugin implements WebServerPlugin {
+public class BadRequestTest extends HttpServerTest {
 
-    @Override
-    public boolean canServeUri(String uri, File rootDir) {
-        return true;
+    @Test
+    public void testEmptyRequest() throws IOException {
+        ByteArrayOutputStream outputStream = invokeServer("\n\n");
+        String[] expected = new String[]{
+            "HTTP/1.1 400 Bad Request"
+        };
+        assertResponse(outputStream, expected);
     }
 
-    @Override
-    public void initialize(Map<String, String> commandLineOptions) {
+    @Test
+    public void testInvalidMethod() throws IOException {
+        ByteArrayOutputStream outputStream = invokeServer("GETT http://example.com");
+        String[] expected = new String[]{
+            "HTTP/1.1 400 Bad Request"
+        };
+        assertResponse(outputStream, expected);
     }
 
-    @Override
-    public Response serveFile(String uri, Map<String, String> headers, IHTTPSession session, File file, String mimeType) {
-        if (uri.contains("rewrite")) {
-            return new InternalRewrite(headers, "/testdir/test.html");
-        }
-        byte[] bytes = "<xml/>".getBytes();
-        InputStream data = new ByteArrayInputStream(bytes);
-        return new Response(Status.OK, "text/xml", data, bytes.length);
+    @Test
+    public void testMissingURI() throws IOException {
+        ByteArrayOutputStream outputStream = invokeServer("GET");
+        String[] expected = new String[]{
+            "HTTP/1.1 400 Bad Request"
+        };
+        assertResponse(outputStream, expected);
     }
 
 }

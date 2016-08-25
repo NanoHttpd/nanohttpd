@@ -2,7 +2,7 @@ package fi.iki.elonen;
 
 /*
  * #%L
- * NanoHttpd-Webserver
+ * NanoHttpd-Core
  * %%
  * Copyright (C) 2012 - 2015 nanohttpd
  * %%
@@ -33,34 +33,50 @@ package fi.iki.elonen;
  * #L%
  */
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import javax.net.ssl.SSLServerSocketFactory;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 
-import fi.iki.elonen.NanoHTTPD.IHTTPSession;
-import fi.iki.elonen.NanoHTTPD.Response;
-import fi.iki.elonen.NanoHTTPD.Response.Status;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
-public class DummyPlugin implements WebServerPlugin {
+public class LoadKeyStoreTest {
 
-    @Override
-    public boolean canServeUri(String uri, File rootDir) {
-        return true;
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
+    @Test
+    public void loadKeyStoreFromResources() throws Exception {
+        String keyStorePath = "/keystore.jks";
+        InputStream resourceAsStream = this.getClass().getResourceAsStream(keyStorePath);
+        assertNotNull(resourceAsStream);
+
+        SSLServerSocketFactory sslServerSocketFactory = NanoHTTPD.makeSSLSocketFactory(keyStorePath, "password".toCharArray());
+        assertNotNull(sslServerSocketFactory);
     }
 
-    @Override
-    public void initialize(Map<String, String> commandLineOptions) {
+    @Test
+    public void loadKeyStoreFromResourcesWrongPassword() throws Exception {
+        String keyStorePath = "/keystore.jks";
+        InputStream resourceAsStream = this.getClass().getResourceAsStream(keyStorePath);
+        assertNotNull(resourceAsStream);
+
+        thrown.expect(IOException.class);
+        NanoHTTPD.makeSSLSocketFactory(keyStorePath, "wrongpassword".toCharArray());
     }
 
-    @Override
-    public Response serveFile(String uri, Map<String, String> headers, IHTTPSession session, File file, String mimeType) {
-        if (uri.contains("rewrite")) {
-            return new InternalRewrite(headers, "/testdir/test.html");
-        }
-        byte[] bytes = "<xml/>".getBytes();
-        InputStream data = new ByteArrayInputStream(bytes);
-        return new Response(Status.OK, "text/xml", data, bytes.length);
+    @Test
+    public void loadNonExistentKeyStoreFromResources() throws Exception {
+        String nonExistentPath = "/nokeystorehere.jks";
+        InputStream resourceAsStream = this.getClass().getResourceAsStream(nonExistentPath);
+        assertNull(resourceAsStream);
+
+        thrown.expect(IOException.class);
+        NanoHTTPD.makeSSLSocketFactory(nonExistentPath, "".toCharArray());
     }
 
 }

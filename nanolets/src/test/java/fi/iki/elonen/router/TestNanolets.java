@@ -38,10 +38,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -56,8 +61,15 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.NanoHTTPD.Response.Status;
+import fi.iki.elonen.router.RouterNanoHTTPD.DefaultRoutePrioritizer;
+import fi.iki.elonen.router.RouterNanoHTTPD.InsertionOrderRoutePrioritizer;
+import fi.iki.elonen.router.RouterNanoHTTPD.ProvidedPriorityRoutePrioritizer;
+import fi.iki.elonen.router.RouterNanoHTTPD.NotImplementedHandler;
 import fi.iki.elonen.router.RouterNanoHTTPD.GeneralHandler;
 import fi.iki.elonen.router.RouterNanoHTTPD.UriResource;
+import fi.iki.elonen.router.RouterNanoHTTPD.UriResponder;
+import fi.iki.elonen.router.RouterNanoHTTPD.UriRouter;
 
 public class TestNanolets {
 
@@ -138,6 +150,14 @@ public class TestNanolets {
         Assert.assertEquals(
                 "<html><body>User handler. Method: DELETE<br><h1>Uri parameters:</h1><div> Param: id&nbsp;Value: blabla</div><h1>Query parameters:</h1></body></html>", string);
         response.close();
+    }
+
+    @Test
+    public void doEncodedRequest() throws ClientProtocolException, IOException {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        HttpGet httpget = new HttpGet("http://localhost:9090/general/param%201/param%202");
+        CloseableHttpResponse response = httpclient.execute(httpget);
+        Assert.assertEquals(Status.OK.getRequestStatus(), response.getStatusLine().getStatusCode());
     }
 
     @Test
@@ -372,4 +392,205 @@ public class TestNanolets {
         Assert.assertFalse(serverStartThread.isAlive());
     }
 
+    @Test
+    public void testGeneralHandlerGetStatus() {
+        Assert.assertEquals("GeneralHandler#getStatus should return OK status", RouterNanoHTTPD.Response.Status.OK, new RouterNanoHTTPD.GeneralHandler().getStatus());
+    }
+
+    @Test
+    public void testStaticPageHandlerGetStatus() {
+        Assert.assertEquals("StaticPageHandler#getStatus should return OK status", RouterNanoHTTPD.Response.Status.OK, new RouterNanoHTTPD.StaticPageHandler().getStatus());
+    }
+
+    @Test
+    public void testError404UriHandlerGetStatus() {
+        Assert.assertEquals("Error404UriHandler#getStatus should return NOT_FOUND status", RouterNanoHTTPD.Response.Status.NOT_FOUND,
+                new RouterNanoHTTPD.Error404UriHandler().getStatus());
+    }
+
+    @Test
+    public void testError404UriHandlerGetMimeType() {
+        Assert.assertEquals("Error404UriHandler mime type should be text/html", "text/html", new RouterNanoHTTPD.Error404UriHandler().getMimeType());
+    }
+
+    @Test
+    public void testNotImplementedHandlerGetStatus() {
+        Assert.assertEquals("NotImplementedHandler#getStatus should return OK status", RouterNanoHTTPD.Response.Status.OK,
+                new RouterNanoHTTPD.NotImplementedHandler().getStatus());
+    }
+
+    @Test
+    public void testIndexHandlerGetStatus() {
+        Assert.assertEquals("IndexHandler#getStatus should return OK status", RouterNanoHTTPD.Response.Status.OK, new RouterNanoHTTPD.IndexHandler().getStatus());
+    }
+
+    @Test
+    public void testIndexHandlerGetMimeType() {
+        Assert.assertEquals("IndexHandler mime type should be text/html", "text/html", new RouterNanoHTTPD.IndexHandler().getMimeType());
+    }
+
+    @Test
+    public void testNotImplementedHandlerGetMimeType() {
+        Assert.assertEquals("NotImplementedHandler mime type should be text/html", "text/html", new RouterNanoHTTPD.NotImplementedHandler().getMimeType());
+    }
+
+    @Test
+    public void testBaseRoutePrioritizerAddNullRoute() {
+        DefaultRoutePrioritizer routePrioritizer = new DefaultRoutePrioritizer();
+        routePrioritizer.addRoute(null, 100, null);
+        Assert.assertEquals(0, routePrioritizer.getPrioritizedRoutes().size());
+    }
+
+    @Test
+    public void testInsertionOrderRoutePrioritizer() throws IOException {
+        InsertionOrderRoutePrioritizer routePrioritizer = new InsertionOrderRoutePrioritizer();
+
+        Class<?> handler1 = String.class;
+        Class<?> handler2 = Boolean.class;
+        Class<?> handler3 = Long.class;
+
+        ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
+        classes.add(handler1);
+        classes.add(handler2);
+        classes.add(handler3);
+
+        routePrioritizer.addRoute("/user", 100, handler1);
+        routePrioritizer.addRoute("/user", 100, handler2);
+        routePrioritizer.addRoute("/user", 100, handler3);
+        List<UriResource> prioritizedResources = new ArrayList<UriResource>();
+        prioritizedResources.addAll(routePrioritizer.getPrioritizedRoutes());
+
+        for (int i = 0; i < classes.size(); i++) {
+            Class<?> handler = classes.get(i);
+            UriResource resource = prioritizedResources.get(i);
+
+            InputStream inputStream = resource.process(null, null).getData();
+            byte[] bytes = new byte[inputStream.available()];
+            inputStream.read(bytes);
+            String message = new String(bytes);
+
+            Assert.assertTrue(message.contains(handler.getCanonicalName()));
+
+        }
+    }
+
+    @Test
+    public void testProvidedPriorityRoutePrioritizerNullUri() {
+        ProvidedPriorityRoutePrioritizer routePrioritizer = new ProvidedPriorityRoutePrioritizer();
+        Assert.assertEquals(0, routePrioritizer.getPrioritizedRoutes().size());
+        routePrioritizer.addRoute(null, 100, null);
+        Assert.assertEquals(0, routePrioritizer.getPrioritizedRoutes().size());
+    }
+
+    @Test
+    public void testProvidedPriorityRoutePrioritizerNullHandler() {
+        ProvidedPriorityRoutePrioritizer routePrioritizer = new ProvidedPriorityRoutePrioritizer();
+        Assert.assertEquals(0, routePrioritizer.getPrioritizedRoutes().size());
+        routePrioritizer.addRoute("/help", 100, null);
+        Assert.assertEquals(1, routePrioritizer.getPrioritizedRoutes().size());
+    }
+
+    @Test
+    public void testProvidedPriorityRoutePrioritizer() throws IOException {
+        ProvidedPriorityRoutePrioritizer routePrioritizer = new ProvidedPriorityRoutePrioritizer();
+
+        Class<?> handler1 = String.class;
+        Class<?> handler2 = Boolean.class;
+        Class<?> handler3 = Long.class;
+
+        ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
+        classes.add(handler2);
+        classes.add(handler1);
+        classes.add(handler3);
+
+        routePrioritizer.addRoute("/user", 101, handler1);
+        routePrioritizer.addRoute("/user", 100, handler2);
+        routePrioritizer.addRoute("/user", 102, handler3);
+        List<UriResource> prioritizedResources = new ArrayList<UriResource>();
+        prioritizedResources.addAll(routePrioritizer.getPrioritizedRoutes());
+
+        for (int i = 0; i < classes.size(); i++) {
+            Class<?> handler = classes.get(i);
+            UriResource resource = prioritizedResources.get(i);
+
+            InputStream inputStream = resource.process(null, null).getData();
+            byte[] bytes = new byte[inputStream.available()];
+            inputStream.read(bytes);
+            String message = new String(bytes);
+
+            Assert.assertTrue(message.contains(handler.getCanonicalName()));
+        }
+    }
+
+    @Test
+    public void testUriResourceComparator() {
+        UriResource r1 = new UriResource("uri", null);
+        r1.setPriority(100);
+        Assert.assertTrue(r1.compareTo(null) >= 1);
+
+        UriResource r2 = new UriResource("uri", null);
+        r2.setPriority(100);
+        Assert.assertEquals(0, r1.compareTo(r2));
+
+        r2.setPriority(99);
+        Assert.assertTrue(r1.compareTo(r2) >= 1);
+
+        r2.setPriority(101);
+        Assert.assertTrue(r1.compareTo(r2) <= 1);
+    }
+
+    @Test
+    public void testUriResourceMatch() {
+        UriResource resource = new RouterNanoHTTPD.UriResource("browse", 100, null, "init");
+        Assert.assertNull("UriResource should not match incorrect URL, and thus, should not return a URI parameter map", resource.match("/xyz/pqr/"));
+        Assert.assertNotNull("UriResource should match the correct URL, and thus, should return a URI parameter map", resource.match("browse"));
+    }
+
+    @Test
+    public void testRoutePrioritizerRemoveRouteNoRouteMatches() {
+        DefaultRoutePrioritizer prioritizer = new DefaultRoutePrioritizer();
+        prioritizer.addRoute("/world", 100, NotImplementedHandler.class);
+        prioritizer.removeRoute("/hello");
+
+        Assert.assertEquals(1, prioritizer.getPrioritizedRoutes().size());
+    }
+
+    @Test
+    public void testHandlerSetters() throws Exception {
+        final UriResponder notFoundHandler = new GeneralHandler() {
+        };
+        final UriResponder notImplementedHandler = new GeneralHandler() {
+        };
+
+        TestRouter router = new TestRouter();
+
+        RouterNanoHTTPD routerNanoHttpd = new RouterNanoHTTPD(9999);
+
+        Field routerField = RouterNanoHTTPD.class.getDeclaredField("router");
+        routerField.setAccessible(true);
+        routerField.set(routerNanoHttpd, router);
+
+        routerNanoHttpd.setNotFoundHandler(notFoundHandler.getClass());
+        routerNanoHttpd.setNotImplementedHandler(notImplementedHandler.getClass());
+
+        Assert.assertEquals(notFoundHandler.getClass(), router.notFoundHandlerClass);
+        Assert.assertEquals(notImplementedHandler.getClass(), router.notImplementedHandlerClass);
+    }
+
+    private static final class TestRouter extends UriRouter {
+
+        private Class<?> notFoundHandlerClass;
+
+        private Class<?> notImplementedHandlerClass;
+
+        @Override
+        public void setNotFoundHandler(Class<?> handler) {
+            notFoundHandlerClass = handler;
+        }
+
+        @Override
+        public void setNotImplemented(Class<?> handler) {
+            notImplementedHandlerClass = handler;
+        }
+    }
 }

@@ -149,8 +149,10 @@ public class AppNanolets extends RouterNanoHTTPD {
     public void addMappings() {
         super.addMappings();
         addRoute("/user", UserHandler.class);
-        addRoute("/user/:id", UserHandler.class);
+        addRoute("/user", UserHandler.class); // add it twice to execute the
+                                              // priority == priority case
         addRoute("/user/help", GeneralHandler.class);
+        addRoute("/user/:id", UserHandler.class);
         addRoute("/general/:param1/:param2", GeneralHandler.class);
         addRoute("/photos/:customer_id/:photo_id", null);
         addRoute("/test", String.class);

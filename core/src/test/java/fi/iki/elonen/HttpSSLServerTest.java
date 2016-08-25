@@ -36,8 +36,6 @@ package fi.iki.elonen;
 import java.io.File;
 import java.io.IOException;
 
-import javax.net.ssl.SSLContext;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -60,6 +58,19 @@ public class HttpSSLServerTest extends HttpServerTest {
 
         Assert.assertEquals(9043, this.testServer.getListeningPort());
         Assert.assertTrue(this.testServer.isAlive());
+    }
+
+    /**
+     * using http to connect to https.
+     * 
+     * @throws ClientProtocolException
+     * @throws IOException
+     */
+    @Test(expected = ClientProtocolException.class)
+    public void testHttpOnSSLConnection() throws ClientProtocolException, IOException {
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+        HttpTrace httphead = new HttpTrace("http://localhost:9043/index.html");
+        httpclient.execute(httphead);
     }
 
     @Before
