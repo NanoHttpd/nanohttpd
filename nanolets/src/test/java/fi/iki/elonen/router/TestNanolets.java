@@ -58,7 +58,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.Status;
 
 import fi.iki.elonen.router.RouterNanoHTTPD.DefaultRoutePrioritizer;

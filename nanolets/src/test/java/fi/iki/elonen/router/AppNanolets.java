@@ -47,7 +47,6 @@ import java.io.InputStream;
 import java.util.Map;
 
 import org.nanohttpd.protocols.http.IHTTPSession;
-import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.IStatus;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;

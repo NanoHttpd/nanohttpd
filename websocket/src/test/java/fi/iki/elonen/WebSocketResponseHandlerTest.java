@@ -54,10 +54,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
-
-import fi.iki.elonen.NanoWSD.WebSocketFrame;
-import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseCode;
-import fi.iki.elonen.NanoWSD.WebSocketFrame.OpCode;
+import org.nanohttpd.protocols.websockets.CloseCode;
+import org.nanohttpd.protocols.websockets.NanoWSD;
+import org.nanohttpd.protocols.websockets.OpCode;
+import org.nanohttpd.protocols.websockets.WebSocket;
+import org.nanohttpd.protocols.websockets.WebSocketFrame;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WebSocketResponseHandlerTest {
@@ -174,7 +175,7 @@ public class WebSocketResponseHandlerTest {
 
     @Test
     public void testSetMaskingKeyThrowsExceptionMaskingKeyLengthIsNotFour() {
-        WebSocketFrame webSocketFrame = new NanoWSD.WebSocketFrame(OpCode.Text, true, new byte[0]);
+        WebSocketFrame webSocketFrame = new WebSocketFrame(OpCode.Text, true, new byte[0]);
         for (int maskingKeyLength = 0; maskingKeyLength < 10; maskingKeyLength++) {
             if (maskingKeyLength == 4)
                 continue;
@@ -189,7 +190,7 @@ public class WebSocketResponseHandlerTest {
 
     @Test
     public void testIsMasked() {
-        WebSocketFrame webSocketFrame = new NanoWSD.WebSocketFrame(OpCode.Text, true, new byte[0]);
+        WebSocketFrame webSocketFrame = new WebSocketFrame(OpCode.Text, true, new byte[0]);
         Assert.assertFalse("isMasked should return true if masking key is not set.", webSocketFrame.isMasked());
 
         webSocketFrame.setMaskingKey(new byte[4]);
@@ -200,7 +201,7 @@ public class WebSocketResponseHandlerTest {
     @Test
     public void testWriteWhenNotMasked() throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        WebSocketFrame webSocketFrame = new NanoWSD.WebSocketFrame(OpCode.Text, true, "payload".getBytes());
+        WebSocketFrame webSocketFrame = new WebSocketFrame(OpCode.Text, true, "payload".getBytes());
         webSocketFrame.write(byteArrayOutputStream);
         byte[] writtenBytes = byteArrayOutputStream.toByteArray();
         Assert.assertEquals(9, writtenBytes.length);
@@ -222,7 +223,7 @@ public class WebSocketResponseHandlerTest {
     @Test
     public void testWriteWhenMasked() throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        WebSocketFrame webSocketFrame = new NanoWSD.WebSocketFrame(OpCode.Binary, true, "payload".getBytes());
+        WebSocketFrame webSocketFrame = new WebSocketFrame(OpCode.Binary, true, "payload".getBytes());
         webSocketFrame.setMaskingKey(new byte[]{
             12,
             45,
@@ -254,7 +255,7 @@ public class WebSocketResponseHandlerTest {
     @Test
     public void testWriteWhenNotMaskedPayloadLengthGreaterThan125() throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        WebSocketFrame webSocketFrame = new NanoWSD.WebSocketFrame(OpCode.Ping, true, new byte[257]);
+        WebSocketFrame webSocketFrame = new WebSocketFrame(OpCode.Ping, true, new byte[257]);
         webSocketFrame.write(byteArrayOutputStream);
         byte[] writtenBytes = byteArrayOutputStream.toByteArray();
         Assert.assertEquals(261, writtenBytes.length);
@@ -273,7 +274,7 @@ public class WebSocketResponseHandlerTest {
     @Test
     public void testWriteWhenMaskedPayloadLengthGreaterThan125() throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        WebSocketFrame webSocketFrame = new NanoWSD.WebSocketFrame(OpCode.Ping, false, new byte[257]);
+        WebSocketFrame webSocketFrame = new WebSocketFrame(OpCode.Ping, false, new byte[257]);
         webSocketFrame.setMaskingKey(new byte[]{
             19,
             25,
@@ -298,7 +299,7 @@ public class WebSocketResponseHandlerTest {
     @Test
     public void testWriteWhenNotMaskedPayloadLengthGreaterThan65535() throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        WebSocketFrame webSocketFrame = new NanoWSD.WebSocketFrame(OpCode.Ping, true, new byte[65536]);
+        WebSocketFrame webSocketFrame = new WebSocketFrame(OpCode.Ping, true, new byte[65536]);
         webSocketFrame.write(byteArrayOutputStream);
         byte[] writtenBytes = byteArrayOutputStream.toByteArray();
         Assert.assertEquals(65546, writtenBytes.length);

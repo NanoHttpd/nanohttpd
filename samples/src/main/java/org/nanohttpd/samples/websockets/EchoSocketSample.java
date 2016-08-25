@@ -35,7 +35,7 @@ package org.nanohttpd.samples.websockets;
 
 import java.io.IOException;
 
-import fi.iki.elonen.NanoWSD;
+import org.nanohttpd.protocols.websockets.NanoWSD;
 
 public class EchoSocketSample {
 

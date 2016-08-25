@@ -38,9 +38,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.nanohttpd.protocols.http.IHTTPSession;
-
-import fi.iki.elonen.NanoWSD;
-import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseCode;
+import org.nanohttpd.protocols.websockets.CloseCode;
+import org.nanohttpd.protocols.websockets.NanoWSD;
+import org.nanohttpd.protocols.websockets.WebSocket;
+import org.nanohttpd.protocols.websockets.WebSocketFrame;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 4/23/14 at 10:31 PM

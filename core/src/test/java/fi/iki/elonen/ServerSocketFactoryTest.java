@@ -38,8 +38,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 
-import javax.net.ServerSocketFactory;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.nanohttpd.protocols.http.NanoHTTPD;

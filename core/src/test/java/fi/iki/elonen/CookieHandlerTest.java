@@ -49,7 +49,6 @@ import java.util.TimeZone;
 
 import org.junit.Test;
 import org.nanohttpd.protocols.http.HTTPSession;
-import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.content.CookieHandler;
 import org.nanohttpd.protocols.http.response.Response;
 
