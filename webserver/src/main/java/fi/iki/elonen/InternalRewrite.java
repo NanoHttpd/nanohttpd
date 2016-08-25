@@ -36,7 +36,7 @@ package fi.iki.elonen;
 import java.io.ByteArrayInputStream;
 import java.util.Map;
 
-import fi.iki.elonen.NanoHTTPD.Response;
+import org.nanohttpd.protocols.http.NanoHTTPD;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 9/15/13 at 2:52 PM

@@ -38,9 +38,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Map;
 
-import fi.iki.elonen.NanoHTTPD.IHTTPSession;
-import fi.iki.elonen.NanoHTTPD.Response;
-import fi.iki.elonen.NanoHTTPD.Response.Status;
+import org.nanohttpd.protocols.http.IHTTPSession;
 
 public class DummyPlugin implements WebServerPlugin {
 

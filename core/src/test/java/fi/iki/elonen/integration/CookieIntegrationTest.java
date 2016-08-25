@@ -46,8 +46,11 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.junit.Test;
-
-import fi.iki.elonen.NanoHTTPD;
+import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.content.Cookie;
+import org.nanohttpd.protocols.http.content.CookieHandler;
+import org.nanohttpd.protocols.http.response.Response;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 9/2/13 at 10:10 PM
@@ -73,7 +76,7 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
             for (Cookie c : this.cookiesToSend) {
                 cookies.set(c);
             }
-            return newFixedLengthResponse("Cookies!");
+            return Response.newFixedLengthResponse("Cookies!");
         }
     }
 
@@ -84,7 +87,7 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
 
     @Test
     public void testCookieSentBackToClient() throws Exception {
-        this.testServer.cookiesToSend.add(new NanoHTTPD.Cookie("name", "value", 30));
+        this.testServer.cookiesToSend.add(new Cookie("name", "value", 30));
         HttpGet httpget = new HttpGet("http://localhost:8192/");
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         this.httpclient.execute(httpget, responseHandler);

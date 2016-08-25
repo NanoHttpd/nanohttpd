@@ -40,8 +40,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
 
-import org.junit.Ignore;
 import org.junit.Test;
+import org.nanohttpd.protocols.http.HTTPSession;
 
 public class HttpSessionHeadersTest extends HttpServerTest {
 
@@ -59,7 +59,7 @@ public class HttpSessionHeadersTest extends HttpServerTest {
         };
         for (String ipAddress : ipAddresses) {
             InetAddress inetAddress = InetAddress.getByName(ipAddress);
-            NanoHTTPD.HTTPSession session = this.testServer.createSession(HttpSessionHeadersTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
+            HTTPSession session = this.testServer.createSession(HttpSessionHeadersTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
             assertNotNull(ipAddress, session.getRemoteHostName());
             assertEquals(ipAddress, session.getRemoteIpAddress());
         }

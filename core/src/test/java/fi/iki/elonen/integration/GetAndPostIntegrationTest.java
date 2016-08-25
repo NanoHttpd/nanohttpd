@@ -55,9 +55,10 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
-
-import fi.iki.elonen.NanoHTTPD;
-import fi.iki.elonen.NanoHTTPD.Response.Status;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.request.Method;
+import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.response.Status;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 5/19/13 at 5:36 PM
@@ -86,11 +87,11 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
                 }
             }
             if ("/encodingtest".equals(uri)) {
-                return newFixedLengthResponse(Response.Status.OK, MIME_HTML, "<html><head><title>Testé ça</title></head><body>Testé ça</body></html>");
+                return Response.newFixedLengthResponse(Status.OK, MIME_HTML, "<html><head><title>Testé ça</title></head><body>Testé ça</body></html>");
             } else if ("/chin".equals(uri)) {
-                return newFixedLengthResponse(Status.OK, "application/octet-stream", sb.toString());
+                return Response.newFixedLengthResponse(Status.OK, "application/octet-stream", sb.toString());
             } else {
-                return newFixedLengthResponse(sb.toString());
+                return Response.newFixedLengthResponse(sb.toString());
             }
         }
     }

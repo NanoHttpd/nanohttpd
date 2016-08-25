@@ -35,6 +35,7 @@ package fi.iki.elonen;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.nanohttpd.protocols.http.NanoHTTPD;
 
 public class MimeTest {
 

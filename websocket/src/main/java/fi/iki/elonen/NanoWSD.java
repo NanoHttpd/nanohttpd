@@ -48,6 +48,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+
 import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseCode;
 import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseFrame;
 import fi.iki.elonen.NanoWSD.WebSocketFrame.OpCode;

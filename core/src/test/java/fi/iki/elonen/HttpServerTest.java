@@ -1,5 +1,7 @@
 package fi.iki.elonen;
 
+import static org.junit.Assert.assertEquals;
+
 /*
  * #%L
  * NanoHttpd-Core
@@ -35,7 +37,6 @@ package fi.iki.elonen;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
@@ -64,6 +65,13 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.nanohttpd.protocols.http.HTTPSession;
+import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.request.Method;
+import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManager;
+import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 3/10/13 at 8:32 PM
@@ -72,7 +80,7 @@ public class HttpServerTest {
 
     public static class TestServer extends NanoHTTPD {
 
-        public Response response = newFixedLengthResponse("");
+        public Response response = Response.newFixedLengthResponse("");
 
         public String uri;
 
@@ -100,12 +108,12 @@ public class HttpServerTest {
             super(port);
         }
 
-        public HTTPSession createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
-            return new HTTPSession(tempFileManager, inputStream, outputStream);
+        public HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
+            return new HTTPSession(this, tempFileManager, inputStream, outputStream);
         }
 
-        public HTTPSession createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
-            return new HTTPSession(tempFileManager, inputStream, outputStream, inetAddress);
+        public HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
+            return new HTTPSession(this, tempFileManager, inputStream, outputStream, inetAddress);
         }
 
         @Override
@@ -129,7 +137,7 @@ public class HttpServerTest {
         }
     }
 
-    public static class TestTempFileManager extends NanoHTTPD.DefaultTempFileManager {
+    public static class TestTempFileManager extends DefaultTempFileManager {
 
         public void _clear() {
             super.clear();
@@ -168,7 +176,7 @@ public class HttpServerTest {
     protected ByteArrayOutputStream invokeServer(String request) {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        NanoHTTPD.HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
+        HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
         try {
             session.execute();
         } catch (IOException e) {
@@ -229,7 +237,7 @@ public class HttpServerTest {
                         responseMsg.append(e.getMessage());
                     }
 
-                    return newFixedLengthResponse(responseMsg.toString());
+                    return Response.newFixedLengthResponse(responseMsg.toString());
                 }
             };
             server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
@@ -287,7 +295,7 @@ public class HttpServerTest {
                     responseMsg = e.getMessage();
                 }
 
-                return newFixedLengthResponse(responseMsg.toString());
+                return Response.newFixedLengthResponse(responseMsg.toString());
             }
         };
         server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);

@@ -36,7 +36,8 @@ package fi.iki.elonen;
 import java.io.File;
 import java.util.Map;
 
-import fi.iki.elonen.NanoHTTPD.IHTTPSession;
+import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.NanoHTTPD;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 9/14/13 at 8:09 AM

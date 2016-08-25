@@ -46,7 +46,6 @@ import java.util.Map;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
-import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.util.Streams;
 import org.apache.http.HttpEntity;
@@ -67,9 +66,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.internal.runners.statements.Fail;
-
-import fi.iki.elonen.NanoHTTPD.Response.Status;
+import org.nanohttpd.protocols.http.HTTPSession;
+import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
 /**
  * very strange but if the file upload is the first request the test fails.
@@ -106,11 +106,11 @@ public class TestNanoFileUpLoad {
             uploader = new NanoFileUpload(new DiskFileItemFactory());
         }
 
-        public HTTPSession createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
+        public HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
             return new HTTPSession(tempFileManager, inputStream, outputStream);
         }
 
-        public HTTPSession createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
+        public HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
             return new HTTPSession(tempFileManager, inputStream, outputStream, inetAddress);
         }
 

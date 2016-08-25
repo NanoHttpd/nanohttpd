@@ -35,6 +35,7 @@ package fi.iki.elonen.samples.echo;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
+
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;

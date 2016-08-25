@@ -42,8 +42,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.junit.Test;
-
-import fi.iki.elonen.NanoHTTPD;
+import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.response.Response;
 
 public class ShutdownTest {
 
@@ -55,7 +56,7 @@ public class ShutdownTest {
 
         @Override
         public Response serve(IHTTPSession session) {
-            return newFixedLengthResponse("Whatever");
+            return Response.newFixedLengthResponse("Whatever");
         }
     }
 

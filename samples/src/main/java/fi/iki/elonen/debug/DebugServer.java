@@ -37,8 +37,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import fi.iki.elonen.NanoHTTPD;
-import fi.iki.elonen.util.ServerRunner;
+import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.util.ServerRunner;
 
 public class DebugServer extends NanoHTTPD {
 

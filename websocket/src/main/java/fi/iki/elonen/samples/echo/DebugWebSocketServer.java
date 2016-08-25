@@ -37,6 +37,8 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.nanohttpd.protocols.http.IHTTPSession;
+
 import fi.iki.elonen.NanoWSD;
 import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseCode;
 

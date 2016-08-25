@@ -34,7 +34,6 @@ package fi.iki.elonen;
  */
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

@@ -37,12 +37,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 import org.junit.Test;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.response.Status;
 
 public class HttpDeleteRequestTest extends HttpServerTest {
 
     @Test
     public void testDeleteRequestThatDoesntSendBackResponseBody_EmptyString() throws Exception {
-        this.testServer.response = NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_HTML, "");
+        this.testServer.response = Response.newFixedLengthResponse(Status.NO_CONTENT, NanoHTTPD.MIME_HTML, "");
 
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + HttpServerTest.URI + " HTTP/1.1");
 
@@ -60,7 +63,7 @@ public class HttpDeleteRequestTest extends HttpServerTest {
 
     @Test
     public void testDeleteRequestThatDoesntSendBackResponseBody_NullInputStream() throws Exception {
-        this.testServer.response = NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_HTML, (InputStream) null);
+        this.testServer.response = Response.newChunkedResponse(Status.NO_CONTENT, NanoHTTPD.MIME_HTML, (InputStream) null);
 
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + HttpServerTest.URI + " HTTP/1.1");
 
@@ -78,7 +81,7 @@ public class HttpDeleteRequestTest extends HttpServerTest {
 
     @Test
     public void testDeleteRequestThatDoesntSendBackResponseBody_NullString() throws Exception {
-        this.testServer.response = NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NO_CONTENT, NanoHTTPD.MIME_HTML, (String) null);
+        this.testServer.response = Response.newFixedLengthResponse(Status.NO_CONTENT, NanoHTTPD.MIME_HTML, (String) null);
 
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + HttpServerTest.URI + " HTTP/1.1");
 
@@ -96,7 +99,7 @@ public class HttpDeleteRequestTest extends HttpServerTest {
 
     @Test
     public void testDeleteRequestThatSendsBackResponseBody_Accepted() throws Exception {
-        this.testServer.response = NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.ACCEPTED, "application/xml", "<body />");
+        this.testServer.response = Response.newFixedLengthResponse(Status.ACCEPTED, "application/xml", "<body />");
 
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + HttpServerTest.URI + " HTTP/1.1");
 
@@ -115,7 +118,7 @@ public class HttpDeleteRequestTest extends HttpServerTest {
 
     @Test
     public void testDeleteRequestThatSendsBackResponseBody_Success() throws Exception {
-        this.testServer.response = NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.OK, "application/xml", "<body />");
+        this.testServer.response = Response.newFixedLengthResponse(Status.OK, "application/xml", "<body />");
 
         ByteArrayOutputStream outputStream = invokeServer("DELETE " + HttpServerTest.URI + " HTTP/1.1");
 

@@ -41,6 +41,8 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 import org.junit.Test;
+import org.nanohttpd.protocols.http.request.Method;
+import org.nanohttpd.protocols.http.response.Response;
 
 public class HttpHeadRequestTest extends HttpServerTest {
 
@@ -48,7 +50,7 @@ public class HttpHeadRequestTest extends HttpServerTest {
     public void setUp() throws Exception {
         super.setUp();
         String responseBody = "Success!";
-        this.testServer.response = NanoHTTPD.newFixedLengthResponse(responseBody);
+        this.testServer.response = Response.newFixedLengthResponse(responseBody);
     }
 
     @Test
@@ -207,7 +209,7 @@ public class HttpHeadRequestTest extends HttpServerTest {
         String userAgent = "jUnit 4.8.2 Unit Test";
         invokeServer("HEAD " + HttpServerTest.URI + " HTTP/1.1\nUser-Agent: " + userAgent + "\n");
         assertEquals(userAgent, this.testServer.header.get("user-agent"));
-        assertEquals(NanoHTTPD.Method.HEAD, this.testServer.method);
+        assertEquals(Method.HEAD, this.testServer.method);
         assertEquals(HttpServerTest.URI, this.testServer.uri);
     }
 

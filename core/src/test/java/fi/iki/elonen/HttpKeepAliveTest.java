@@ -40,6 +40,9 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
 import org.junit.Test;
+import org.nanohttpd.protocols.http.HTTPSession;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManager;
 
 public class HttpKeepAliveTest extends HttpServerTest {
 
@@ -93,9 +96,9 @@ public class HttpKeepAliveTest extends HttpServerTest {
                     PipedOutputStream requestStream = new PipedOutputStream();
                     PipedInputStream inputStream = new PipedInputStream(requestStream);
                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                    NanoHTTPD.DefaultTempFileManager tempFileManager = new NanoHTTPD.DefaultTempFileManager();
+                    DefaultTempFileManager tempFileManager = new DefaultTempFileManager();
                     try {
-                        NanoHTTPD.HTTPSession session = HttpKeepAliveTest.this.testServer.createSession(tempFileManager, inputStream, outputStream);
+                        HTTPSession session = HttpKeepAliveTest.this.testServer.createSession(tempFileManager, inputStream, outputStream);
                         for (int i = 0; i < 2048; i++) {
                             requestStream.write(request.getBytes());
                             requestStream.flush();

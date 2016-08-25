@@ -32,8 +32,9 @@ package fi.iki.elonen;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
 
 import java.io.FileInputStream;
 import java.io.IOException;

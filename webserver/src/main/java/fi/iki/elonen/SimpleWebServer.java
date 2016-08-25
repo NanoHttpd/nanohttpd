@@ -51,8 +51,10 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.StringTokenizer;
 
-import fi.iki.elonen.NanoHTTPD.Response.IStatus;
-import fi.iki.elonen.util.ServerRunner;
+import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.response.IStatus;
+import org.nanohttpd.util.ServerRunner;
 
 public class SimpleWebServer extends NanoHTTPD {
 

@@ -37,23 +37,28 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.nanohttpd.protocols.http.tempfiles.DefaultTempFile;
+import org.nanohttpd.protocols.http.tempfiles.ITempFile;
+import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
+import org.nanohttpd.util.IFactory;
+import org.nanohttpd.util.ServerRunner;
+
 import fi.iki.elonen.debug.DebugServer;
-import fi.iki.elonen.util.ServerRunner;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com) On: 3/9/13 at 12:47 AM
  */
 public class TempFilesServer extends DebugServer {
 
-    private static class ExampleManager implements TempFileManager {
+    private static class ExampleManager implements ITempFileManager {
 
         private final File tmpdir;
 
-        private final List<TempFile> tempFiles;
+        private final List<ITempFile> tempFiles;
 
         private ExampleManager() {
             this.tmpdir = new File(System.getProperty("java.io.tmpdir"));
-            this.tempFiles = new ArrayList<TempFile>();
+            this.tempFiles = new ArrayList<ITempFile>();
         }
 
         @Override
@@ -61,7 +66,7 @@ public class TempFilesServer extends DebugServer {
             if (!this.tempFiles.isEmpty()) {
                 System.out.println("Cleaning up:");
             }
-            for (TempFile file : this.tempFiles) {
+            for (ITempFile file : this.tempFiles) {
                 try {
                     System.out.println("   " + file.getName());
                     file.delete();
@@ -72,7 +77,7 @@ public class TempFilesServer extends DebugServer {
         }
 
         @Override
-        public TempFile createTempFile(String filename_hint) throws Exception {
+        public ITempFile createTempFile(String filename_hint) throws Exception {
             DefaultTempFile tempFile = new DefaultTempFile(this.tmpdir);
             this.tempFiles.add(tempFile);
             System.out.println("Created tempFile: " + tempFile.getName());
@@ -80,10 +85,10 @@ public class TempFilesServer extends DebugServer {
         }
     }
 
-    private static class ExampleManagerFactory implements TempFileManagerFactory {
+    private static class ExampleManagerFactory implements IFactory<ITempFileManager> {
 
         @Override
-        public TempFileManager create() {
+        public ITempFileManager create() {
             return new ExampleManager();
         }
     }

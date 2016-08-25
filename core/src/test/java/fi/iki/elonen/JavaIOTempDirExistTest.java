@@ -39,8 +39,9 @@ import java.util.UUID;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import fi.iki.elonen.NanoHTTPD.DefaultTempFile;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.tempfiles.DefaultTempFile;
+import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManager;
 
 /**
  * Created by Victor Nikiforov on 10/16/15.
@@ -50,7 +51,7 @@ public class JavaIOTempDirExistTest {
     @Test
     public void testJavaIoTempDefault() throws Exception {
         String tmpdir = System.getProperty("java.io.tmpdir");
-        NanoHTTPD.DefaultTempFileManager manager = new NanoHTTPD.DefaultTempFileManager();
+        DefaultTempFileManager manager = new DefaultTempFileManager();
         DefaultTempFile tempFile = (DefaultTempFile) manager.createTempFile("xx");
         File tempFileBackRef = new File(tempFile.getName());
         Assert.assertEquals(tempFileBackRef.getParentFile(), new File(tmpdir));
@@ -75,7 +76,7 @@ public class JavaIOTempDirExistTest {
             File newDir = new File("target", tempFileName);
             System.setProperty("java.io.tmpdir", newDir.getAbsolutePath());
             Assert.assertEquals(false, newDir.exists());
-            new NanoHTTPD.DefaultTempFileManager();
+            new DefaultTempFileManager();
             Assert.assertEquals(true, newDir.exists());
             newDir.delete();
         } finally {

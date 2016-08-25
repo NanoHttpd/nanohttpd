@@ -1,4 +1,4 @@
-package fi.iki.elonen.util;
+package org.nanohttpd.util;
 
 /*
  * #%L
@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import fi.iki.elonen.NanoHTTPD;
+import org.nanohttpd.protocols.http.NanoHTTPD;
 
 public class ServerRunner {
 

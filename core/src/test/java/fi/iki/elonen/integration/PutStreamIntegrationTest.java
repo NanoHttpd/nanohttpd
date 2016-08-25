@@ -44,8 +44,11 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.junit.Test;
-
-import fi.iki.elonen.NanoHTTPD;
+import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.request.Method;
+import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.response.Status;
 
 public class PutStreamIntegrationTest extends IntegrationTestBase<PutStreamIntegrationTest.TestServer> {
 
@@ -67,11 +70,11 @@ public class PutStreamIntegrationTest extends IntegrationTestBase<PutStreamInteg
                 body = new byte[contentLength];
                 dataInputStream.readFully(body, 0, contentLength);
             } catch (IOException e) {
-                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, e.getMessage());
+                return Response.newFixedLengthResponse(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, e.getMessage());
             }
 
             String response = String.valueOf(method) + ':' + new String(body);
-            return newFixedLengthResponse(response);
+            return Response.newFixedLengthResponse(response);
         }
 
         @Override
