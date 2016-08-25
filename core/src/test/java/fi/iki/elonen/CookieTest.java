@@ -32,14 +32,14 @@ package fi.iki.elonen;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Random;
 
 import org.junit.Test;
-
-import fi.iki.elonen.NanoHTTPD.Cookie;
+import org.nanohttpd.protocols.http.content.Cookie;
 
 public class CookieTest {
 

@@ -39,7 +39,6 @@ import java.util.UUID;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFile;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManager;
 

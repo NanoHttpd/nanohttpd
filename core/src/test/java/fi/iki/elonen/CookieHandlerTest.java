@@ -48,9 +48,10 @@ import java.util.Set;
 import java.util.TimeZone;
 
 import org.junit.Test;
-
-import fi.iki.elonen.NanoHTTPD.CookieHandler;
-import fi.iki.elonen.NanoHTTPD.Response;
+import org.nanohttpd.protocols.http.HTTPSession;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.content.CookieHandler;
+import org.nanohttpd.protocols.http.response.Response;
 
 public class CookieHandlerTest extends HttpServerTest {
 
@@ -61,7 +62,7 @@ public class CookieHandlerTest extends HttpServerTest {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        NanoHTTPD.HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
+        HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
         session.execute();
         Set<String> allCookies = new HashSet<String>();
         CookieHandler cookieHandler = session.getCookies();
@@ -84,7 +85,7 @@ public class CookieHandlerTest extends HttpServerTest {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        NanoHTTPD.HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
+        HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
         session.execute();
         Set<String> allCookies = new HashSet<String>();
         CookieHandler cookieHandler = session.getCookies();
@@ -105,10 +106,10 @@ public class CookieHandlerTest extends HttpServerTest {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        NanoHTTPD.HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
+        HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
         session.execute();
         CookieHandler cookieHandler = session.getCookies();
-        Response response = NanoHTTPD.newFixedLengthResponse("");
+        Response response = Response.newFixedLengthResponse("");
         cookieHandler.set("name", "value", 30);
         cookieHandler.unloadQueue(response);
         String setCookieHeader = response.getHeader("Set-Cookie");
@@ -122,11 +123,11 @@ public class CookieHandlerTest extends HttpServerTest {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        NanoHTTPD.HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
+        HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
         session.execute();
         CookieHandler cookieHandler = session.getCookies();
 
-        Response response = NanoHTTPD.newFixedLengthResponse("");
+        Response response = Response.newFixedLengthResponse("");
         cookieHandler.delete("name");
         cookieHandler.unloadQueue(response);
 

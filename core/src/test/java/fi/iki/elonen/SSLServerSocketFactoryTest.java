@@ -49,8 +49,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import fi.iki.elonen.NanoHTTPD.SecureServerSocketFactory;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.sockets.SecureServerSocketFactory;
 
 public class SSLServerSocketFactoryTest extends HttpServerTest {
 

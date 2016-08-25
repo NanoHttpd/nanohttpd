@@ -41,7 +41,6 @@ import java.io.PipedOutputStream;
 
 import org.junit.Test;
 import org.nanohttpd.protocols.http.HTTPSession;
-import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManager;
 
 public class HttpKeepAliveTest extends HttpServerTest {

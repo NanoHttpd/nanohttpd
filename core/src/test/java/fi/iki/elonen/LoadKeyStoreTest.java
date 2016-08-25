@@ -1,5 +1,13 @@
 package fi.iki.elonen;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.net.ssl.SSLServerSocketFactory;
+
 /*
  * #%L
  * NanoHttpd-Core
@@ -36,13 +44,7 @@ package fi.iki.elonen;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import javax.net.ssl.SSLServerSocketFactory;
-import java.io.IOException;
-import java.io.InputStream;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import org.nanohttpd.protocols.http.NanoHTTPD;
 
 public class LoadKeyStoreTest {
 

@@ -38,11 +38,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 
+import javax.net.ServerSocketFactory;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import fi.iki.elonen.HttpServerTest.TestServer;
-import fi.iki.elonen.NanoHTTPD.SecureServerSocketFactory;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.sockets.SecureServerSocketFactory;
+import org.nanohttpd.util.IFactoryThrowing;
 
 public class ServerSocketFactoryTest extends NanoHTTPD {
 
@@ -77,7 +79,7 @@ public class ServerSocketFactoryTest extends NanoHTTPD {
             ""
         };
         System.setProperty("javax.net.ssl.trustStore", new File("src/test/resources/keystore.jks").getAbsolutePath());
-        ServerSocketFactory ssFactory = new SecureServerSocketFactory(null, protocols);
+        IFactoryThrowing<ServerSocket, IOException> ssFactory = new SecureServerSocketFactory(null, protocols);
         ServerSocket ss = null;
         try {
             ss = ssFactory.create();
@@ -87,7 +89,7 @@ public class ServerSocketFactoryTest extends NanoHTTPD {
 
     }
 
-    private class TestFactory implements ServerSocketFactory {
+    private class TestFactory implements IFactoryThrowing<ServerSocket, IOException> {
 
         @Override
         public ServerSocket create() {
