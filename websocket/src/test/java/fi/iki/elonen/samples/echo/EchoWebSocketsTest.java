@@ -48,6 +48,8 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.nanohttpd.samples.websockets.DebugWebSocketServer;
+import org.nanohttpd.samples.websockets.EchoSocketSample;
 
 import fi.iki.elonen.NanoWSD;
 

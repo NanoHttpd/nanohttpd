@@ -1,4 +1,4 @@
-package fi.iki.elonen.samples.echo;
+package org.nanohttpd.samples.websockets;
 
 /*
  * #%L

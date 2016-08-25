@@ -1,8 +1,8 @@
-package fi.iki.elonen.samples.echo;
+package org.nanohttpd.samples.http;
 
 /*
  * #%L
- * NanoHttpd-Websocket
+ * NanoHttpd-Samples
  * %%
  * Copyright (C) 2012 - 2015 nanohttpd
  * %%
@@ -33,23 +33,49 @@ package fi.iki.elonen.samples.echo;
  * #L%
  */
 
-import java.io.IOException;
+import java.util.Map;
+import java.util.logging.Logger;
 
-import fi.iki.elonen.NanoWSD;
+import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.request.Method;
+import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.util.ServerRunner;
 
-public class EchoSocketSample {
+/**
+ * An example of subclassing NanoHTTPD to make a custom HTTP server.
+ */
+public class HelloServer extends NanoHTTPD {
 
-    public static void main(String[] args) throws IOException {
-        final boolean debugMode = args.length >= 2 && "-d".equals(args[1].toLowerCase());
-        NanoWSD ws = new DebugWebSocketServer(args.length > 0 ? Integer.parseInt(args[0]) : 9090, debugMode);
-        ws.start();
-        System.out.println("Server started, hit Enter to stop.\n");
-        try {
-            System.in.read();
-        } catch (IOException ignored) {
-        }
-        ws.stop();
-        System.out.println("Server stopped.\n");
+    /**
+     * logger to log to.
+     */
+    private static final Logger LOG = Logger.getLogger(HelloServer.class.getName());
+
+    public static void main(String[] args) {
+        ServerRunner.run(HelloServer.class);
     }
 
+    public HelloServer() {
+        super(8080);
+    }
+
+    @Override
+    public Response serve(IHTTPSession session) {
+        Method method = session.getMethod();
+        String uri = session.getUri();
+        HelloServer.LOG.info(method + " '" + uri + "' ");
+
+        String msg = "<html><body><h1>Hello server</h1>\n";
+        Map<String, String> parms = session.getParms();
+        if (parms.get("username") == null) {
+            msg += "<form action='?' method='get'>\n" + "  <p>Your name: <input type='text' name='username'></p>\n" + "</form>\n";
+        } else {
+            msg += "<p>Hello, " + parms.get("username") + "!</p>";
+        }
+
+        msg += "</body></html>\n";
+
+        return Response.newFixedLengthResponse(msg);
+    }
 }

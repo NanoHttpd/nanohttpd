@@ -1,4 +1,4 @@
-package fi.iki.elonen.debug;
+package org.nanohttpd.samples.http;
 
 /*
  * #%L
