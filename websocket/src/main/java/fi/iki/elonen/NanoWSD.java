@@ -50,6 +50,8 @@ import java.util.logging.Logger;
 
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.response.Status;
 
 import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseCode;
 import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseFrame;
@@ -77,12 +79,12 @@ public abstract class NanoWSD extends NanoHTTPD {
 
         private State state = State.UNCONNECTED;
 
-        private final NanoHTTPD.IHTTPSession handshakeRequest;
+        private final IHTTPSession handshakeRequest;
 
-        private final NanoHTTPD.Response handshakeResponse = new NanoHTTPD.Response(NanoHTTPD.Response.Status.SWITCH_PROTOCOL, null, (InputStream) null, 0) {
+        private final Response handshakeResponse = new Response(Status.SWITCH_PROTOCOL, null, (InputStream) null, 0) {
 
             @Override
-            protected void send(OutputStream out) {
+			public void send(OutputStream out) {
                 WebSocket.this.out = out;
                 WebSocket.this.state = State.CONNECTING;
                 super.send(out);
@@ -92,7 +94,7 @@ public abstract class NanoWSD extends NanoHTTPD {
             }
         };
 
-        public WebSocket(NanoHTTPD.IHTTPSession handshakeRequest) {
+        public WebSocket(IHTTPSession handshakeRequest) {
             this.handshakeRequest = handshakeRequest;
             this.in = handshakeRequest.getInputStream();
 
@@ -167,11 +169,11 @@ public abstract class NanoWSD extends NanoHTTPD {
 
         // --------------------------------IO--------------------------------------
 
-        public NanoHTTPD.IHTTPSession getHandshakeRequest() {
+        public IHTTPSession getHandshakeRequest() {
             return this.handshakeRequest;
         }
 
-        public NanoHTTPD.Response getHandshakeResponse() {
+        public Response getHandshakeResponse() {
             return this.handshakeResponse;
         }
 
@@ -839,12 +841,12 @@ public abstract class NanoWSD extends NanoHTTPD {
         Map<String, String> headers = session.getHeaders();
         if (isWebsocketRequested(session)) {
             if (!NanoWSD.HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION))) {
-                return newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+                return Response.newFixedLengthResponse(Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
                         "Invalid Websocket-Version " + headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION));
             }
 
             if (!headers.containsKey(NanoWSD.HEADER_WEBSOCKET_KEY)) {
-                return newFixedLengthResponse(Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key");
+                return Response.newFixedLengthResponse(Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key");
             }
 
             WebSocket webSocket = openWebSocket(session);
@@ -852,7 +854,7 @@ public abstract class NanoWSD extends NanoHTTPD {
             try {
                 handshakeResponse.addHeader(NanoWSD.HEADER_WEBSOCKET_ACCEPT, makeAcceptKey(headers.get(NanoWSD.HEADER_WEBSOCKET_KEY)));
             } catch (NoSuchAlgorithmException e) {
-                return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+                return Response.newFixedLengthResponse(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
                         "The SHA-1 Algorithm required for websockets is not available on the server.");
             }
 

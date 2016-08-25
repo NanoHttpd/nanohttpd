@@ -69,6 +69,9 @@ import org.junit.Test;
 import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.request.Method;
+import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.response.Status;
 import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
 /**
@@ -83,7 +86,7 @@ public class TestNanoFileUpLoad {
 
     public static class TestServer extends NanoHTTPD {
 
-        public Response response = newFixedLengthResponse("");
+        public Response response = Response.newFixedLengthResponse("");
 
         public String uri;
 
@@ -107,11 +110,11 @@ public class TestNanoFileUpLoad {
         }
 
         public HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
-            return new HTTPSession(tempFileManager, inputStream, outputStream);
+            return new HTTPSession(this, tempFileManager, inputStream, outputStream);
         }
 
         public HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
-            return new HTTPSession(tempFileManager, inputStream, outputStream, inetAddress);
+            return new HTTPSession(this, tempFileManager, inputStream, outputStream, inetAddress);
         }
 
         NanoFileUpload uploader;

@@ -52,6 +52,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.response.Response;
+import org.nanohttpd.protocols.http.response.Status;
 
 import fi.iki.elonen.NanoWSD.WebSocketFrame;
 import fi.iki.elonen.NanoWSD.WebSocketFrame.CloseCode;
@@ -143,7 +145,7 @@ public class WebSocketResponseHandlerTest {
         Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
 
         assertNotNull(handshakeResponse);
-        assertEquals(Response.Status.BAD_REQUEST, handshakeResponse.getStatus());
+        assertEquals(Status.BAD_REQUEST, handshakeResponse.getStatus());
     }
 
     @Test
@@ -167,7 +169,7 @@ public class WebSocketResponseHandlerTest {
         Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
 
         assertNotNull(handshakeResponse);
-        assertEquals(Response.Status.BAD_REQUEST, handshakeResponse.getStatus());
+        assertEquals(Status.BAD_REQUEST, handshakeResponse.getStatus());
     }
 
     @Test
