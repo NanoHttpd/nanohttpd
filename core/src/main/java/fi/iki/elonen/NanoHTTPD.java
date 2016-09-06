@@ -1125,7 +1125,7 @@ public abstract class NanoHTTPD {
         }
 
         @Override
-        public void parseBody(Map<String, String> files) throws IOException, ResponseException {
+        public void parseBody(Map<String, String> files, Map<String, String> forms) throws IOException, ResponseException {
             RandomAccessFile randomAccessFile = null;
             try {
                 long size = getBodySize();
@@ -1161,7 +1161,9 @@ public abstract class NanoHTTPD {
 
                 // If the method is POST, there may be parameters
                 // in data section, too, read it:
-                if (Method.POST.equals(this.method)) {
+                if (this.method == Method.POST) {
+                    if (forms == null)
+                        forms = this.parms;
                     ContentType contentType = new ContentType(this.headers.get("content-type"));
                     if (contentType.isMultipart()) {
                         String boundary = contentType.getBoundary();
@@ -1169,14 +1171,14 @@ public abstract class NanoHTTPD {
                             throw new ResponseException(Response.Status.BAD_REQUEST,
                                     "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
                         }
-                        decodeMultipartFormData(contentType, fbuf, this.parms, files);
+                        decodeMultipartFormData(contentType, fbuf, forms, files);
                     } else {
                         byte[] postBytes = new byte[fbuf.remaining()];
                         fbuf.get(postBytes);
                         String postLine = new String(postBytes, contentType.getEncoding()).trim();
                         // Handle application/x-www-form-urlencoded
                         if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType.getContentType())) {
-                            decodeParms(postLine, this.parms);
+                            decodeParms(postLine, forms);
                         } else if (postLine.length() != 0) {
                             // Special case for raw POST data => create a
                             // special files entry "postData" with raw content
@@ -1184,7 +1186,7 @@ public abstract class NanoHTTPD {
                             files.put("postData", postLine);
                         }
                     }
-                } else if (Method.PUT.equals(this.method)) {
+                } else if (this.method == Method.PUT) {
                     files.put("content", saveTmpFile(fbuf, 0, fbuf.limit(), null));
                 }
             } finally {
@@ -1268,8 +1270,11 @@ public abstract class NanoHTTPD {
          * 
          * @param files
          *            map to modify
+         * @param forms
+         *            map to receive forms parameters, if any. If {@code null},
+         *            {@code getParms()} should be used.
          */
-        void parseBody(Map<String, String> files) throws IOException, ResponseException;
+        void parseBody(Map<String, String> files, Map<String, String> forms) throws IOException, ResponseException;
 
         /**
          * Get the remote ip address of the requester.
@@ -2231,7 +2236,7 @@ public abstract class NanoHTTPD {
         Method method = session.getMethod();
         if (Method.PUT.equals(method) || Method.POST.equals(method)) {
             try {
-                session.parseBody(files);
+                session.parseBody(files, session.getParms());
             } catch (IOException ioe) {
                 return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
             } catch (ResponseException re) {
