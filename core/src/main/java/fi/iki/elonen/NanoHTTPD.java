@@ -1125,7 +1125,7 @@ public abstract class NanoHTTPD {
         }
 
         @Override
-        public void parseBody(Map<String, String> files, Map<String, String> forms) throws IOException, ResponseException {
+        public void parseBody(Map<String, String> files, Map<String, List<String>> forms) throws IOException, ResponseException {
             RandomAccessFile randomAccessFile = null;
             try {
                 long size = getBodySize();
@@ -1274,7 +1274,7 @@ public abstract class NanoHTTPD {
          *            map to receive forms parameters, if any. If {@code null},
          *            {@code getParms()} should be used.
          */
-        void parseBody(Map<String, String> files, Map<String, String> forms) throws IOException, ResponseException;
+        void parseBody(Map<String, String> files, Map<String, List<String>> forms) throws IOException, ResponseException;
 
         /**
          * Get the remote ip address of the requester.
@@ -2236,7 +2236,7 @@ public abstract class NanoHTTPD {
         Method method = session.getMethod();
         if (Method.PUT.equals(method) || Method.POST.equals(method)) {
             try {
-                session.parseBody(files, session.getParms());
+                session.parseBody(files, session.getParameters());
             } catch (IOException ioe) {
                 return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
             } catch (ResponseException re) {
