@@ -1272,7 +1272,7 @@ public abstract class NanoHTTPD {
          *            map to modify
          * @param forms
          *            map to receive forms parameters, if any. If {@code null},
-         *            {@code getParms()} should be used.
+         *            {@code session.getParameters()()} should be used.
          */
         void parseBody(Map<String, String> files, Map<String, List<String>> forms) throws IOException, ResponseException;
 
