@@ -127,7 +127,7 @@ public class AppNanolets extends RouterNanoHTTPD {
 
     }
 
-    static class StaticPageTestHandler extends StaticPageHandler {
+    public static class StaticPageTestHandler extends StaticPageHandler {
 
         @Override
         protected BufferedInputStream fileToInputStream(File fileOrdirectory) throws IOException {

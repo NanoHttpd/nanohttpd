@@ -83,6 +83,8 @@ import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 @FixMethodOrder
 public class TestNanoFileUpLoad {
 
+    private static final String UPLOAD_JAVA_FILE = "src/test/java/" + TestNanoFileUpLoad.class.getName().replace('.', '/') + ".java";
+
     protected TestServer testServer;
 
     public static class TestServer extends NanoHTTPD {
@@ -180,7 +182,7 @@ public class TestNanoFileUpLoad {
     @Test
     public void testPostWithMultipartFormUpload1() throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
-        String textFileName = "src/test/java/fi/iki/elonen/TestNanoFileUpLoad.java";
+        String textFileName = UPLOAD_JAVA_FILE;
         HttpPost post = new HttpPost("http://localhost:8192/uploadFile1");
 
         executeUpload(httpclient, textFileName, post);
@@ -191,7 +193,7 @@ public class TestNanoFileUpLoad {
     @Test
     public void testPostWithMultipartFormUpload2() throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
-        String textFileName = "src/test/java/fi/iki/elonen/TestNanoFileUpLoad.java";
+        String textFileName = UPLOAD_JAVA_FILE;
         HttpPost post = new HttpPost("http://localhost:8192/uploadFile2");
 
         executeUpload(httpclient, textFileName, post);
@@ -202,7 +204,7 @@ public class TestNanoFileUpLoad {
     @Test
     public void testPostWithMultipartFormUpload3() throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
-        String textFileName = "src/test/java/fi/iki/elonen/TestNanoFileUpLoad.java";
+        String textFileName = UPLOAD_JAVA_FILE;
         HttpPost post = new HttpPost("http://localhost:8192/uploadFile3");
 
         executeUpload(httpclient, textFileName, post);
