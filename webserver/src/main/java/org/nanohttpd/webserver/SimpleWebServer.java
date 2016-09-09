@@ -402,8 +402,7 @@ public class SimpleWebServer extends NanoHTTPD {
         File f = new File(homeDir, uri);
         if (f.isDirectory() && !uri.endsWith("/")) {
             uri += "/";
-            Response res =
-                    newFixedLengthResponse(Status.REDIRECT, NanoHTTPD.MIME_HTML, "<html><body>Redirected: <a href=\"" + uri + "\">" + uri + "</a></body></html>");
+            Response res = newFixedLengthResponse(Status.REDIRECT, NanoHTTPD.MIME_HTML, "<html><body>Redirected: <a href=\"" + uri + "\">" + uri + "</a></body></html>");
             res.addHeader("Location", uri);
             return res;
         }

@@ -181,7 +181,7 @@ public class TestNanolets {
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
         String string = new String(readContents(entity), "UTF-8");
-        Assert.assertEquals("Error: java.lang.InstantiationException : fi.iki.elonen.router.RouterNanoHTTPD$UriResponder", string);
+        Assert.assertEquals("Error: java.lang.InstantiationException : org.nanohttpd.router.RouterNanoHTTPD$UriResponder", string);
         response.close();
     }
 
@@ -405,8 +405,7 @@ public class TestNanolets {
 
     @Test
     public void testError404UriHandlerGetStatus() {
-        Assert.assertEquals("Error404UriHandler#getStatus should return NOT_FOUND status", Status.NOT_FOUND,
-                new RouterNanoHTTPD.Error404UriHandler().getStatus());
+        Assert.assertEquals("Error404UriHandler#getStatus should return NOT_FOUND status", Status.NOT_FOUND, new RouterNanoHTTPD.Error404UriHandler().getStatus());
     }
 
     @Test
@@ -416,8 +415,7 @@ public class TestNanolets {
 
     @Test
     public void testNotImplementedHandlerGetStatus() {
-        Assert.assertEquals("NotImplementedHandler#getStatus should return OK status", Status.OK,
-                new RouterNanoHTTPD.NotImplementedHandler().getStatus());
+        Assert.assertEquals("NotImplementedHandler#getStatus should return OK status", Status.OK, new RouterNanoHTTPD.NotImplementedHandler().getStatus());
     }
 
     @Test

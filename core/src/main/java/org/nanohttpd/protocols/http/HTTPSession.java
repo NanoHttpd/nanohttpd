@@ -1,5 +1,38 @@
 package org.nanohttpd.protocols.http;
 
+/*
+ * #%L
+ * NanoHttpd-Core
+ * %%
+ * Copyright (C) 2012 - 2016 nanohttpd
+ * %%
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 
+ * 3. Neither the name of the nanohttpd nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ * #L%
+ */
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -49,7 +82,7 @@ public class HTTPSession implements IHTTPSession {
     public static final int MAX_HEADER_SIZE = 1024;
 
     private final NanoHTTPD httpd;
-    
+
     private final ITempFileManager tempFileManager;
 
     private final OutputStream outputStream;
@@ -80,14 +113,14 @@ public class HTTPSession implements IHTTPSession {
 
     public HTTPSession(NanoHTTPD httpd, ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
         this.httpd = httpd;
-    	this.tempFileManager = tempFileManager;
+        this.tempFileManager = tempFileManager;
         this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
         this.outputStream = outputStream;
     }
 
     public HTTPSession(NanoHTTPD httpd, ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
         this.httpd = httpd;
-    	this.tempFileManager = tempFileManager;
+        this.tempFileManager = tempFileManager;
         this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
         this.outputStream = outputStream;
         this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
@@ -269,8 +302,7 @@ public class HTTPSession implements IHTTPSession {
 
     /**
      * Decodes parameters in percent-encoded URI-format ( e.g.
-     * "name=Jack%20Daniels&pass=Single%20Malt" ) and adds them to given
-     * Map.
+     * "name=Jack%20Daniels&pass=Single%20Malt" ) and adds them to given Map.
      */
     private void decodeParms(String parms, Map<String, List<String>> p) {
         if (parms == null) {
@@ -324,14 +356,14 @@ public class HTTPSession implements IHTTPSession {
             } catch (SSLException e) {
                 throw e;
             } catch (IOException e) {
-            	NanoHTTPD.safeClose(this.inputStream);
-            	NanoHTTPD.safeClose(this.outputStream);
+                NanoHTTPD.safeClose(this.inputStream);
+                NanoHTTPD.safeClose(this.outputStream);
                 throw new SocketException("NanoHttpd Shutdown");
             }
             if (read == -1) {
                 // socket was been closed
-            	NanoHTTPD.safeClose(this.inputStream);
-            	NanoHTTPD.safeClose(this.outputStream);
+                NanoHTTPD.safeClose(this.inputStream);
+                NanoHTTPD.safeClose(this.outputStream);
                 throw new SocketException("NanoHttpd Shutdown");
             }
             while (read > 0) {
@@ -422,14 +454,14 @@ public class HTTPSession implements IHTTPSession {
             resp.send(this.outputStream);
             NanoHTTPD.safeClose(this.outputStream);
         } finally {
-        	NanoHTTPD.safeClose(r);
+            NanoHTTPD.safeClose(r);
             this.tempFileManager.clear();
         }
     }
 
     /**
-     * Find byte index separating header from body. It must be the last byte
-     * of the first two sequential new lines.
+     * Find byte index separating header from body. It must be the last byte of
+     * the first two sequential new lines.
      */
     private int findHeaderEnd(final byte[] buf, int rlen) {
         int splitbyte = 0;
@@ -450,9 +482,9 @@ public class HTTPSession implements IHTTPSession {
     }
 
     /**
-     * Find the byte positions where multipart boundaries start. This reads
-     * a large block at a time and uses a temporary buffer to optimize
-     * (memory mapped) file access.
+     * Find the byte positions where multipart boundaries start. This reads a
+     * large block at a time and uses a temporary buffer to optimize (memory
+     * mapped) file access.
      */
     private int[] getBoundaryPositions(ByteBuffer b, byte[] boundary) {
         int[] res = new int[0];
@@ -554,8 +586,8 @@ public class HTTPSession implements IHTTPSession {
     }
 
     /**
-     * Deduce body length in bytes. Either from "content-length" header or
-     * read bytes.
+     * Deduce body length in bytes. Either from "content-length" header or read
+     * bytes.
      */
     public long getBodySize() {
         if (this.headers.containsKey("content-length")) {
@@ -608,8 +640,7 @@ public class HTTPSession implements IHTTPSession {
                 if (contentType.isMultipart()) {
                     String boundary = contentType.getBoundary();
                     if (boundary == null) {
-                        throw new ResponseException(Status.BAD_REQUEST,
-                                "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
+                        throw new ResponseException(Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
                     }
                     decodeMultipartFormData(contentType, fbuf, this.parms, files);
                 } else {
@@ -630,13 +661,13 @@ public class HTTPSession implements IHTTPSession {
                 files.put("content", saveTmpFile(fbuf, 0, fbuf.limit(), null));
             }
         } finally {
-        	NanoHTTPD.safeClose(randomAccessFile);
+            NanoHTTPD.safeClose(randomAccessFile);
         }
     }
 
     /**
-     * Retrieves the content of a sent file and saves it to a temporary
-     * file. The full path to the saved file is returned.
+     * Retrieves the content of a sent file and saves it to a temporary file.
+     * The full path to the saved file is returned.
      */
     private String saveTmpFile(ByteBuffer b, int offset, int len, String filename_hint) {
         String path = "";
@@ -653,7 +684,7 @@ public class HTTPSession implements IHTTPSession {
             } catch (Exception e) { // Catch exception if any
                 throw new Error(e); // we won't recover, so throw an error
             } finally {
-            	NanoHTTPD.safeClose(fileOutputStream);
+                NanoHTTPD.safeClose(fileOutputStream);
             }
         }
         return path;
