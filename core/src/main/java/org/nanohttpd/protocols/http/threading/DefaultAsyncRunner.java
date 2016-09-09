@@ -50,7 +50,7 @@ import org.nanohttpd.protocols.http.ClientHandler;
  */
 public class DefaultAsyncRunner implements IAsyncRunner {
 
-    private long requestCount;
+    protected long requestCount;
 
     private final List<ClientHandler> running = Collections.synchronizedList(new ArrayList<ClientHandler>());
 
@@ -77,10 +77,14 @@ public class DefaultAsyncRunner implements IAsyncRunner {
     @Override
     public void exec(ClientHandler clientHandler) {
         ++this.requestCount;
-        Thread t = new Thread(clientHandler);
+        this.running.add(clientHandler);
+        createThread(clientHandler).start();
+    }
+    
+    protected Thread createThread(ClientHandler clientHandler){
+    	Thread t = new Thread(clientHandler);
         t.setDaemon(true);
         t.setName("NanoHttpd Request Processor (#" + this.requestCount + ")");
-        this.running.add(clientHandler);
-        t.start();
+        return t;
     }
 }
