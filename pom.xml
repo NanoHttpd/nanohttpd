@@ -76,6 +76,18 @@
 				<picUrl>http://www.gravatar.com/avatar/9e2c2e7aa94335b72952a4b2d56bfc89.png</picUrl>
 			</properties>
 		</developer>
+		<developer>
+			<id>LordFokas</id>
+			<name>Diogo Duarte</name>
+			<email>diogo.duarte [at] techie [dot] com</email>
+			<roles>
+				<role>Administrator</role>
+				<role>Developer</role>
+			</roles>
+			<properties>
+				<picUrl>https://avatars1.githubusercontent.com/u/3021352</picUrl>
+			</properties>
+		</developer>
 	</developers>
 	<issueManagement>
 		<system>github</system>
