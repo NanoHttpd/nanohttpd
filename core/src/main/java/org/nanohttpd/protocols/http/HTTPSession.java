@@ -636,7 +636,7 @@ public class HTTPSession implements IHTTPSession {
             // If the method is POST, there may be parameters
             // in data section, too, read it:
             switch (this.method) {
-                case Method.POST: {
+                case POST: {
                     ContentType contentType = new ContentType(this.headers.get("content-type"));
                     if (form == null)
                         form = this.parms;
@@ -661,7 +661,7 @@ public class HTTPSession implements IHTTPSession {
                         }
                     }
                     break; }
-                case Method.PUT:
+                case PUT:
                     files.put("content", saveTmpFile(fbuf, 0, fbuf.limit(), null));
                     break;
             }
