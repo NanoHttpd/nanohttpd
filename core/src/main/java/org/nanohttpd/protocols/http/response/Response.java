@@ -336,6 +336,10 @@ public class Response implements Closeable {
     public static Response newChunkedResponse(IStatus status, String mimeType, InputStream data) {
         return new Response(status, mimeType, data, -1);
     }
+    
+    public static Response newFixedLengthResponse(IStatus status, String mimeType, byte[] data){
+    	return newFixedLengthResponse(status, mimeType, new ByteArrayInputStream(data), data.length);
+    }
 
     /**
      * Create a response with known length.
