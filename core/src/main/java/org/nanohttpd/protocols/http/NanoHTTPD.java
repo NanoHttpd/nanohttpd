@@ -520,7 +520,7 @@ public abstract class NanoHTTPD {
         Method method = session.getMethod();
         if (Method.PUT.equals(method) || Method.POST.equals(method)) {
             try {
-                session.parseBody(files);
+                session.parseBody(files, session.getParameters());
             } catch (IOException ioe) {
                 return Response.newFixedLengthResponse(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
             } catch (ResponseException re) {

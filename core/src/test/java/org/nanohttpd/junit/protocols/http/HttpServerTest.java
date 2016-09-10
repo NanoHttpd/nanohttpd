@@ -123,7 +123,7 @@ public class HttpServerTest {
             this.header = session.getHeaders();
             this.files = new HashMap<String, String>();
             try {
-                session.parseBody(this.files);
+                session.parseBody(this.files, session.getParameters());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -229,7 +229,7 @@ public class HttpServerTest {
                     StringBuilder responseMsg = new StringBuilder();
 
                     try {
-                        session.parseBody(this.files);
+                        session.parseBody(this.files, session.getParameters());
                         for (String key : files.keySet()) {
                             responseMsg.append(key);
                         }
@@ -285,7 +285,7 @@ public class HttpServerTest {
                 String responseMsg = "pass";
 
                 try {
-                    session.parseBody(this.files);
+                    session.parseBody(this.files, session.getParameters());
                     for (String key : files.keySet()) {
                         if (!(new File(files.get(key))).exists()) {
                             responseMsg = "fail";

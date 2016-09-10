@@ -599,7 +599,7 @@ public class HTTPSession implements IHTTPSession {
     }
 
     @Override
-    public void parseBody(Map<String, String> files) throws IOException, ResponseException {
+    public void parseBody(Map<String, String> files, Map<String, List<String>> form) throws IOException, ResponseException {
         RandomAccessFile randomAccessFile = null;
         try {
             long size = getBodySize();
@@ -635,30 +635,35 @@ public class HTTPSession implements IHTTPSession {
 
             // If the method is POST, there may be parameters
             // in data section, too, read it:
-            if (Method.POST.equals(this.method)) {
-                ContentType contentType = new ContentType(this.headers.get("content-type"));
-                if (contentType.isMultipart()) {
-                    String boundary = contentType.getBoundary();
-                    if (boundary == null) {
-                        throw new ResponseException(Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
+            switch (this.method) {
+                case Method.POST: {
+                    ContentType contentType = new ContentType(this.headers.get("content-type"));
+                    if (form == null)
+                        form = this.parms;
+                    if (contentType.isMultipart()) {
+                        String boundary = contentType.getBoundary();
+                        if (boundary == null) {
+                            throw new ResponseException(Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but boundary missing. Usage: GET /example/file.html");
+                        }
+                        decodeMultipartFormData(contentType, fbuf, form, files);
+                    } else {
+                        byte[] postBytes = new byte[fbuf.remaining()];
+                        fbuf.get(postBytes);
+                        String postLine = new String(postBytes, contentType.getEncoding()).trim();
+                        // Handle application/x-www-form-urlencoded
+                        if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType.getContentType())) {
+                            decodeParms(postLine, form);
+                        } else if (postLine.length() != 0) {
+                            // Special case for raw POST data => create a
+                            // special files entry "postData" with raw content
+                            // data
+                            files.put("postData", postLine);
+                        }
                     }
-                    decodeMultipartFormData(contentType, fbuf, this.parms, files);
-                } else {
-                    byte[] postBytes = new byte[fbuf.remaining()];
-                    fbuf.get(postBytes);
-                    String postLine = new String(postBytes, contentType.getEncoding()).trim();
-                    // Handle application/x-www-form-urlencoded
-                    if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType.getContentType())) {
-                        decodeParms(postLine, this.parms);
-                    } else if (postLine.length() != 0) {
-                        // Special case for raw POST data => create a
-                        // special files entry "postData" with raw content
-                        // data
-                        files.put("postData", postLine);
-                    }
-                }
-            } else if (Method.PUT.equals(this.method)) {
-                files.put("content", saveTmpFile(fbuf, 0, fbuf.limit(), null));
+                    break; }
+                case Method.PUT:
+                    files.put("content", saveTmpFile(fbuf, 0, fbuf.limit(), null));
+                    break;
             }
         } finally {
             NanoHTTPD.safeClose(randomAccessFile);
