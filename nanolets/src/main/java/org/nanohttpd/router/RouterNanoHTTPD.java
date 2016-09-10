@@ -235,7 +235,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                 try {
                     return Response.newChunkedResponse(getStatus(), getMimeTypeForFile(fileOrdirectory.getName()), fileToInputStream(fileOrdirectory));
                 } catch (IOException ioe) {
-                    return Response.newFixedLengthResponse(Status.REQUEST_TIMEOUT, "text/plain", null);
+                    return Response.newFixedLengthResponse(Status.REQUEST_TIMEOUT, "text/plain", (String) null);
                 }
             }
         }
