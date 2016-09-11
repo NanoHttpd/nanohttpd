@@ -121,7 +121,7 @@ public class CookieHandler implements Iterable<String> {
      */
     public void unloadQueue(Response response) {
         for (Cookie cookie : this.queue) {
-            response.addHeader("Set-Cookie", cookie.getHTTPHeader());
+            response.addCookieHeader(cookie.getHTTPHeader());
         }
     }
 }
