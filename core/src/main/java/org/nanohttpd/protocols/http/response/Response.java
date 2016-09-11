@@ -131,7 +131,7 @@ public class Response implements Closeable {
         }
         this.chunkedTransfer = this.contentLength < 0;
         this.keepAlive = true;
-        this.cookieHeaders = new ArrayList<>(10);
+        this.cookieHeaders = new ArrayList<String>(10);
     }
 
     @Override
