@@ -416,7 +416,7 @@ public class HTTPSession implements IHTTPSession {
             // TODO: long body_size = getBodySize();
             // TODO: long pos_before_serve = this.inputStream.totalRead()
             // (requires implementation for totalRead())
-            r = httpd.serve(this);
+            r = httpd.handle(this);
             // TODO: this.inputStream.skip(body_size -
             // (this.inputStream.totalRead() - pos_before_serve))
 
