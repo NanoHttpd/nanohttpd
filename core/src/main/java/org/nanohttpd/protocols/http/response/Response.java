@@ -119,7 +119,8 @@ public class Response implements Closeable {
     /**
      * Creates a fixed length response if totalBytes>=0, otherwise chunked.
      */
-    protected Response(IStatus status, String mimeType, InputStream data, long totalBytes) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	protected Response(IStatus status, String mimeType, InputStream data, long totalBytes) {
         this.status = status;
         this.mimeType = mimeType;
         if (data == null) {
@@ -131,7 +132,7 @@ public class Response implements Closeable {
         }
         this.chunkedTransfer = this.contentLength < 0;
         this.keepAlive = true;
-        this.cookieHeaders = new ArrayList<String>(10);
+        this.cookieHeaders = new ArrayList(10);
     }
 
     @Override
@@ -142,7 +143,8 @@ public class Response implements Closeable {
     }
 
     /**
-     * Adds given line to the header.
+     * Adds a cookie header to the list.
+     * Should not be called manually, this is an internal utility.
      */
     public void addCookieHeader(String cookie) {
         cookieHeaders.add(cookie);
