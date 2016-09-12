@@ -151,6 +151,16 @@ public class Response implements Closeable {
     }
     
     /**
+     * Should not be called manually.
+     * This is an internally utility for JUnit test purposes.
+     * 
+     * @return All unloaded cookie headers.
+     */
+    public List<String> getCookieHeaders() {
+    	return cookieHeaders;
+    }
+    
+    /**
      * Adds given line to the header.
      */
     public void addHeader(String name, String value) {
