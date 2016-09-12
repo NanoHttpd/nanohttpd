@@ -45,8 +45,10 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -111,11 +113,14 @@ public class Response implements Closeable {
     private boolean encodeAsGzip;
 
     private boolean keepAlive;
+    
+    private List<String> cookieHeaders; 
 
     /**
      * Creates a fixed length response if totalBytes>=0, otherwise chunked.
      */
-    protected Response(IStatus status, String mimeType, InputStream data, long totalBytes) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	protected Response(IStatus status, String mimeType, InputStream data, long totalBytes) {
         this.status = status;
         this.mimeType = mimeType;
         if (data == null) {
@@ -126,7 +131,8 @@ public class Response implements Closeable {
             this.contentLength = totalBytes;
         }
         this.chunkedTransfer = this.contentLength < 0;
-        keepAlive = true;
+        this.keepAlive = true;
+        this.cookieHeaders = new ArrayList(10);
     }
 
     @Override
@@ -136,6 +142,24 @@ public class Response implements Closeable {
         }
     }
 
+    /**
+     * Adds a cookie header to the list.
+     * Should not be called manually, this is an internal utility.
+     */
+    public void addCookieHeader(String cookie) {
+        cookieHeaders.add(cookie);
+    }
+    
+    /**
+     * Should not be called manually.
+     * This is an internally utility for JUnit test purposes.
+     * 
+     * @return All unloaded cookie headers.
+     */
+    public List<String> getCookieHeaders() {
+    	return cookieHeaders;
+    }
+    
     /**
      * Adds given line to the header.
      */
@@ -214,6 +238,9 @@ public class Response implements Closeable {
             }
             for (Entry<String, String> entry : this.header.entrySet()) {
                 printHeader(pw, entry.getKey(), entry.getValue());
+            }
+            for (String cookieHeader : this.cookieHeaders) {
+            	printHeader(pw, "Set-Cookie", cookieHeader);
             }
             if (getHeader("connection") == null) {
                 printHeader(pw, "Connection", (this.keepAlive ? "keep-alive" : "close"));

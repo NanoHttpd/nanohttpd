@@ -111,7 +111,7 @@ public class CookieHandlerTest extends HttpServerTest {
         Response response = Response.newFixedLengthResponse("");
         cookieHandler.set("name", "value", 30);
         cookieHandler.unloadQueue(response);
-        String setCookieHeader = response.getHeader("Set-Cookie");
+        String setCookieHeader = response.getCookieHeaders().get(0);
         assertTrue("unloadQueue did not set the cookies correctly", setCookieHeader.startsWith("name=value; expires="));
     }
 
@@ -130,7 +130,7 @@ public class CookieHandlerTest extends HttpServerTest {
         cookieHandler.delete("name");
         cookieHandler.unloadQueue(response);
 
-        String setCookieHeader = response.getHeader("Set-Cookie");
+        String setCookieHeader = response.getCookieHeaders().get(0);
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
         String dateString = setCookieHeader.split(";")[1].split("=")[1].trim();
