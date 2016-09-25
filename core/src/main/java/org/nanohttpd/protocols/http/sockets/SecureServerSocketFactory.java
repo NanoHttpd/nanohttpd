@@ -51,7 +51,7 @@ public class SecureServerSocketFactory implements IFactoryThrowing<ServerSocket,
     private String[] sslProtocols;
     private String[] cipherSuites;
 
-    public SecureServerSocketFactory(SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols,, String[] cipherSuites) {
+    public SecureServerSocketFactory(SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols, String[] cipherSuites) {
         this.sslServerSocketFactory = sslServerSocketFactory;
         this.sslProtocols = sslProtocols;
         this.cipherSuites = cipherSuites;
