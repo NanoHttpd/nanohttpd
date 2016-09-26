@@ -113,14 +113,17 @@ public class Response implements Closeable {
     private boolean encodeAsGzip;
 
     private boolean keepAlive;
-    
-    private List<String> cookieHeaders; 
+
+    private List<String> cookieHeaders;
 
     /**
      * Creates a fixed length response if totalBytes>=0, otherwise chunked.
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-	protected Response(IStatus status, String mimeType, InputStream data, long totalBytes) {
+    @SuppressWarnings({
+        "rawtypes",
+        "unchecked"
+    })
+    protected Response(IStatus status, String mimeType, InputStream data, long totalBytes) {
         this.status = status;
         this.mimeType = mimeType;
         if (data == null) {
@@ -143,23 +146,23 @@ public class Response implements Closeable {
     }
 
     /**
-     * Adds a cookie header to the list.
-     * Should not be called manually, this is an internal utility.
+     * Adds a cookie header to the list. Should not be called manually, this is
+     * an internal utility.
      */
     public void addCookieHeader(String cookie) {
         cookieHeaders.add(cookie);
     }
-    
+
     /**
-     * Should not be called manually.
-     * This is an internally utility for JUnit test purposes.
+     * Should not be called manually. This is an internally utility for JUnit
+     * test purposes.
      * 
      * @return All unloaded cookie headers.
      */
     public List<String> getCookieHeaders() {
-    	return cookieHeaders;
+        return cookieHeaders;
     }
-    
+
     /**
      * Adds given line to the header.
      */
@@ -240,7 +243,7 @@ public class Response implements Closeable {
                 printHeader(pw, entry.getKey(), entry.getValue());
             }
             for (String cookieHeader : this.cookieHeaders) {
-            	printHeader(pw, "Set-Cookie", cookieHeader);
+                printHeader(pw, "Set-Cookie", cookieHeader);
             }
             if (getHeader("connection") == null) {
                 printHeader(pw, "Connection", (this.keepAlive ? "keep-alive" : "close"));
@@ -363,9 +366,9 @@ public class Response implements Closeable {
     public static Response newChunkedResponse(IStatus status, String mimeType, InputStream data) {
         return new Response(status, mimeType, data, -1);
     }
-    
-    public static Response newFixedLengthResponse(IStatus status, String mimeType, byte[] data){
-    	return newFixedLengthResponse(status, mimeType, new ByteArrayInputStream(data), data.length);
+
+    public static Response newFixedLengthResponse(IStatus status, String mimeType, byte[] data) {
+        return newFixedLengthResponse(status, mimeType, new ByteArrayInputStream(data), data.length);
     }
 
     /**

@@ -70,7 +70,6 @@ import org.nanohttpd.protocols.http.threading.DefaultAsyncRunner;
 import org.nanohttpd.protocols.http.threading.IAsyncRunner;
 import org.nanohttpd.util.IFactory;
 import org.nanohttpd.util.IFactoryThrowing;
-import org.nanohttpd.util.IHandler;
 
 /**
  * A simple, tiny, nicely embeddable HTTP server in Java
@@ -123,7 +122,7 @@ import org.nanohttpd.util.IHandler;
  * See the separate "LICENSE.md" file for the distribution license (Modified BSD
  * licence)
  */
-public class NanoHTTPD {
+public abstract class NanoHTTPD {
 
     public static final String CONTENT_DISPOSITION_REGEX = "([ |\t]*Content-Disposition[ |\t]*:)(.*)";
 
@@ -328,11 +327,6 @@ public class NanoHTTPD {
     }
 
     private IFactoryThrowing<ServerSocket, IOException> serverSocketFactory = new DefaultServerSocketFactory();
-    
-    /**
-     * The handler that will respond to HTTP requests.
-     */
-    protected IHandler<IHTTPSession, Response> httpHandler;
 
     private Thread myThread;
 
@@ -369,14 +363,6 @@ public class NanoHTTPD {
         this.myPort = port;
         setTempFileManagerFactory(new DefaultTempFileManagerFactory());
         setAsyncRunner(new DefaultAsyncRunner());
-        
-        // TODO: remove this when the deprecated serve() method is removed.
-        // This makes it so that overriding the serve() method still works although deprecated.
-        this.httpHandler = new IHandler<IHTTPSession, Response>() {
-			@Override public Response handle(IHTTPSession input) {
-				return NanoHTTPD.this.serve(input);
-			}
-		};
     }
 
     /**
@@ -518,30 +504,18 @@ public class NanoHTTPD {
     public void makeSecure(SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols) {
         this.serverSocketFactory = new SecureServerSocketFactory(sslServerSocketFactory, sslProtocols);
     }
-    
-    /**
-     * @param handler The new HTTP Request Handler. The passed object will receive and respond to requests
-     * like the <code>NanoHTTPD.serve(IHTTPSession)</code> method used to in past releases.
-     */
-    public final void setHTTPHandler(IHandler<IHTTPSession, Response> handler){
-    	this.httpHandler = handler;
-    }
 
     /**
-     * <b>DO NOT</b> override this to customize the server.<br />
-     * Instead, set a new IHandler&lt;IHTTPSession, Response&gt;.
-     * <br />
-     * <br />
-     * This method accepts incoming requests, and as per v3.0.0 design
-     * will pass them through interceptors (if any) and / or the http
-     * handler until the request is answered.
+     * Override this to customize the server.
+     * <p/>
+     * <p/>
+     * (By default, this returns a 404 "Not Found" plain text error response.)
      * 
-     * @param session The HTTP session
+     * @param session
+     *            The HTTP session
      * @return HTTP response, see class Response for details
-     * @see NanoHTTPD#setHTTPHandler(IHandler)
-     * @author LordFokas
      */
-    public Response handle(final IHTTPSession session) {
+    public Response serve(IHTTPSession session) {
         Map<String, String> files = new HashMap<String, String>();
         Method method = session.getMethod();
         if (Method.PUT.equals(method) || Method.POST.equals(method)) {
@@ -553,18 +527,33 @@ public class NanoHTTPD {
                 return Response.newFixedLengthResponse(re.getStatus(), NanoHTTPD.MIME_PLAINTEXT, re.getMessage());
             }
         }
-        
-        return httpHandler.handle(session);
+
+        // TODO: This looks horribly flawed and should be fixed!
+        Map<String, String> parms = session.getParms();
+        parms.put(NanoHTTPD.QUERY_STRING_PARAMETER, session.getQueryParameterString());
+        return serve(session.getUri(), method, session.getHeaders(), parms, files);
     }
-    
+
     /**
-     * @param session The incoming request.
-     * @return A response to the given request.
-     * @deprecated this method was replaced by <code>NanoHTTPD.setHTTPHandler(IHandler)</code>
-     * and will be removed in the future without any warnings.
+     * Override this to customize the server.
+     * <p/>
+     * <p/>
+     * (By default, this returns a 404 "Not Found" plain text error response.)
+     * 
+     * @param uri
+     *            Percent-decoded URI without parameters, for example
+     *            "/index.cgi"
+     * @param method
+     *            "GET", "POST" etc.
+     * @param parms
+     *            Parsed, percent decoded parameters from URI and, in case of
+     *            POST, data.
+     * @param headers
+     *            Header entries, percent decoded
+     * @return HTTP response, see class Response for details
      */
     @Deprecated
-    protected Response serve(IHTTPSession session) {
+    public Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) {
         return Response.newFixedLengthResponse(Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found");
     }
 

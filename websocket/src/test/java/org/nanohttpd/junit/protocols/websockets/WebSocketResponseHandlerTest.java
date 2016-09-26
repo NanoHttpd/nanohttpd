@@ -124,14 +124,14 @@ public class WebSocketResponseHandlerTest {
     @Test
     public void testConnectionHeaderHandlesKeepAlive_FixingFirefoxConnectIssue() {
         this.headers.put("connection", "keep-alive, Upgrade");
-        Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
+        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
 
         assertNotNull(handshakeResponse);
     }
 
     @Test
     public void testHandshakeReturnsResponseWithExpectedHeaders() {
-        Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
+        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
 
         assertNotNull(handshakeResponse);
 
@@ -143,7 +143,7 @@ public class WebSocketResponseHandlerTest {
     public void testMissingKeyReturnsErrorResponse() {
         this.headers.remove("sec-websocket-key");
 
-        Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
+        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
 
         assertNotNull(handshakeResponse);
         assertEquals(Status.BAD_REQUEST, handshakeResponse.getStatus());
@@ -152,14 +152,14 @@ public class WebSocketResponseHandlerTest {
     @Test
     public void testWrongConnectionHeaderReturnsNullResponse() {
         this.headers.put("connection", "Junk");
-        Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
+        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
         assertNull(handshakeResponse.getHeader(NanoWSD.HEADER_UPGRADE));
     }
 
     @Test
     public void testWrongUpgradeHeaderReturnsNullResponse() {
         this.headers.put("upgrade", "not a websocket");
-        Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
+        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
         assertNull(handshakeResponse.getHeader(NanoWSD.HEADER_UPGRADE));
     }
 
@@ -167,7 +167,7 @@ public class WebSocketResponseHandlerTest {
     public void testWrongWebsocketVersionReturnsErrorResponse() {
         this.headers.put("sec-websocket-version", "12");
 
-        Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
+        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
 
         assertNotNull(handshakeResponse);
         assertEquals(Status.BAD_REQUEST, handshakeResponse.getStatus());

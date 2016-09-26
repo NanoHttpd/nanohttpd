@@ -143,7 +143,7 @@ public abstract class NanoWSD extends NanoHTTPD {
     protected abstract WebSocket openWebSocket(IHTTPSession handshake);
 
     @Override
-    public Response handle(final IHTTPSession session) {
+    public Response serve(final IHTTPSession session) {
         Map<String, String> headers = session.getHeaders();
         if (isWebsocketRequested(session)) {
             if (!NanoWSD.HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION))) {
@@ -174,9 +174,8 @@ public abstract class NanoWSD extends NanoHTTPD {
         }
     }
 
-    // This probably doesn't need to be overridable anymore since the pluggable strategy kicked in.
     protected Response serveHttp(final IHTTPSession session) {
-        return super.httpHandler.handle(session);
+        return super.serve(session);
     }
 
     /**

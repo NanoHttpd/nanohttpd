@@ -77,10 +77,10 @@ public class PutStreamIntegrationTest extends IntegrationTestBase<PutStreamInteg
             return Response.newFixedLengthResponse(response);
         }
 
-        /*@Override // TODO: clean up
-        public Response serve(IHTTPSession session) {
+        @Override
+        public Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) {
             throw new UnsupportedOperationException();
-        }*/
+        }
     }
 
     @Override
