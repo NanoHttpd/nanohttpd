@@ -40,6 +40,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -59,6 +60,7 @@ import org.nanohttpd.protocols.websockets.NanoWSD;
 import org.nanohttpd.protocols.websockets.OpCode;
 import org.nanohttpd.protocols.websockets.WebSocket;
 import org.nanohttpd.protocols.websockets.WebSocketFrame;
+import org.nanohttpd.util.IHandler;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WebSocketResponseHandlerTest {
@@ -66,7 +68,7 @@ public class WebSocketResponseHandlerTest {
     @Mock
     private IHTTPSession session;
 
-    private NanoWSD nanoWebSocketServer;
+    private MockedWSD nanoWebSocketServer;
 
     private Map<String, String> headers;
 
@@ -78,6 +80,20 @@ public class WebSocketResponseHandlerTest {
 
         public MockedWSD(String hostname, int port) {
             super(hostname, port);
+        }
+
+        // This is to work around Mockito being a little bitch.
+        public void initialize() {
+            interceptors = new ArrayList<IHandler<IHTTPSession, Response>>();
+            addHTTPInterceptor(new Interceptor());
+
+            setHTTPHandler(new IHandler<IHTTPSession, Response>() {
+
+                @Override
+                public Response handle(IHTTPSession input) {
+                    return serve(input);
+                }
+            });
         }
 
         @Override
@@ -109,7 +125,14 @@ public class WebSocketResponseHandlerTest {
 
     @Before
     public void setUp() {
+        // Be careful.
+        // This does NOT call any constructors, instead, directly creates
+        // the object in memory. I wasted 3 fucking hours attempting to
+        // debug this. ~ LordFokas
         this.nanoWebSocketServer = Mockito.mock(MockedWSD.class, Mockito.CALLS_REAL_METHODS);
+        // this could have been avoided if Mockito had a way to call fucking
+        // constructors!!
+        this.nanoWebSocketServer.initialize();
 
         this.headers = new HashMap<String, String>();
         this.headers.put("upgrade", "websocket");
@@ -124,14 +147,14 @@ public class WebSocketResponseHandlerTest {
     @Test
     public void testConnectionHeaderHandlesKeepAlive_FixingFirefoxConnectIssue() {
         this.headers.put("connection", "keep-alive, Upgrade");
-        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
+        Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
 
         assertNotNull(handshakeResponse);
     }
 
     @Test
     public void testHandshakeReturnsResponseWithExpectedHeaders() {
-        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
+        Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
 
         assertNotNull(handshakeResponse);
 
@@ -143,7 +166,7 @@ public class WebSocketResponseHandlerTest {
     public void testMissingKeyReturnsErrorResponse() {
         this.headers.remove("sec-websocket-key");
 
-        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
+        Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
 
         assertNotNull(handshakeResponse);
         assertEquals(Status.BAD_REQUEST, handshakeResponse.getStatus());
@@ -152,14 +175,14 @@ public class WebSocketResponseHandlerTest {
     @Test
     public void testWrongConnectionHeaderReturnsNullResponse() {
         this.headers.put("connection", "Junk");
-        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
+        Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
         assertNull(handshakeResponse.getHeader(NanoWSD.HEADER_UPGRADE));
     }
 
     @Test
     public void testWrongUpgradeHeaderReturnsNullResponse() {
         this.headers.put("upgrade", "not a websocket");
-        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
+        Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
         assertNull(handshakeResponse.getHeader(NanoWSD.HEADER_UPGRADE));
     }
 
@@ -167,7 +190,7 @@ public class WebSocketResponseHandlerTest {
     public void testWrongWebsocketVersionReturnsErrorResponse() {
         this.headers.put("sec-websocket-version", "12");
 
-        Response handshakeResponse = this.nanoWebSocketServer.serve(this.session);
+        Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
 
         assertNotNull(handshakeResponse);
         assertEquals(Status.BAD_REQUEST, handshakeResponse.getStatus());

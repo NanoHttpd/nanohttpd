@@ -332,6 +332,8 @@ public abstract class NanoHTTPD {
 
     private IHandler<IHTTPSession, Response> httpHandler;
 
+    protected List<IHandler<IHTTPSession, Response>> interceptors = new ArrayList<IHandler<IHTTPSession, Response>>(4);
+
     /**
      * Pluggable strategy for asynchronously executing requests.
      */
@@ -378,6 +380,10 @@ public abstract class NanoHTTPD {
 
     public void setHTTPHandler(IHandler<IHTTPSession, Response> handler) {
         this.httpHandler = handler;
+    }
+
+    public void addHTTPInterceptor(IHandler<IHTTPSession, Response> interceptor) {
+        interceptors.add(interceptor);
     }
 
     /**
@@ -531,6 +537,11 @@ public abstract class NanoHTTPD {
      * @return a response to the incoming session
      */
     public Response handle(IHTTPSession session) {
+        for (IHandler<IHTTPSession, Response> interceptor : interceptors) {
+            Response response = interceptor.handle(session);
+            if (response != null)
+                return response;
+        }
         return httpHandler.handle(session);
     }
 
@@ -545,7 +556,7 @@ public abstract class NanoHTTPD {
      * @return HTTP response, see class Response for details
      */
     @Deprecated
-    public Response serve(IHTTPSession session) {
+    protected Response serve(IHTTPSession session) {
         return Response.newFixedLengthResponse(Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found");
     }
 
