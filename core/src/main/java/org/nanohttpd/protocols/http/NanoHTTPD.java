@@ -59,7 +59,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 import org.nanohttpd.protocols.http.sockets.DefaultServerSocketFactory;
@@ -70,6 +69,7 @@ import org.nanohttpd.protocols.http.threading.DefaultAsyncRunner;
 import org.nanohttpd.protocols.http.threading.IAsyncRunner;
 import org.nanohttpd.util.IFactory;
 import org.nanohttpd.util.IFactoryThrowing;
+import org.nanohttpd.util.IHandler;
 
 /**
  * A simple, tiny, nicely embeddable HTTP server in Java
@@ -330,6 +330,8 @@ public abstract class NanoHTTPD {
 
     private Thread myThread;
 
+    private IHandler<IHTTPSession, Response> httpHandler;
+
     /**
      * Pluggable strategy for asynchronously executing requests.
      */
@@ -363,6 +365,19 @@ public abstract class NanoHTTPD {
         this.myPort = port;
         setTempFileManagerFactory(new DefaultTempFileManagerFactory());
         setAsyncRunner(new DefaultAsyncRunner());
+
+        // creates a default handler that redirects to deprecated serve();
+        this.httpHandler = new IHandler<IHTTPSession, Response>() {
+
+            @Override
+            public Response handle(IHTTPSession input) {
+                return NanoHTTPD.this.serve(input);
+            }
+        };
+    }
+
+    public void setHTTPHandler(IHandler<IHTTPSession, Response> handler) {
+        this.httpHandler = handler;
     }
 
     /**
@@ -506,6 +521,20 @@ public abstract class NanoHTTPD {
     }
 
     /**
+     * This is the "master" method that delegates requests to handlers and makes
+     * sure there is a response to every request. You are not supposed to call
+     * or override this method in any circumstances. But no one will stop you if
+     * you do. I'm a Javadoc, not Code Police.
+     * 
+     * @param session
+     *            the incoming session
+     * @return a response to the incoming session
+     */
+    public Response handle(IHTTPSession session) {
+        return httpHandler.handle(session);
+    }
+
+    /**
      * Override this to customize the server.
      * <p/>
      * <p/>
@@ -515,8 +544,8 @@ public abstract class NanoHTTPD {
      *            The HTTP session
      * @return HTTP response, see class Response for details
      */
+    @Deprecated
     public Response serve(IHTTPSession session) {
-
         return Response.newFixedLengthResponse(Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found");
     }
 

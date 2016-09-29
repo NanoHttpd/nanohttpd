@@ -83,12 +83,13 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
 
             Method method = session.getMethod();
             Map<String, String> files = new HashMap<String, String>();
-            if (Method.PUT.equals(method) || Method.POST.equals(method))
+            if (Method.PUT.equals(method) || Method.POST.equals(method)) {
                 try {
                     session.parseBody(files);
                 } catch (Exception e) {
                     fail(e.getMessage());
                 }
+            }
 
             String uri = session.getUri();
             Map<String, String> parms = session.getParms();
