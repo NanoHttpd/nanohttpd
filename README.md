@@ -81,7 +81,7 @@ If it started ok, point your browser at <http://localhost:8080/> and enjoy a web
 ### Nanolets
 
 Nanolets are like servlets only that they have a extremely low profile. They offer an easy to use system for a more complex server application.
-This text has to be extended with an example, so for now take a look at the unit tests for the usage. <https://github.com/NanoHttpd/nanohttpd/blob/master/nanolets/src/test/java/fi/iki/elonen/router/AppNanolets.java>
+This text has to be extended with an example, so for now take a look at the unit tests for the usage. <https://github.com/NanoHttpd/nanohttpd/blob/master/nanolets/src/test/java/org/nanohttpd/junit/router/AppNanolets.java>
 
 ## Status
 
