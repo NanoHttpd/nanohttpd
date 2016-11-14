@@ -80,9 +80,11 @@ public interface IHTTPSession {
      * Adds the files in the request body to the files map.
      * 
      * @param files
-     *            map to modify
+     *            map to receive local paths of uploaded files.
+	 * @param form
+     *            map to receive &lt;form&gt; parameters when POST method is used.
      */
-    void parseBody(Map<String, String> files) throws IOException, ResponseException;
+    void parseBody(Map<String, String> files, Map<String, List<String>> form) throws IOException, ResponseException;
 
     /**
      * Get the remote ip address of the requester.

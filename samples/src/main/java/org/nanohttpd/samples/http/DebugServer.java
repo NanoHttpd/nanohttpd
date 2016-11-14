@@ -78,7 +78,7 @@ public class DebugServer extends NanoHTTPD {
 
         try {
             Map<String, String> files = new HashMap<String, String>();
-            session.parseBody(files);
+            session.parseBody(files, session.getParameters());
             sb.append("<h3>Files</h3><p><blockquote>").append(toString(files)).append("</blockquote></p>");
         } catch (Exception e) {
             e.printStackTrace();
