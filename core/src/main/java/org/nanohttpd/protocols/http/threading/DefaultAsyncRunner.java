@@ -80,9 +80,9 @@ public class DefaultAsyncRunner implements IAsyncRunner {
         this.running.add(clientHandler);
         createThread(clientHandler).start();
     }
-    
-    protected Thread createThread(ClientHandler clientHandler){
-    	Thread t = new Thread(clientHandler);
+
+    protected Thread createThread(ClientHandler clientHandler) {
+        Thread t = new Thread(clientHandler);
         t.setDaemon(true);
         t.setName("NanoHttpd Request Processor (#" + this.requestCount + ")");
         return t;
