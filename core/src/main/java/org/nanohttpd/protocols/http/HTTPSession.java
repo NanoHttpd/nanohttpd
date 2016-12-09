@@ -72,6 +72,8 @@ import org.nanohttpd.protocols.http.tempfiles.ITempFile;
 import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
 public class HTTPSession implements IHTTPSession {
+    
+    public static final String POST_DATA = "postData;
 
     private static final int REQUEST_BUFFER_LEN = 512;
 
@@ -654,7 +656,7 @@ public class HTTPSession implements IHTTPSession {
                         // Special case for raw POST data => create a
                         // special files entry "postData" with raw content
                         // data
-                        files.put("postData", postLine);
+                        files.put(POST_DATA, postLine);
                     }
                 }
             } else if (Method.PUT.equals(this.method)) {
