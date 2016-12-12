@@ -57,6 +57,8 @@ public abstract class WebSocket {
 
     private State state = State.UNCONNECTED;
 
+    protected boolean enforceNoGzip = true;
+
     private final IHTTPSession handshakeRequest;
 
     private final Response handshakeResponse = new Response(Status.SWITCH_PROTOCOL, null, (InputStream) null, 0) {
@@ -75,7 +77,8 @@ public abstract class WebSocket {
     public WebSocket(IHTTPSession handshakeRequest) {
         this.handshakeRequest = handshakeRequest;
         this.in = handshakeRequest.getInputStream();
-
+        if (enforceNoGzip)
+            handshakeResponse.setUseGzip(false);
         this.handshakeResponse.addHeader(NanoWSD.HEADER_UPGRADE, NanoWSD.HEADER_UPGRADE_VALUE);
         this.handshakeResponse.addHeader(NanoWSD.HEADER_CONNECTION, NanoWSD.HEADER_CONNECTION_VALUE);
     }

@@ -115,6 +115,14 @@ public class Response implements Closeable {
     private boolean keepAlive;
 
     private List<String> cookieHeaders;
+    
+    private GzipUsage gzipUsage = GzipUsage.DEFAULT;
+
+    private static enum GzipUsage {
+        DEFAULT,
+        ALWAYS,
+        NEVER;
+    }
 
     /**
      * Creates a fixed length response if totalBytes>=0, otherwise chunked.
@@ -406,5 +414,19 @@ public class Response implements Closeable {
      */
     public static Response newFixedLengthResponse(String msg) {
         return newFixedLengthResponse(Status.OK, NanoHTTPD.MIME_HTML, msg);
+    }
+
+    public Response setUseGzip(boolean useGzip) {
+        gzipUsage = useGzip ? GzipUsage.ALWAYS : GzipUsage.NEVER;
+        return this;
+    }
+
+    // If a Gzip usage has been enforced, use it.
+    // Else decide whether or not to use Gzip.
+    public boolean useGzipWhenAccepted() {
+        if (gzipUsage == GzipUsage.DEFAULT)
+            return getMimeType() != null && (getMimeType().toLowerCase().contains("text/") || getMimeType().toLowerCase().contains("/json"));
+        else
+            return gzipUsage == GzipUsage.ALWAYS;
     }
 }
