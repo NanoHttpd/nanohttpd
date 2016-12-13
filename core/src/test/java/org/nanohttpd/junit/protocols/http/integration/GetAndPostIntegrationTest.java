@@ -34,10 +34,13 @@ package org.nanohttpd.junit.protocols.http.integration;
  */
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -55,6 +58,7 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
+import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
@@ -74,9 +78,21 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
         }
 
         @Override
-        public Response serve(String uri, Method method, Map<String, String> header, Map<String, String> parms, Map<String, String> files) {
-            StringBuilder sb = new StringBuilder(String.valueOf(method) + ':' + this.response);
+        public Response serve(IHTTPSession session) {
+            StringBuilder sb = new StringBuilder(String.valueOf(session.getMethod()) + ':' + this.response);
 
+            Method method = session.getMethod();
+            Map<String, String> files = new HashMap<String, String>();
+            if (Method.PUT.equals(method) || Method.POST.equals(method)) {
+                try {
+                    session.parseBody(files);
+                } catch (Exception e) {
+                    fail(e.getMessage());
+                }
+            }
+
+            String uri = session.getUri();
+            Map<String, String> parms = session.getParms();
             if (parms.size() > 1) {
                 parms.remove("NanoHttpd.QUERY_STRING");
                 sb.append("-params=").append(parms.size());

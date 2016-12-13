@@ -76,11 +76,6 @@ public class PutStreamIntegrationTest extends IntegrationTestBase<PutStreamInteg
             String response = String.valueOf(method) + ':' + new String(body);
             return Response.newFixedLengthResponse(response);
         }
-
-        @Override
-        public Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) {
-            throw new UnsupportedOperationException();
-        }
     }
 
     @Override

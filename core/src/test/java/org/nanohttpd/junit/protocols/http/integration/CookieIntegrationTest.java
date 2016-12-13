@@ -98,7 +98,7 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
         assertEquals("name", cookies.getCookies().get(0).getName());
         assertEquals("value", cookies.getCookies().get(0).getValue());
     }
-    
+
     @Test
     public void testMultipleCookieSentBackToClient() throws Exception {
         this.testServer.cookiesToSend.add(new Cookie("name0", "value0", 30));
@@ -108,7 +108,7 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
         HttpGet httpget = new HttpGet("http://localhost:8192/");
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         this.httpclient.execute(httpget, responseHandler);
-        
+
         assertEquals(4, this.httpclient.getCookieStore().getCookies().size());
     }
 
@@ -137,7 +137,7 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
         assertEquals(1, this.testServer.cookiesReceived.size());
         assertTrue(this.testServer.cookiesReceived.get(0).getHTTPHeader().contains("name=value"));
     }
-    
+
     @Test
     public void testServerReceivesMultipleCookiesSentFromClient() throws Exception {
         Calendar calendar = Calendar.getInstance();
