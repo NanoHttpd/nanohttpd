@@ -73,7 +73,7 @@ import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
 public class HTTPSession implements IHTTPSession {
     
-    public static final String POST_DATA = "postData;
+    public static final String POST_DATA = "postData";
 
     private static final int REQUEST_BUFFER_LEN = 512;
 
