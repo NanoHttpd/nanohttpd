@@ -13,7 +13,7 @@ It is being developed at Github and uses Apache Maven for builds & unit testing:
 We'll create a custom HTTP server project using Maven for build/dep system. This tutorial assumes you are using a Unix variant and a shell. First, install Maven and Java SDK if not already installed. Then run:
 
     mvn compile
-    mvn exec:java -pl webserver -Dexec.mainClass="fi.iki.elonen.SimpleWebServer"
+    mvn exec:java -pl webserver -Dexec.mainClass="org.nanohttpd.SimpleWebServer"
     
 You should now have a HTTP file server running on <http://localhost:8080/>.
 
@@ -39,7 +39,7 @@ Edit `src/main/java/com/example/App.java` and replace it with:
     import java.io.IOException;
     import java.util.Map;
     
-    import fi.iki.elonen.NanoHTTPD;
+    import org.nanohttpd.NanoHTTPD;
     
     public class App extends NanoHTTPD {
     
@@ -186,7 +186,7 @@ For a specialized HTTP (HTTPS) service you can use the module with artifactId *n
 			<version>CURRENT_VERSION</version>
 		</dependency>
 		
-Here you write your own subclass of *fi.iki.elonen.NanoHTTPD* to configure and to serve the requests.
+Here you write your own subclass of *org.nanohttpd.NanoHTTPD* to configure and to serve the requests.
   
 ### Develop a websocket based service    
 
@@ -198,7 +198,7 @@ For a specialized websocket service you can use the module with artifactId *nano
 			<version>CURRENT_VERSION</version>
 		</dependency>
 
-Here you write your own subclass of *fi.iki.elonen.NanoWebSocketServer* to configure and to serve the websocket requests. A small standard echo example is included as *fi.iki.elonen.samples.echo.DebugWebSocketServer*. You can use it as a starting point to implement your own services.
+Here you write your own subclass of *org.nanohttpd.NanoWebSocketServer* to configure and to serve the websocket requests. A small standard echo example is included as *org.nanohttpd.samples.echo.DebugWebSocketServer*. You can use it as a starting point to implement your own services.
 
 ### Develop a custom HTTP file server    
 
@@ -210,7 +210,7 @@ For a more classic approach, perhaps to just create a HTTP server serving mostly
 			<version>CURRENT_VERSION</version>
 		</dependency>
 
-The included class *fi.iki.elonen.SimpleWebServer* is intended to be used as a starting point for your own implementation but it also can be used as is. Starting the class as is will start a HTTP server on port 8080 and publishing the current directory.
+The included class *org.nanohttpd.SimpleWebServer* is intended to be used as a starting point for your own implementation but it also can be used as is. Starting the class as is will start a HTTP server on port 8080 and publishing the current directory.
 
 ### Living on the edge
 
