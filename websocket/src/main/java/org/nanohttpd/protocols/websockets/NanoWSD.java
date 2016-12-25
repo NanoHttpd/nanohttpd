@@ -186,12 +186,4 @@ public abstract class NanoWSD extends NanoHTTPD {
             return null;
         }
     }
-
-    /**
-     * not all websockets implementations accept gzip compression.
-     */
-    @Override
-    protected boolean useGzipWhenAccepted(Response r) {
-        return false;
-    }
 }

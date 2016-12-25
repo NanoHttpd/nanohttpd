@@ -428,7 +428,7 @@ public class HTTPSession implements IHTTPSession {
                 String acceptEncoding = this.headers.get("accept-encoding");
                 this.cookies.unloadQueue(r);
                 r.setRequestMethod(this.method);
-                r.setGzipEncoding(httpd.useGzipWhenAccepted(r) && acceptEncoding != null && acceptEncoding.contains("gzip"));
+                r.setGzipEncoding(r.useGzipWhenAccepted() && acceptEncoding != null && acceptEncoding.contains("gzip"));
                 r.setKeepAlive(keepAlive);
                 r.send(this.outputStream);
             }

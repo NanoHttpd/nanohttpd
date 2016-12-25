@@ -485,16 +485,6 @@ public abstract class NanoHTTPD {
         return decoded;
     }
 
-    /**
-     * @return true if the gzip compression should be used if the client
-     *         accespts it. Default this option is on for text content and off
-     *         for everything. Override this for custom semantics.
-     */
-    @SuppressWarnings("static-method")
-    protected boolean useGzipWhenAccepted(Response r) {
-        return r.getMimeType() != null && (r.getMimeType().toLowerCase().contains("text/") || r.getMimeType().toLowerCase().contains("/json"));
-    }
-
     public final int getListeningPort() {
         return this.myServerSocket == null ? -1 : this.myServerSocket.getLocalPort();
     }
