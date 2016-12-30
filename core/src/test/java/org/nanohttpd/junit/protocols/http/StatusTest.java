@@ -38,6 +38,7 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.nanohttpd.protocols.http.response.IStatus;
 import org.nanohttpd.protocols.http.response.Status;
 
 public class StatusTest {
