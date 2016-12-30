@@ -85,6 +85,13 @@ public class StatusTest {
     }
 
     @Test
+    public void testCustom() throws Exception {
+        IStatus test = Status.getStatus(200, "OK");
+        Assert.assertEquals(test.getRequestStatus(), 200);
+        Assert.assertEquals(test.getDescription(), "200 OK");
+    }
+
+    @Test
     public void testLookup() throws Exception {
         Assert.assertEquals(Status.SWITCH_PROTOCOL, Status.lookup(101));
 
