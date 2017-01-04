@@ -110,12 +110,10 @@ public class Response implements Closeable {
      */
     private boolean chunkedTransfer;
 
-    private boolean encodeAsGzip;
-
     private boolean keepAlive;
 
     private List<String> cookieHeaders;
-    
+
     private GzipUsage gzipUsage = GzipUsage.DEFAULT;
 
     private static enum GzipUsage {
@@ -220,10 +218,6 @@ public class Response implements Closeable {
         return this.status;
     }
 
-    public void setGzipEncoding(boolean encodeAsGzip) {
-        this.encodeAsGzip = encodeAsGzip;
-    }
-
     public void setKeepAlive(boolean useKeepAlive) {
         this.keepAlive = useKeepAlive;
     }
@@ -257,16 +251,16 @@ public class Response implements Closeable {
                 printHeader(pw, "Connection", (this.keepAlive ? "keep-alive" : "close"));
             }
             if (getHeader("content-length") != null) {
-                encodeAsGzip = false;
+                setUseGzip(false);
             }
-            if (encodeAsGzip) {
+            if (useGzipWhenAccepted()) {
                 printHeader(pw, "Content-Encoding", "gzip");
                 setChunkedTransfer(true);
             }
             long pending = this.data != null ? this.contentLength : 0;
             if (this.requestMethod != Method.HEAD && this.chunkedTransfer) {
                 printHeader(pw, "Transfer-Encoding", "chunked");
-            } else if (!encodeAsGzip) {
+            } else if (!useGzipWhenAccepted()) {
                 pending = sendContentLengthHeaderIfNotAlreadyPresent(pw, pending);
             }
             pw.append("\r\n");
@@ -309,7 +303,7 @@ public class Response implements Closeable {
     }
 
     private void sendBodyWithCorrectEncoding(OutputStream outputStream, long pending) throws IOException {
-        if (encodeAsGzip) {
+        if (useGzipWhenAccepted()) {
             GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream);
             sendBody(gzipOutputStream, -1);
             gzipOutputStream.finish();
