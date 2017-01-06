@@ -71,6 +71,7 @@ public enum Status implements IStatus {
     LENGTH_REQUIRED(411, "Length Required"),
     PRECONDITION_FAILED(412, "Precondition Failed"),
     PAYLOAD_TOO_LARGE(413, "Payload Too Large"),
+    URI_TOO_LONG(414, "URI Too Long"),
     UNSUPPORTED_MEDIA_TYPE(415, "Unsupported Media Type"),
     RANGE_NOT_SATISFIABLE(416, "Requested Range Not Satisfiable"),
     EXPECTATION_FAILED(417, "Expectation Failed"),

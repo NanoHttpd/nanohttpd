@@ -56,6 +56,7 @@ public class StatusTest {
         overrideValues.put(Status.MULTI_STATUS, "207 Multi-Status");
         overrideValues.put(Status.REDIRECT, "301 Moved Permanently");
         overrideValues.put(Status.REDIRECT_SEE_OTHER, "303 See Other");
+        overrideValues.put(Status.URI_TOO_LONG, "414 URI Too Long");
         overrideValues.put(Status.RANGE_NOT_SATISFIABLE, "416 Requested Range Not Satisfiable");
         overrideValues.put(Status.UNSUPPORTED_HTTP_VERSION, "505 HTTP Version Not Supported");
 

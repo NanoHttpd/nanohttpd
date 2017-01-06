@@ -51,7 +51,6 @@ import java.net.Socket;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.nanohttpd.junit.protocols.http.ClientHandlerTest.SimpleServer.FIXED_RESPONSE;
 import static org.nanohttpd.protocols.http.NanoHTTPD.safeClose;
 import static org.nanohttpd.protocols.http.response.Response.newFixedLengthResponse;
 
@@ -65,6 +64,10 @@ public class ClientHandlerTest {
 
     private static final int TEST_PORT = 8321;
 
+    private static final String URI_TOO_LONG_RESPONSE = "URI Too Long";
+
+    private static final String FIXED_RESPONSE = "Hello Test";
+
     private ServerSocket serverSocket;
 
     private Socket clientSocket;
@@ -75,9 +78,7 @@ public class ClientHandlerTest {
 
     static class SimpleServer extends NanoHTTPD {
 
-        public static final String FIXED_RESPONSE = "Hello serverSocket";
-
-        public SimpleServer() throws IOException {
+        SimpleServer() throws IOException {
             super(8320);
         }
 
@@ -133,7 +134,7 @@ public class ClientHandlerTest {
     @Test(timeout = 15000)
     public void largeRequestShouldNotTimeout() throws IOException, InterruptedException {
         String response = handleRequest(LARGE_REQUEST_SIZE);
-        assertThat(response, containsString(FIXED_RESPONSE));
+        assertThat(response, containsString(URI_TOO_LONG_RESPONSE));
     }
 
 }
