@@ -48,8 +48,8 @@ import java.util.Set;
 import java.util.TimeZone;
 
 import org.junit.Test;
-import org.nanohttpd.protocols.http.HTTPSession;
-import org.nanohttpd.protocols.http.content.CookieHandler;
+import org.nanohttpd.protocols.http._deprecated.DEPRECATED_HTTPSession;
+import org.nanohttpd.protocols.http.request.CookieHandler;
 import org.nanohttpd.protocols.http.response.Response;
 
 public class CookieHandlerTest extends HttpServerTest {
@@ -61,7 +61,7 @@ public class CookieHandlerTest extends HttpServerTest {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
+        DEPRECATED_HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
         session.execute();
         Set<String> allCookies = new HashSet<String>();
         CookieHandler cookieHandler = session.getCookies();
@@ -84,7 +84,7 @@ public class CookieHandlerTest extends HttpServerTest {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
+        DEPRECATED_HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
         session.execute();
         Set<String> allCookies = new HashSet<String>();
         CookieHandler cookieHandler = session.getCookies();
@@ -105,7 +105,7 @@ public class CookieHandlerTest extends HttpServerTest {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
+        DEPRECATED_HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
         session.execute();
         CookieHandler cookieHandler = session.getCookies();
         Response response = Response.newFixedLengthResponse("");
@@ -122,7 +122,7 @@ public class CookieHandlerTest extends HttpServerTest {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
+        DEPRECATED_HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
         session.execute();
         CookieHandler cookieHandler = session.getCookies();
 

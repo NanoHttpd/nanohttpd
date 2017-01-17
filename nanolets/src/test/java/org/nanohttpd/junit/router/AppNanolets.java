@@ -46,7 +46,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
 import org.nanohttpd.protocols.http.response.IStatus;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
@@ -70,7 +70,7 @@ public class AppNanolets extends RouterNanoHTTPD {
             return "not implemented";
         }
 
-        public String getText(Map<String, String> urlParams, IHTTPSession session) {
+        public String getText(Map<String, String> urlParams, DEPRECATED_IHTTPSession session) {
             String text = "<html><body>User handler. Method: " + session.getMethod().toString() + "<br>";
             text += "<h1>Uri parameters:</h1>";
             for (Map.Entry<String, String> entry : urlParams.entrySet()) {
@@ -99,7 +99,7 @@ public class AppNanolets extends RouterNanoHTTPD {
             return Status.OK;
         }
 
-        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response get(UriResource uriResource, Map<String, String> urlParams, DEPRECATED_IHTTPSession session) {
             String text = getText(urlParams, session);
             ByteArrayInputStream inp = new ByteArrayInputStream(text.getBytes());
             int size = text.getBytes().length;

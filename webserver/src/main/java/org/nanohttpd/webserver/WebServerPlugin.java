@@ -36,7 +36,7 @@ package org.nanohttpd.webserver;
 import java.io.File;
 import java.util.Map;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
 
 /**
@@ -48,5 +48,5 @@ public interface WebServerPlugin {
 
     void initialize(Map<String, String> commandLineOptions);
 
-    Response serveFile(String uri, Map<String, String> headers, IHTTPSession session, File file, String mimeType);
+    Response serveFile(String uri, Map<String, String> headers, DEPRECATED_IHTTPSession session, File file, String mimeType);
 }

@@ -58,8 +58,8 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
-import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
@@ -78,7 +78,7 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
         }
 
         @Override
-        public Response serve(IHTTPSession session) {
+        public Response serve(DEPRECATED_IHTTPSession session) {
             StringBuilder sb = new StringBuilder(String.valueOf(session.getMethod()) + ':' + this.response);
 
             Method method = session.getMethod();

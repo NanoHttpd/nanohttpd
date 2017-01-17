@@ -67,9 +67,9 @@ import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.nanohttpd.fileupload.NanoFileUpload;
-import org.nanohttpd.protocols.http.HTTPSession;
-import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http._deprecated.DEPRECATED_HTTPSession;
+import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
@@ -112,18 +112,18 @@ public class TestNanoFileUpLoad {
             uploader = new NanoFileUpload(new DiskFileItemFactory());
         }
 
-        public HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
-            return new HTTPSession(this, tempFileManager, inputStream, outputStream);
+        public DEPRECATED_HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
+            return new DEPRECATED_HTTPSession(this, tempFileManager, inputStream, outputStream);
         }
 
-        public HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
-            return new HTTPSession(this, tempFileManager, inputStream, outputStream, inetAddress);
+        public DEPRECATED_HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
+            return new DEPRECATED_HTTPSession(this, tempFileManager, inputStream, outputStream, inetAddress);
         }
 
         NanoFileUpload uploader;
 
         @Override
-        public Response serve(IHTTPSession session) {
+        public Response serve(DEPRECATED_IHTTPSession session) {
 
             this.uri = session.getUri();
             this.method = session.getMethod();

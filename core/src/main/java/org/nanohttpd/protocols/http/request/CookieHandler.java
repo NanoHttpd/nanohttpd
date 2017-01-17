@@ -1,4 +1,4 @@
-package org.nanohttpd.protocols.http.content;
+package org.nanohttpd.protocols.http.request;
 
 /*
  * #%L
@@ -54,7 +54,7 @@ public class CookieHandler implements Iterable<String> {
     private final ArrayList<Cookie> queue = new ArrayList<Cookie>();
 
     public CookieHandler(Map<String, String> httpHeaders) {
-        String raw = httpHeaders.get("cookie");
+    	String raw = httpHeaders.get("cookie");
         if (raw != null) {
             String[] tokens = raw.split(";");
             for (String token : tokens) {

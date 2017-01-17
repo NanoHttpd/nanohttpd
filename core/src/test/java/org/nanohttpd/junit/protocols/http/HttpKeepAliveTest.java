@@ -40,7 +40,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
 import org.junit.Test;
-import org.nanohttpd.protocols.http.HTTPSession;
+import org.nanohttpd.protocols.http._deprecated.DEPRECATED_HTTPSession;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManager;
 
 public class HttpKeepAliveTest extends HttpServerTest {
@@ -97,7 +97,7 @@ public class HttpKeepAliveTest extends HttpServerTest {
                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                     DefaultTempFileManager tempFileManager = new DefaultTempFileManager();
                     try {
-                        HTTPSession session = HttpKeepAliveTest.this.testServer.createSession(tempFileManager, inputStream, outputStream);
+                        DEPRECATED_HTTPSession session = HttpKeepAliveTest.this.testServer.createSession(tempFileManager, inputStream, outputStream);
                         for (int i = 0; i < 2048; i++) {
                             requestStream.write(request.getBytes());
                             requestStream.flush();

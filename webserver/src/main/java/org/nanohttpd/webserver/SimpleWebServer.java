@@ -51,8 +51,8 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.StringTokenizer;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.IStatus;
 import org.nanohttpd.protocols.http.response.Response;
@@ -360,7 +360,7 @@ public class SimpleWebServer extends NanoHTTPD {
         return response;
     }
 
-    private Response respond(Map<String, String> headers, IHTTPSession session, String uri) {
+    private Response respond(Map<String, String> headers, DEPRECATED_IHTTPSession session, String uri) {
         // First let's handle CORS OPTION query
         Response r;
         if (cors != null && Method.OPTIONS.equals(session.getMethod())) {
@@ -375,7 +375,7 @@ public class SimpleWebServer extends NanoHTTPD {
         return r;
     }
 
-    private Response defaultRespond(Map<String, String> headers, IHTTPSession session, String uri) {
+    private Response defaultRespond(Map<String, String> headers, DEPRECATED_IHTTPSession session, String uri) {
         // Remove URL arguments
         uri = uri.trim().replace(File.separatorChar, '/');
         if (uri.indexOf('?') >= 0) {
@@ -438,7 +438,7 @@ public class SimpleWebServer extends NanoHTTPD {
     }
 
     @Override
-    public Response serve(IHTTPSession session) {
+    public Response serve(DEPRECATED_IHTTPSession session) {
         Map<String, String> header = session.getHeaders();
         Map<String, String> parms = session.getParms();
         String uri = session.getUri();

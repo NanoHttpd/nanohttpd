@@ -1,4 +1,4 @@
-package org.nanohttpd.protocols.http.content;
+package org.nanohttpd.protocols.http.request;
 
 /*
  * #%L

@@ -57,7 +57,7 @@ import java.util.logging.Level;
 import java.util.zip.GZIPOutputStream;
 
 import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http.content.ContentType;
+import org.nanohttpd.protocols.http.request.ContentType;
 import org.nanohttpd.protocols.http.request.Method;
 
 /**

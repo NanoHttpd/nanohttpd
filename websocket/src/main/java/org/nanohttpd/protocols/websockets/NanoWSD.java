@@ -38,8 +38,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 import org.nanohttpd.util.IHandler;
@@ -118,13 +118,13 @@ public abstract class NanoWSD extends NanoHTTPD {
         return encodeBase64(sha1hash);
     }
 
-    protected final class Interceptor implements IHandler<IHTTPSession, Response> {
+    protected final class Interceptor implements IHandler<DEPRECATED_IHTTPSession, Response> {
 
         public Interceptor() {
         }
 
         @Override
-        public Response handle(IHTTPSession input) {
+        public Response handle(DEPRECATED_IHTTPSession input) {
             return handleWebSocket(input);
         }
     }
@@ -144,7 +144,7 @@ public abstract class NanoWSD extends NanoHTTPD {
         return connection != null && connection.toLowerCase().contains(NanoWSD.HEADER_CONNECTION_VALUE.toLowerCase());
     }
 
-    protected boolean isWebsocketRequested(IHTTPSession session) {
+    protected boolean isWebsocketRequested(DEPRECATED_IHTTPSession session) {
         Map<String, String> headers = session.getHeaders();
         String upgrade = headers.get(NanoWSD.HEADER_UPGRADE);
         boolean isCorrectConnection = isWebSocketConnectionHeader(headers);
@@ -154,9 +154,9 @@ public abstract class NanoWSD extends NanoHTTPD {
 
     // --------------------------------Listener--------------------------------
 
-    protected abstract WebSocket openWebSocket(IHTTPSession handshake);
+    protected abstract WebSocket openWebSocket(DEPRECATED_IHTTPSession handshake);
 
-    public Response handleWebSocket(final IHTTPSession session) {
+    public Response handleWebSocket(final DEPRECATED_IHTTPSession session) {
         Map<String, String> headers = session.getHeaders();
         if (isWebsocketRequested(session)) {
             if (!NanoWSD.HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION))) {

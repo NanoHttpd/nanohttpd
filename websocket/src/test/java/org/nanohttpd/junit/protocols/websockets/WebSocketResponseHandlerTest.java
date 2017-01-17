@@ -52,7 +52,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 import org.nanohttpd.protocols.websockets.CloseCode;
@@ -66,7 +66,7 @@ import org.nanohttpd.util.IHandler;
 public class WebSocketResponseHandlerTest {
 
     @Mock
-    private IHTTPSession session;
+    private DEPRECATED_IHTTPSession session;
 
     private MockedWSD nanoWebSocketServer;
 
@@ -84,20 +84,20 @@ public class WebSocketResponseHandlerTest {
 
         // This is to work around Mockito being a little bitch.
         public void initialize() {
-            interceptors = new ArrayList<IHandler<IHTTPSession, Response>>();
+            interceptors = new ArrayList<IHandler<DEPRECATED_IHTTPSession, Response>>();
             addHTTPInterceptor(new Interceptor());
 
-            setHTTPHandler(new IHandler<IHTTPSession, Response>() {
+            setHTTPHandler(new IHandler<DEPRECATED_IHTTPSession, Response>() {
 
                 @Override
-                public Response handle(IHTTPSession input) {
+                public Response handle(DEPRECATED_IHTTPSession input) {
                     return serve(input);
                 }
             });
         }
 
         @Override
-        protected WebSocket openWebSocket(IHTTPSession handshake) {
+        protected WebSocket openWebSocket(DEPRECATED_IHTTPSession handshake) {
             return new WebSocket(handshake) { // Dummy websocket inner class.
 
                 @Override

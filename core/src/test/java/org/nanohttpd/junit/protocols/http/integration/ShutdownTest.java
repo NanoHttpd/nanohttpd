@@ -42,8 +42,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.junit.Test;
-import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
 
 public class ShutdownTest {
@@ -55,7 +55,7 @@ public class ShutdownTest {
         }
 
         @Override
-        public Response serve(IHTTPSession session) {
+        public Response serve(DEPRECATED_IHTTPSession session) {
             return Response.newFixedLengthResponse("Whatever");
         }
     }

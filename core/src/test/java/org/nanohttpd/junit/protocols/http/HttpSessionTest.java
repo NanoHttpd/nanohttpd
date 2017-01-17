@@ -41,7 +41,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.junit.Test;
-import org.nanohttpd.protocols.http.HTTPSession;
+import org.nanohttpd.protocols.http._deprecated.DEPRECATED_HTTPSession;
 
 public class HttpSessionTest extends HttpServerTest {
 
@@ -54,7 +54,7 @@ public class HttpSessionTest extends HttpServerTest {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(HttpSessionTest.DUMMY_REQUEST_CONTENT.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         InetAddress inetAddress = InetAddress.getByName("127.0.0.1");
-        HTTPSession session = this.testServer.createSession(HttpSessionTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
+        DEPRECATED_HTTPSession session = this.testServer.createSession(HttpSessionTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
         assertEquals("localhost", session.getRemoteHostName());
     }
 
@@ -63,7 +63,7 @@ public class HttpSessionTest extends HttpServerTest {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(HttpSessionTest.DUMMY_REQUEST_CONTENT.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         InetAddress inetAddress = InetAddress.getByName("google.com");
-        HTTPSession session = this.testServer.createSession(HttpSessionTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
+        DEPRECATED_HTTPSession session = this.testServer.createSession(HttpSessionTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
         assertEquals("google.com", session.getRemoteHostName());
     }
 
@@ -72,7 +72,7 @@ public class HttpSessionTest extends HttpServerTest {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(HttpSessionTest.DUMMY_REQUEST_CONTENT.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         InetAddress inetAddress = InetAddress.getByName("127.0.0.1");
-        HTTPSession session = this.testServer.createSession(HttpSessionTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
+        DEPRECATED_HTTPSession session = this.testServer.createSession(HttpSessionTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
         assertEquals("127.0.0.1", session.getRemoteIpAddress());
     }
 }

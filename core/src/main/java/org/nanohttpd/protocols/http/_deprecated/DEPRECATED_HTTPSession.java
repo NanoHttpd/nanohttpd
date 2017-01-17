@@ -1,4 +1,4 @@
-package org.nanohttpd.protocols.http;
+package org.nanohttpd.protocols.http._deprecated;
 
 /*
  * #%L
@@ -62,16 +62,17 @@ import java.util.regex.Matcher;
 
 import javax.net.ssl.SSLException;
 
+import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
-import org.nanohttpd.protocols.http.content.ContentType;
-import org.nanohttpd.protocols.http.content.CookieHandler;
+import org.nanohttpd.protocols.http.request.ContentType;
+import org.nanohttpd.protocols.http.request.CookieHandler;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 import org.nanohttpd.protocols.http.tempfiles.ITempFile;
 import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
-public class HTTPSession implements IHTTPSession {
+public class DEPRECATED_HTTPSession implements DEPRECATED_IHTTPSession {
 
     private static final int REQUEST_BUFFER_LEN = 512;
 
@@ -111,17 +112,17 @@ public class HTTPSession implements IHTTPSession {
 
     private String protocolVersion;
 
-    public HTTPSession(NanoHTTPD httpd, ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
+    public DEPRECATED_HTTPSession(NanoHTTPD httpd, ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
         this.httpd = httpd;
         this.tempFileManager = tempFileManager;
-        this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
+        this.inputStream = new BufferedInputStream(inputStream, DEPRECATED_HTTPSession.BUFSIZE);
         this.outputStream = outputStream;
     }
 
-    public HTTPSession(NanoHTTPD httpd, ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
+    public DEPRECATED_HTTPSession(NanoHTTPD httpd, ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
         this.httpd = httpd;
         this.tempFileManager = tempFileManager;
-        this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
+        this.inputStream = new BufferedInputStream(inputStream, DEPRECATED_HTTPSession.BUFSIZE);
         this.outputStream = outputStream;
         this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
         this.remoteHostname = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "localhost" : inetAddress.getHostName().toString();
@@ -345,14 +346,14 @@ public class HTTPSession implements IHTTPSession {
             // Apache's default header limit is 8KB.
             // Do NOT assume that a single read will get the entire header
             // at once!
-            byte[] buf = new byte[HTTPSession.BUFSIZE];
+            byte[] buf = new byte[DEPRECATED_HTTPSession.BUFSIZE];
             this.splitbyte = 0;
             this.rlen = 0;
 
             int read = -1;
-            this.inputStream.mark(HTTPSession.BUFSIZE);
+            this.inputStream.mark(DEPRECATED_HTTPSession.BUFSIZE);
             try {
-                read = this.inputStream.read(buf, 0, HTTPSession.BUFSIZE);
+                read = this.inputStream.read(buf, 0, DEPRECATED_HTTPSession.BUFSIZE);
             } catch (SSLException e) {
                 throw e;
             } catch (IOException e) {
@@ -372,7 +373,7 @@ public class HTTPSession implements IHTTPSession {
                 if (this.splitbyte > 0) {
                     break;
                 }
-                read = this.inputStream.read(buf, this.rlen, HTTPSession.BUFSIZE - this.rlen);
+                read = this.inputStream.read(buf, this.rlen, DEPRECATED_HTTPSession.BUFSIZE - this.rlen);
             }
 
             if (this.splitbyte < this.rlen) {

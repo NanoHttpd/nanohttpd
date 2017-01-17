@@ -65,9 +65,9 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.nanohttpd.protocols.http.HTTPSession;
-import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http._deprecated.DEPRECATED_HTTPSession;
+import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManager;
@@ -108,16 +108,16 @@ public class HttpServerTest {
             super(port);
         }
 
-        public HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
-            return new HTTPSession(this, tempFileManager, inputStream, outputStream);
+        public DEPRECATED_HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
+            return new DEPRECATED_HTTPSession(this, tempFileManager, inputStream, outputStream);
         }
 
-        public HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
-            return new HTTPSession(this, tempFileManager, inputStream, outputStream, inetAddress);
+        public DEPRECATED_HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
+            return new DEPRECATED_HTTPSession(this, tempFileManager, inputStream, outputStream, inetAddress);
         }
 
         @Override
-        public Response serve(IHTTPSession session) {
+        public Response serve(DEPRECATED_IHTTPSession session) {
             this.uri = session.getUri();
             this.method = session.getMethod();
             this.header = session.getHeaders();
@@ -176,7 +176,7 @@ public class HttpServerTest {
     protected ByteArrayOutputStream invokeServer(String request) {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
+        DEPRECATED_HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
         try {
             session.execute();
         } catch (IOException e) {
@@ -225,7 +225,7 @@ public class HttpServerTest {
                 final Map<String, String> files = new HashMap<String, String>();
 
                 @Override
-                public Response serve(IHTTPSession session) {
+                public Response serve(DEPRECATED_IHTTPSession session) {
                     StringBuilder responseMsg = new StringBuilder();
 
                     try {
@@ -281,7 +281,7 @@ public class HttpServerTest {
             final Map<String, String> files = new HashMap<String, String>();
 
             @Override
-            public Response serve(IHTTPSession session) {
+            public Response serve(DEPRECATED_IHTTPSession session) {
                 String responseMsg = "pass";
 
                 try {

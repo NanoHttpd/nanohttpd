@@ -50,8 +50,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DecompressingHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
-import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 
@@ -66,7 +66,7 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
         }
 
         @Override
-        public Response serve(IHTTPSession session) {
+        public Response serve(DEPRECATED_IHTTPSession session) {
             return response.setUseGzip(true);
         }
     }

@@ -51,8 +51,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
 import org.nanohttpd.protocols.http.response.IStatus;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
@@ -70,15 +70,15 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
     public interface UriResponder {
 
-        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        public Response get(UriResource uriResource, Map<String, String> urlParams, DEPRECATED_IHTTPSession session);
 
-        public Response put(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        public Response put(UriResource uriResource, Map<String, String> urlParams, DEPRECATED_IHTTPSession session);
 
-        public Response post(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        public Response post(UriResource uriResource, Map<String, String> urlParams, DEPRECATED_IHTTPSession session);
 
-        public Response delete(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        public Response delete(UriResource uriResource, Map<String, String> urlParams, DEPRECATED_IHTTPSession session);
 
-        public Response other(String method, UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        public Response other(String method, UriResource uriResource, Map<String, String> urlParams, DEPRECATED_IHTTPSession session);
     }
 
     /**
@@ -93,23 +93,23 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
         public abstract InputStream getData();
 
-        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response get(UriResource uriResource, Map<String, String> urlParams, DEPRECATED_IHTTPSession session) {
             return Response.newChunkedResponse(getStatus(), getMimeType(), getData());
         }
 
-        public Response post(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response post(UriResource uriResource, Map<String, String> urlParams, DEPRECATED_IHTTPSession session) {
             return get(uriResource, urlParams, session);
         }
 
-        public Response put(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response put(UriResource uriResource, Map<String, String> urlParams, DEPRECATED_IHTTPSession session) {
             return get(uriResource, urlParams, session);
         }
 
-        public Response delete(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response delete(UriResource uriResource, Map<String, String> urlParams, DEPRECATED_IHTTPSession session) {
             return get(uriResource, urlParams, session);
         }
 
-        public Response other(String method, UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response other(String method, UriResource uriResource, Map<String, String> urlParams, DEPRECATED_IHTTPSession session) {
             return get(uriResource, urlParams, session);
         }
     }
@@ -124,7 +124,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
         public abstract IStatus getStatus();
 
-        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response get(UriResource uriResource, Map<String, String> urlParams, DEPRECATED_IHTTPSession session) {
             return Response.newFixedLengthResponse(getStatus(), getMimeType(), getText());
         }
 
@@ -154,7 +154,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             return Status.OK;
         }
 
-        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response get(UriResource uriResource, Map<String, String> urlParams, DEPRECATED_IHTTPSession session) {
             StringBuilder text = new StringBuilder("<html><body>");
             text.append("<h1>Url: ");
             text.append(session.getUri());
@@ -210,7 +210,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             return Status.OK;
         }
 
-        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+        public Response get(UriResource uriResource, Map<String, String> urlParams, DEPRECATED_IHTTPSession session) {
             String baseUri = uriResource.getUri();
             String realUri = normalizeUri(session.getUri());
             for (int index = 0; index < Math.min(baseUri.length(), realUri.length()); index++) {
@@ -373,7 +373,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             return Pattern.compile(patternUri);
         }
 
-        public Response process(Map<String, String> urlParams, IHTTPSession session) {
+        public Response process(Map<String, String> urlParams, DEPRECATED_IHTTPSession session) {
             String error = "General error!";
             if (handler != null) {
                 try {
@@ -583,7 +583,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
          * @param url
          * @return
          */
-        public Response process(IHTTPSession session) {
+        public Response process(DEPRECATED_IHTTPSession session) {
             String work = normalizeUri(session.getUri());
             Map<String, String> params = null;
             UriResource uriResource = error404Url;
@@ -667,7 +667,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
     }
 
     @Override
-    public Response serve(IHTTPSession session) {
+    public Response serve(DEPRECATED_IHTTPSession session) {
         // Try to find match
         return router.process(session);
     }
