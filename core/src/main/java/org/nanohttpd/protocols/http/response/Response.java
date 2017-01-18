@@ -287,8 +287,8 @@ public class Response implements Closeable {
             } catch (NumberFormatException ex) {
                 NanoHTTPD.LOG.severe("content-length was no number " + contentLengthString);
             }
-        }else{
-        	pw.print("Content-Length: " + size + "\r\n");
+        } else {
+            pw.print("Content-Length: " + size + "\r\n");
         }
         return size;
     }

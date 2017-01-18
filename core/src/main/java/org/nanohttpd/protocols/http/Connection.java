@@ -1,11 +1,45 @@
 package org.nanohttpd.protocols.http;
 
+/*
+ * #%L
+ * NanoHttpd-Core
+ * %%
+ * Copyright (C) 2012 - 2017 nanohttpd
+ * %%
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 
+ * 3. Neither the name of the nanohttpd nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ * #L%
+ */
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -18,120 +52,114 @@ import javax.net.ssl.SSLException;
 import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
 import org.nanohttpd.protocols.http._deprecated.DEPRECATED_HTTPSession;
 import org.nanohttpd.protocols.http.request.CookieHandler;
-import org.nanohttpd.protocols.http.request.IRequest;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.request.Request;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 
-public class Connection implements IConnection{
-	private final Request request = new Request(this);
-	private final Socket socket;
-	private final OutputStream outputStream;
-	private final InputStream inputStream;
-	private String remoteHostname;
+public class Connection implements IConnection {
+	private static final int BUFFER_SIZE = 0x2000; // 8KB
 	
-	public Connection(final Socket socket) throws IOException{
-		this.socket = socket;
-		this.inputStream = socket.getInputStream();
-		this.outputStream = socket.getOutputStream();
-	}
-	
-	@Override
-	public void handleNextRequest() throws IOException{
-		Response r = null;
+    private final NanoHTTPD httpd;
+    private final Request request = new Request(this);
+    private final Socket socket;
+    private final OutputStream outputStream;
+    private final InputStream inputStream;
+    private String remoteHostname;
+
+    public Connection(NanoHTTPD httpd, Socket socket) throws IOException {
+        this.httpd = httpd;
+        this.socket = socket;
+        this.inputStream = socket.getInputStream();
+        this.outputStream = socket.getOutputStream();
+    }
+
+    @Override
+    public void handleNextRequest() throws IOException {
+        Response r = null;
         try {
             // Read the first 8192 bytes.
             // The full header should fit in here.
             // Apache's default header limit is 8KB.
             // Do NOT assume that a single read will get the entire header
             // at once!
-            byte[] buf = new byte[DEPRECATED_HTTPSession.BUFSIZE];
+            byte[] buf = new byte[BUFFER_SIZE];
             int splitbyte = 0;
             int rlen = 0;
 
             int read = -1;
-            this.inputStream.mark(DEPRECATED_HTTPSession.BUFSIZE);
+            inputStream.mark(BUFFER_SIZE);
             try {
-                read = this.inputStream.read(buf, 0, DEPRECATED_HTTPSession.BUFSIZE);
+                read = inputStream.read(buf, 0, BUFFER_SIZE);
             } catch (SSLException e) {
                 throw e;
             } catch (IOException e) {
-                NanoHTTPD.safeClose(this.inputStream);
-                NanoHTTPD.safeClose(this.outputStream);
+                NanoHTTPD.safeClose(inputStream);
+                NanoHTTPD.safeClose(outputStream);
                 throw new SocketException("NanoHttpd Shutdown");
             }
             if (read == -1) {
                 // socket was been closed
-                NanoHTTPD.safeClose(this.inputStream);
-                NanoHTTPD.safeClose(this.outputStream);
+                NanoHTTPD.safeClose(inputStream);
+                NanoHTTPD.safeClose(outputStream);
                 throw new SocketException("NanoHttpd Shutdown");
             }
             while (read > 0) {
-                this.rlen += read;
-                this.splitbyte = findHeaderEnd(buf, this.rlen);
-                if (this.splitbyte > 0) {
+                rlen += read;
+                splitbyte = findHeaderEnd(buf, rlen);
+                if (splitbyte > 0) {
                     break;
                 }
-                read = this.inputStream.read(buf, this.rlen, DEPRECATED_HTTPSession.BUFSIZE - this.rlen);
+                read = inputStream.read(buf, rlen, BUFFER_SIZE - rlen);
             }
 
-            if (this.splitbyte < this.rlen) {
-                this.inputStream.reset();
-                this.inputStream.skip(this.splitbyte);
+            if (splitbyte < rlen) {
+                inputStream.reset();
+                inputStream.skip(splitbyte);
             }
 
-            this.parms = new HashMap<String, List<String>>();
-            if (null == this.headers) {
-                this.headers = new HashMap<String, String>();
-            } else {
-                this.headers.clear();
-            }
+            request.recycle();
+            Map<String, List<String>> parameters = request.getAllParameters();
+            Map<String, String> headers = request.getHeaders();
 
             // Create a BufferedReader for parsing the header.
-            BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, this.rlen)));
+            BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, rlen)));
 
             // Decode the header into parms and header java properties
             Map<String, String> pre = new HashMap<String, String>();
-            decodeHeader(hin, pre, this.parms, this.headers);
+            decodeHeader(hin, pre, parameters, headers);
 
-            if (null != this.remoteIp) {
-                this.headers.put("remote-addr", this.remoteIp);
-                this.headers.put("http-client-ip", this.remoteIp);
-            }
-
-            this.method = Method.lookup(pre.get("method"));
-            if (this.method == null) {
+            Method method = Method.lookup(pre.get("method"));
+            if (method == null) {
                 throw new ResponseException(Status.BAD_REQUEST, "BAD REQUEST: Syntax error. HTTP verb " + pre.get("method") + " unhandled.");
             }
 
-            this.uri = pre.get("uri");
+            String uri = pre.get("uri");
+            CookieHandler cookies = new CookieHandler(headers);
 
-            this.cookies = new CookieHandler(this.headers);
-
-            String connection = this.headers.get("connection");
+            String connection = headers.get("connection");
             boolean keepAlive = "HTTP/1.1".equals(protocolVersion) && (connection == null || !connection.matches("(?i).*close.*"));
 
             // Ok, now do the serve()
 
             // TODO: long body_size = getBodySize();
-            // TODO: long pos_before_serve = this.inputStream.totalRead()
+            // TODO: long pos_before_serve = inputStream.totalRead()
             // (requires implementation for totalRead())
             r = httpd.handle(this);
-            // TODO: this.inputStream.skip(body_size -
-            // (this.inputStream.totalRead() - pos_before_serve))
+            // TODO: inputStream.skip(body_size -
+            // (inputStream.totalRead() - pos_before_serve))
 
             if (r == null) {
                 throw new ResponseException(Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
             } else {
-                String acceptEncoding = this.headers.get("accept-encoding");
-                this.cookies.unloadQueue(r);
-                r.setRequestMethod(this.method);
+                String acceptEncoding = headers.get("accept-encoding");
+                cookies.unloadQueue(r);
+                r.setRequestMethod(method);
                 if (acceptEncoding == null || !acceptEncoding.contains("gzip")) {
                     r.setUseGzip(false);
                 }
                 r.setKeepAlive(keepAlive);
-                r.send(this.outputStream);
+                r.send(outputStream);
             }
             if (!keepAlive || r.isCloseConnection()) {
                 throw new SocketException("NanoHttpd Shutdown");
@@ -146,42 +174,47 @@ public class Connection implements IConnection{
             throw ste;
         } catch (SSLException ssle) {
             Response resp = Response.newFixedLengthResponse(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SSL PROTOCOL FAILURE: " + ssle.getMessage());
-            resp.send(this.outputStream);
-            NanoHTTPD.safeClose(this.outputStream);
+            resp.send(outputStream);
+            NanoHTTPD.safeClose(outputStream);
         } catch (IOException ioe) {
             Response resp = Response.newFixedLengthResponse(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
-            resp.send(this.outputStream);
-            NanoHTTPD.safeClose(this.outputStream);
+            resp.send(outputStream);
+            NanoHTTPD.safeClose(outputStream);
         } catch (ResponseException re) {
             Response resp = Response.newFixedLengthResponse(re.getStatus(), NanoHTTPD.MIME_PLAINTEXT, re.getMessage());
-            resp.send(this.outputStream);
-            NanoHTTPD.safeClose(this.outputStream);
+            resp.send(outputStream);
+            NanoHTTPD.safeClose(outputStream);
         } finally {
             NanoHTTPD.safeClose(r);
-            this.tempFileManager.clear();
+            tempFileManager.clear();
         }
-	}
+    }
 
-	@Override
-	public InputStream getInputStream() {
-		return inputStream;
-	}
+    @Override
+    public InputStream getInputStream() {
+        return inputStream;
+    }
 
-	@Override
-	public OutputStream getOutputStream() {
-		return outputStream;
-	}
+    @Override
+    public OutputStream getOutputStream() {
+        return outputStream;
+    }
 
-	@Override
-	public String getRemoteIPAddress() {
-		return socket.getInetAddress().getHostAddress();
-	}
+    @Override
+    public String getRemoteIPAddress() {
+        return socket.getInetAddress().getHostAddress();
+    }
 
-	@Override
-	public String getRemoteHostname() {
-		if(remoteHostname == null)
-			remoteHostname = socket.getInetAddress().getCanonicalHostName();
-		return remoteHostname;
-	}
+    @Override
+    public String getRemoteHostname() {
+        if (remoteHostname == null) {
+            InetAddress address = socket.getInetAddress();
+            if (address.isAnyLocalAddress() || address.isLoopbackAddress())
+                remoteHostname = "localhost";
+            else
+                remoteHostname = address.getHostName();
+        }
+        return remoteHostname;
+    }
 
 }
