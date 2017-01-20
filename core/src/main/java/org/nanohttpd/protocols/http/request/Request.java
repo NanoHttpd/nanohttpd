@@ -55,6 +55,7 @@ public class Request implements IRequest {
     private Method method;
     private String resource;
     private String query;
+    private URL url;
     private CookieHandler cookies;
 
     public Request(IConnection connection){
@@ -67,10 +68,21 @@ public class Request implements IRequest {
     public void recycle() {
         parameters.clear();
         headers.clear();
+        method = null;
+        resource = null;
+        query = null;
+        url = null;
+        cookies = null;
     }
     
     /** Called internally to set the values for the next actual request. */
-    public void setUp(){}
+    public void setUp(Method method, String resource, String query, URL url, CookieHandler cookies){
+    	this.method = method;
+    	this.resource = resource;
+    	this.query = query;
+    	this.url = url;
+    	this.cookies = cookies;
+    }
 
     @Override
     public IConnection getClientConnection() {
@@ -84,8 +96,7 @@ public class Request implements IRequest {
 
     @Override
     public URL getURL() {
-        // TODO Auto-generated method stub
-        return null;
+        return url;
     }
 
     @Override

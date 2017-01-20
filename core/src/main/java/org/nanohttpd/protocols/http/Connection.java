@@ -43,6 +43,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,12 +51,13 @@ import java.util.Map;
 import javax.net.ssl.SSLException;
 
 import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
-import org.nanohttpd.protocols.http._deprecated.DEPRECATED_HTTPSession;
 import org.nanohttpd.protocols.http.request.CookieHandler;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.request.Request;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
+import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
+import org.nanohttpd.util.Pointer;
 
 public class Connection implements IConnection {
 	private static final int BUFFER_SIZE = 0x2000; // 8KB
@@ -65,13 +67,15 @@ public class Connection implements IConnection {
     private final Socket socket;
     private final OutputStream outputStream;
     private final InputStream inputStream;
+    private final ITempFileManager tempFileManager;
     private String remoteHostname;
 
-    public Connection(NanoHTTPD httpd, Socket socket) throws IOException {
+    public Connection(NanoHTTPD httpd, Socket socket, ITempFileManager tempFileManager) throws IOException {
         this.httpd = httpd;
         this.socket = socket;
         this.inputStream = socket.getInputStream();
         this.outputStream = socket.getOutputStream();
+        this.tempFileManager = tempFileManager;
     }
 
     @Override
@@ -106,7 +110,7 @@ public class Connection implements IConnection {
             }
             while (read > 0) {
                 rlen += read;
-                splitbyte = findHeaderEnd(buf, rlen);
+                splitbyte = HTTPUtils.findHeaderEnd(buf, rlen);
                 if (splitbyte > 0) {
                     break;
                 }
@@ -127,25 +131,31 @@ public class Connection implements IConnection {
 
             // Decode the header into parms and header java properties
             Map<String, String> pre = new HashMap<String, String>();
-            decodeHeader(hin, pre, parameters, headers);
+            Pointer<String> protocolVersion = new Pointer<String>();
+            Pointer<String> query = new Pointer<String>();
+            HTTPUtils.decodeHeader(hin, pre, parameters, headers, protocolVersion, query);
 
             Method method = Method.lookup(pre.get("method"));
             if (method == null) {
                 throw new ResponseException(Status.BAD_REQUEST, "BAD REQUEST: Syntax error. HTTP verb " + pre.get("method") + " unhandled.");
             }
 
-            String uri = pre.get("uri");
             CookieHandler cookies = new CookieHandler(headers);
+            String uri = pre.get("uri");
+            URL url = new URL("<protocol>", "<host>", 0, uri); // TODO
+            request.setUp(method, uri, query.get(), null, cookies);
 
             String connection = headers.get("connection");
-            boolean keepAlive = "HTTP/1.1".equals(protocolVersion) && (connection == null || !connection.matches("(?i).*close.*"));
+            boolean keepAlive = "HTTP/1.1".equals(protocolVersion.get()) && (connection == null || !connection.matches("(?i).*close.*"));
+            
+            
 
             // Ok, now do the serve()
 
             // TODO: long body_size = getBodySize();
             // TODO: long pos_before_serve = inputStream.totalRead()
             // (requires implementation for totalRead())
-            r = httpd.handle(this);
+            r = httpd.handle(request);
             // TODO: inputStream.skip(body_size -
             // (inputStream.totalRead() - pos_before_serve))
 
