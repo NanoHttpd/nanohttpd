@@ -69,7 +69,7 @@ public class ServerRunner {
         try {
             executeInstance(serverClass.newInstance());
         } catch (Exception e) {
-            ServerRunner.LOG.log(Level.SEVERE, "Cound nor create server", e);
+            ServerRunner.LOG.log(Level.SEVERE, "Could not create server", e);
         }
     }
 }
