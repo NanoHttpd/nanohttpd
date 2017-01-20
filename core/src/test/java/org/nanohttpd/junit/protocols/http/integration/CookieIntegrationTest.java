@@ -38,6 +38,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.http.client.CookieStore;
@@ -99,6 +100,19 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
     }
 
     @Test
+    public void testMultipleCookieSentBackToClient() throws Exception {
+        this.testServer.cookiesToSend.add(new Cookie("name0", "value0", 30));
+        this.testServer.cookiesToSend.add(new Cookie("name1", "value1", 30));
+        this.testServer.cookiesToSend.add(new Cookie("name2", "value2", 30));
+        this.testServer.cookiesToSend.add(new Cookie("name3", "value3", 30));
+        HttpGet httpget = new HttpGet("http://localhost:8192/");
+        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+        this.httpclient.execute(httpget, responseHandler);
+
+        assertEquals(4, this.httpclient.getCookieStore().getCookies().size());
+    }
+
+    @Test
     public void testNoCookies() throws Exception {
         HttpGet httpget = new HttpGet("http://localhost:8192/");
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
@@ -122,5 +136,33 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
 
         assertEquals(1, this.testServer.cookiesReceived.size());
         assertTrue(this.testServer.cookiesReceived.get(0).getHTTPHeader().contains("name=value"));
+    }
+
+    @Test
+    public void testServerReceivesMultipleCookiesSentFromClient() throws Exception {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_YEAR, 100);
+        Date date = calendar.getTime();
+        BasicClientCookie clientCookie0 = new BasicClientCookie("name0", "value0");
+        BasicClientCookie clientCookie1 = new BasicClientCookie("name1", "value1");
+        BasicClientCookie clientCookie2 = new BasicClientCookie("name2", "value2");
+        BasicClientCookie clientCookie3 = new BasicClientCookie("name3", "value3");
+        clientCookie0.setExpiryDate(date);
+        clientCookie0.setDomain("localhost");
+        clientCookie1.setExpiryDate(date);
+        clientCookie1.setDomain("localhost");
+        clientCookie2.setExpiryDate(date);
+        clientCookie2.setDomain("localhost");
+        clientCookie3.setExpiryDate(date);
+        clientCookie3.setDomain("localhost");
+        this.httpclient.getCookieStore().addCookie(clientCookie0);
+        this.httpclient.getCookieStore().addCookie(clientCookie1);
+        this.httpclient.getCookieStore().addCookie(clientCookie2);
+        this.httpclient.getCookieStore().addCookie(clientCookie3);
+        HttpGet httpget = new HttpGet("http://localhost:8192/");
+        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+        this.httpclient.execute(httpget, responseHandler);
+
+        assertEquals(4, this.testServer.cookiesReceived.size());
     }
 }

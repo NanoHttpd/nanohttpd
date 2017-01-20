@@ -124,8 +124,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.3</version>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.7</source>
+					<target>1.7</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -325,7 +325,7 @@
 				<configuration>
 					<linkXref>true</linkXref>
 					<sourceEncoding>UTF-8</sourceEncoding>
-					<targetJdk>1.6</targetJdk>
+					<targetJdk>1.7</targetJdk>
 					<skipEmptyReport>false</skipEmptyReport>
 					<minimumTokens>50</minimumTokens>
 				</configuration>
@@ -482,10 +482,10 @@
 			</build>
 		</profile>
 		<profile>
-			<id>use 1.6 compiler</id>
+			<id>use 1.7 compiler</id>
 			<activation>
 				<file>
-					<exists>/usr/lib/jvm/java-6-openjdk-amd64/bin/javac</exists>
+					<exists>/usr/lib/jvm/java-7-openjdk-amd64/bin/javac</exists>
 				</file>
 			</activation>
 			<build>
@@ -495,11 +495,11 @@
 						<artifactId>maven-compiler-plugin</artifactId>
 						<version>3.3</version>
 						<configuration>
-							<source>1.6</source>
-							<target>1.6</target>
+							<source>1.7</source>
+							<target>1.7</target>
 							<verbose>true</verbose>
 							<fork>true</fork>
-							<executable>/usr/lib/jvm/java-6-openjdk-amd64/bin/javac</executable>
+							<executable>/usr/lib/jvm/java-7-openjdk-amd64/bin/javac</executable>
 						</configuration>
 					</plugin>
 				</plugins>

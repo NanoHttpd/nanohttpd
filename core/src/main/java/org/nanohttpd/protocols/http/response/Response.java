@@ -45,8 +45,10 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -108,13 +110,25 @@ public class Response implements Closeable {
      */
     private boolean chunkedTransfer;
 
-    private boolean encodeAsGzip;
-
     private boolean keepAlive;
+
+    private List<String> cookieHeaders;
+
+    private GzipUsage gzipUsage = GzipUsage.DEFAULT;
+
+    private static enum GzipUsage {
+        DEFAULT,
+        ALWAYS,
+        NEVER;
+    }
 
     /**
      * Creates a fixed length response if totalBytes>=0, otherwise chunked.
      */
+    @SuppressWarnings({
+        "rawtypes",
+        "unchecked"
+    })
     protected Response(IStatus status, String mimeType, InputStream data, long totalBytes) {
         this.status = status;
         this.mimeType = mimeType;
@@ -126,7 +140,8 @@ public class Response implements Closeable {
             this.contentLength = totalBytes;
         }
         this.chunkedTransfer = this.contentLength < 0;
-        keepAlive = true;
+        this.keepAlive = true;
+        this.cookieHeaders = new ArrayList(10);
     }
 
     @Override
@@ -134,6 +149,24 @@ public class Response implements Closeable {
         if (this.data != null) {
             this.data.close();
         }
+    }
+
+    /**
+     * Adds a cookie header to the list. Should not be called manually, this is
+     * an internal utility.
+     */
+    public void addCookieHeader(String cookie) {
+        cookieHeaders.add(cookie);
+    }
+
+    /**
+     * Should not be called manually. This is an internally utility for JUnit
+     * test purposes.
+     * 
+     * @return All unloaded cookie headers.
+     */
+    public List<String> getCookieHeaders() {
+        return cookieHeaders;
     }
 
     /**
@@ -185,10 +218,6 @@ public class Response implements Closeable {
         return this.status;
     }
 
-    public void setGzipEncoding(boolean encodeAsGzip) {
-        this.encodeAsGzip = encodeAsGzip;
-    }
-
     public void setKeepAlive(boolean useKeepAlive) {
         this.keepAlive = useKeepAlive;
     }
@@ -215,20 +244,23 @@ public class Response implements Closeable {
             for (Entry<String, String> entry : this.header.entrySet()) {
                 printHeader(pw, entry.getKey(), entry.getValue());
             }
+            for (String cookieHeader : this.cookieHeaders) {
+                printHeader(pw, "Set-Cookie", cookieHeader);
+            }
             if (getHeader("connection") == null) {
                 printHeader(pw, "Connection", (this.keepAlive ? "keep-alive" : "close"));
             }
             if (getHeader("content-length") != null) {
-                encodeAsGzip = false;
+                setUseGzip(false);
             }
-            if (encodeAsGzip) {
+            if (useGzipWhenAccepted()) {
                 printHeader(pw, "Content-Encoding", "gzip");
                 setChunkedTransfer(true);
             }
             long pending = this.data != null ? this.contentLength : 0;
             if (this.requestMethod != Method.HEAD && this.chunkedTransfer) {
                 printHeader(pw, "Transfer-Encoding", "chunked");
-            } else if (!encodeAsGzip) {
+            } else if (!useGzipWhenAccepted()) {
                 pending = sendContentLengthHeaderIfNotAlreadyPresent(pw, pending);
             }
             pw.append("\r\n");
@@ -255,8 +287,9 @@ public class Response implements Closeable {
             } catch (NumberFormatException ex) {
                 NanoHTTPD.LOG.severe("content-length was no number " + contentLengthString);
             }
+        }else{
+        	pw.print("Content-Length: " + size + "\r\n");
         }
-        pw.print("Content-Length: " + size + "\r\n");
         return size;
     }
 
@@ -271,7 +304,7 @@ public class Response implements Closeable {
     }
 
     private void sendBodyWithCorrectEncoding(OutputStream outputStream, long pending) throws IOException {
-        if (encodeAsGzip) {
+        if (useGzipWhenAccepted()) {
             GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream);
             sendBody(gzipOutputStream, -1);
             gzipOutputStream.finish();
@@ -303,7 +336,13 @@ public class Response implements Closeable {
             if (read <= 0) {
                 break;
             }
-            outputStream.write(buff, 0, read);
+            try {
+                outputStream.write(buff, 0, read);
+            } catch (Exception e) {
+                if(this.data != null) {
+                    this.data.close();
+                }
+            }
             if (!sendEverything) {
                 pending -= read;
             }
@@ -335,6 +374,10 @@ public class Response implements Closeable {
      */
     public static Response newChunkedResponse(IStatus status, String mimeType, InputStream data) {
         return new Response(status, mimeType, data, -1);
+    }
+
+    public static Response newFixedLengthResponse(IStatus status, String mimeType, byte[] data) {
+        return newFixedLengthResponse(status, mimeType, new ByteArrayInputStream(data), data.length);
     }
 
     /**
@@ -372,5 +415,19 @@ public class Response implements Closeable {
      */
     public static Response newFixedLengthResponse(String msg) {
         return newFixedLengthResponse(Status.OK, NanoHTTPD.MIME_HTML, msg);
+    }
+
+    public Response setUseGzip(boolean useGzip) {
+        gzipUsage = useGzip ? GzipUsage.ALWAYS : GzipUsage.NEVER;
+        return this;
+    }
+
+    // If a Gzip usage has been enforced, use it.
+    // Else decide whether or not to use Gzip.
+    public boolean useGzipWhenAccepted() {
+        if (gzipUsage == GzipUsage.DEFAULT)
+            return getMimeType() != null && (getMimeType().toLowerCase().contains("text/") || getMimeType().toLowerCase().contains("/json"));
+        else
+            return gzipUsage == GzipUsage.ALWAYS;
     }
 }

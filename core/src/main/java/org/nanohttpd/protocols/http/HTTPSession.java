@@ -72,6 +72,8 @@ import org.nanohttpd.protocols.http.tempfiles.ITempFile;
 import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
 public class HTTPSession implements IHTTPSession {
+    
+    public static final String POST_DATA = "postData";
 
     private static final int REQUEST_BUFFER_LEN = 512;
 
@@ -416,7 +418,7 @@ public class HTTPSession implements IHTTPSession {
             // TODO: long body_size = getBodySize();
             // TODO: long pos_before_serve = this.inputStream.totalRead()
             // (requires implementation for totalRead())
-            r = httpd.serve(this);
+            r = httpd.handle(this);
             // TODO: this.inputStream.skip(body_size -
             // (this.inputStream.totalRead() - pos_before_serve))
 
@@ -426,7 +428,9 @@ public class HTTPSession implements IHTTPSession {
                 String acceptEncoding = this.headers.get("accept-encoding");
                 this.cookies.unloadQueue(r);
                 r.setRequestMethod(this.method);
-                r.setGzipEncoding(httpd.useGzipWhenAccepted(r) && acceptEncoding != null && acceptEncoding.contains("gzip"));
+                if (acceptEncoding == null || !acceptEncoding.contains("gzip")) {
+                    r.setUseGzip(false);
+                }
                 r.setKeepAlive(keepAlive);
                 r.send(this.outputStream);
             }
@@ -654,7 +658,7 @@ public class HTTPSession implements IHTTPSession {
                         // Special case for raw POST data => create a
                         // special files entry "postData" with raw content
                         // data
-                        files.put("postData", postLine);
+                        files.put(POST_DATA, postLine);
                     }
                 }
             } else if (Method.PUT.equals(this.method)) {

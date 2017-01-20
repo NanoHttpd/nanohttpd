@@ -42,6 +42,7 @@ import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
+import org.nanohttpd.util.IHandler;
 
 public abstract class NanoWSD extends NanoHTTPD {
 
@@ -117,12 +118,25 @@ public abstract class NanoWSD extends NanoHTTPD {
         return encodeBase64(sha1hash);
     }
 
+    protected final class Interceptor implements IHandler<IHTTPSession, Response> {
+
+        public Interceptor() {
+        }
+
+        @Override
+        public Response handle(IHTTPSession input) {
+            return handleWebSocket(input);
+        }
+    }
+
     public NanoWSD(int port) {
         super(port);
+        addHTTPInterceptor(new Interceptor());
     }
 
     public NanoWSD(String hostname, int port) {
         super(hostname, port);
+        addHTTPInterceptor(new Interceptor());
     }
 
     private boolean isWebSocketConnectionHeader(Map<String, String> headers) {
@@ -142,8 +156,7 @@ public abstract class NanoWSD extends NanoHTTPD {
 
     protected abstract WebSocket openWebSocket(IHTTPSession handshake);
 
-    @Override
-    public Response serve(final IHTTPSession session) {
+    public Response handleWebSocket(final IHTTPSession session) {
         Map<String, String> headers = session.getHeaders();
         if (isWebsocketRequested(session)) {
             if (!NanoWSD.HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION))) {
@@ -170,19 +183,7 @@ public abstract class NanoWSD extends NanoHTTPD {
 
             return handshakeResponse;
         } else {
-            return serveHttp(session);
+            return null;
         }
-    }
-
-    protected Response serveHttp(final IHTTPSession session) {
-        return super.serve(session);
-    }
-
-    /**
-     * not all websockets implementations accept gzip compression.
-     */
-    @Override
-    protected boolean useGzipWhenAccepted(Response r) {
-        return false;
     }
 }

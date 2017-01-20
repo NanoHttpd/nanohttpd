@@ -67,12 +67,7 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
 
         @Override
         public Response serve(IHTTPSession session) {
-            return response;
-        }
-
-        @Override
-        protected boolean useGzipWhenAccepted(Response r) {
-            return true;
+            return response.setUseGzip(true);
         }
     }
 
