@@ -40,7 +40,7 @@ Edit `src/main/java/com/example/App.java` and replace it with:
     import java.util.Map;
     
     import org.nanohttpd.NanoHTTPD;
-    // NOTE: If you're using the Maven version of NanoHTTPD the namespace is different,
+    // NOTE: If you're using NanoHTTPD < 3.0.0 the namespace is different,
     //       instead of the above import use the following:
     // import fi.iki.elonen.NanoHTTPD;
     
