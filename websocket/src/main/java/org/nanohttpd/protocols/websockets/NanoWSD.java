@@ -1,4 +1,4 @@
-package org.nanohttpd.protocols.websockets;
+	package org.nanohttpd.protocols.websockets;
 
 /*
  * #%L
@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
+import org.nanohttpd.protocols.http.request.IRequest;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 import org.nanohttpd.util.IHandler;
@@ -118,13 +118,13 @@ public abstract class NanoWSD extends NanoHTTPD {
         return encodeBase64(sha1hash);
     }
 
-    protected final class Interceptor implements IHandler<DEPRECATED_IHTTPSession, Response> {
+    protected final class Interceptor implements IHandler<IRequest, Response> {
 
         public Interceptor() {
         }
 
         @Override
-        public Response handle(DEPRECATED_IHTTPSession input) {
+        public Response handle(IRequest input) {
             return handleWebSocket(input);
         }
     }
@@ -144,8 +144,8 @@ public abstract class NanoWSD extends NanoHTTPD {
         return connection != null && connection.toLowerCase().contains(NanoWSD.HEADER_CONNECTION_VALUE.toLowerCase());
     }
 
-    protected boolean isWebsocketRequested(DEPRECATED_IHTTPSession session) {
-        Map<String, String> headers = session.getHeaders();
+    protected boolean isWebsocketRequested(IRequest request) {
+        Map<String, String> headers = request.getHeaders();
         String upgrade = headers.get(NanoWSD.HEADER_UPGRADE);
         boolean isCorrectConnection = isWebSocketConnectionHeader(headers);
         boolean isUpgrade = NanoWSD.HEADER_UPGRADE_VALUE.equalsIgnoreCase(upgrade);
@@ -154,11 +154,11 @@ public abstract class NanoWSD extends NanoHTTPD {
 
     // --------------------------------Listener--------------------------------
 
-    protected abstract WebSocket openWebSocket(DEPRECATED_IHTTPSession handshake);
+    protected abstract WebSocket openWebSocket(IRequest handshake);
 
-    public Response handleWebSocket(final DEPRECATED_IHTTPSession session) {
-        Map<String, String> headers = session.getHeaders();
-        if (isWebsocketRequested(session)) {
+    public Response handleWebSocket(final IRequest request) {
+        Map<String, String> headers = request.getHeaders();
+        if (isWebsocketRequested(request)) {
             if (!NanoWSD.HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION))) {
                 return Response.newFixedLengthResponse(Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
                         "Invalid Websocket-Version " + headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION));
@@ -168,7 +168,7 @@ public abstract class NanoWSD extends NanoHTTPD {
                 return Response.newFixedLengthResponse(Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key");
             }
 
-            WebSocket webSocket = openWebSocket(session);
+            WebSocket webSocket = openWebSocket(request);
             Response handshakeResponse = webSocket.getHandshakeResponse();
             try {
                 handshakeResponse.addHeader(NanoWSD.HEADER_WEBSOCKET_ACCEPT, makeAcceptKey(headers.get(NanoWSD.HEADER_WEBSOCKET_KEY)));

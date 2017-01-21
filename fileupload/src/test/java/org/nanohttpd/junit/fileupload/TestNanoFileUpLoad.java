@@ -68,8 +68,7 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.nanohttpd.fileupload.NanoFileUpload;
 import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http._deprecated.DEPRECATED_HTTPSession;
-import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
+import org.nanohttpd.protocols.http.request.IRequest;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
@@ -97,7 +96,7 @@ public class TestNanoFileUpLoad {
 
         public Map<String, String> header;
 
-        public Map<String, String> parms;
+        public Map<String, List<String>> parms;
 
         public Map<String, List<FileItem>> files;
 
@@ -112,23 +111,15 @@ public class TestNanoFileUpLoad {
             uploader = new NanoFileUpload(new DiskFileItemFactory());
         }
 
-        public DEPRECATED_HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
-            return new DEPRECATED_HTTPSession(this, tempFileManager, inputStream, outputStream);
-        }
-
-        public DEPRECATED_HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
-            return new DEPRECATED_HTTPSession(this, tempFileManager, inputStream, outputStream, inetAddress);
-        }
-
         NanoFileUpload uploader;
 
         @Override
-        public Response serve(DEPRECATED_IHTTPSession session) {
+        public Response serve(IRequest session) {
 
-            this.uri = session.getUri();
+            this.uri = session.getResource();
             this.method = session.getMethod();
             this.header = session.getHeaders();
-            this.parms = session.getParms();
+            this.parms = session.getAllParameters();
             if (NanoFileUpload.isMultipartContent(session)) {
                 try {
                     if ("/uploadFile1".equals(this.uri)) {
@@ -162,9 +153,9 @@ public class TestNanoFileUpLoad {
                     e.printStackTrace();
                 }
             }
-            this.queryParameterString = session.getQueryParameterString();
+            this.queryParameterString = session.getQueryString();
             this.decodedParamtersFromParameter = decodeParameters(this.queryParameterString);
-            this.decodedParamters = decodeParameters(session.getQueryParameterString());
+            this.decodedParamters = decodeParameters(session.getQueryString());
             return this.response;
         }
 

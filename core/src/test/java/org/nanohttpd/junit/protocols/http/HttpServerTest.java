@@ -65,9 +65,10 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.nanohttpd.junit.testutils.FakeConnection;
+import org.nanohttpd.protocols.http.Connection;
 import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http._deprecated.DEPRECATED_HTTPSession;
-import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
+import org.nanohttpd.protocols.http.request.IRequest;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManager;
@@ -88,8 +89,6 @@ public class HttpServerTest {
 
         public Map<String, String> header;
 
-        public Map<String, String> parms;
-
         public Map<String, List<String>> parameters;
 
         public Map<String, String> files;
@@ -108,30 +107,24 @@ public class HttpServerTest {
             super(port);
         }
 
-        public DEPRECATED_HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
-            return new DEPRECATED_HTTPSession(this, tempFileManager, inputStream, outputStream);
+        public Connection createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) throws IOException {
+            return FakeConnection.with(this, tempFileManager, inputStream, outputStream);
         }
 
-        public DEPRECATED_HTTPSession createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
-            return new DEPRECATED_HTTPSession(this, tempFileManager, inputStream, outputStream, inetAddress);
+        public Connection createSession(ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) throws IOException {
+            return FakeConnection.with(this, tempFileManager, inputStream, outputStream, inetAddress);
         }
 
         @Override
-        public Response serve(DEPRECATED_IHTTPSession session) {
-            this.uri = session.getUri();
+        public Response serve(IRequest session) {
+            this.uri = session.getResource();
             this.method = session.getMethod();
             this.header = session.getHeaders();
             this.files = new HashMap<String, String>();
-            try {
-                session.parseBody(this.files);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            this.parms = session.getParms();
-            this.parameters = session.getParameters();
-            this.queryParameterString = session.getQueryParameterString();
+            this.parameters = session.getAllParameters();
+            this.queryParameterString = session.getQueryString();
             this.decodedParamtersFromParameter = decodeParameters(this.queryParameterString);
-            this.decodedParamters = decodeParameters(session.getQueryParameterString());
+            this.decodedParamters = decodeParameters(session.getQueryString());
 
             return this.response;
         }
@@ -173,12 +166,12 @@ public class HttpServerTest {
         return readLinesFromFile(reader);
     }
 
-    protected ByteArrayOutputStream invokeServer(String request) {
+    protected ByteArrayOutputStream invokeServer(String request) throws IOException {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(request.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        DEPRECATED_HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
+        Connection session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
         try {
-            session.execute();
+            session.handleNextRequest();
         } catch (IOException e) {
             fail("" + e);
             e.printStackTrace();
@@ -225,11 +218,10 @@ public class HttpServerTest {
                 final Map<String, String> files = new HashMap<String, String>();
 
                 @Override
-                public Response serve(DEPRECATED_IHTTPSession session) {
+                public Response serve(IRequest session) {
                     StringBuilder responseMsg = new StringBuilder();
 
                     try {
-                        session.parseBody(this.files);
                         for (String key : files.keySet()) {
                             responseMsg.append(key);
                         }
@@ -281,11 +273,10 @@ public class HttpServerTest {
             final Map<String, String> files = new HashMap<String, String>();
 
             @Override
-            public Response serve(DEPRECATED_IHTTPSession session) {
+            public Response serve(IRequest session) {
                 String responseMsg = "pass";
 
                 try {
-                    session.parseBody(this.files);
                     for (String key : files.keySet()) {
                         if (!(new File(files.get(key))).exists()) {
                             responseMsg = "fail";

@@ -1,5 +1,7 @@
 package org.nanohttpd.samples.http;
 
+import java.util.List;
+
 /*
  * #%L
  * NanoHttpd-Samples
@@ -37,7 +39,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
+import org.nanohttpd.protocols.http.request.IRequest;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.util.ServerRunner;
@@ -61,13 +63,13 @@ public class HelloServer extends NanoHTTPD {
     }
 
     @Override
-    public Response serve(DEPRECATED_IHTTPSession session) {
-        Method method = session.getMethod();
-        String uri = session.getUri();
+    public Response serve(IRequest request) {
+        Method method = request.getMethod();
+        String uri = request.getResource();
         HelloServer.LOG.info(method + " '" + uri + "' ");
 
         String msg = "<html><body><h1>Hello server</h1>\n";
-        Map<String, String> parms = session.getParms();
+        Map<String, List<String>> parms = request.getAllParameters();
         if (parms.get("username") == null) {
             msg += "<form action='?' method='get'>\n" + "  <p>Your name: <input type='text' name='username'></p>\n" + "</form>\n";
         } else {

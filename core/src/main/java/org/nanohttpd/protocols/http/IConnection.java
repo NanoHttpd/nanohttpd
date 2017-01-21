@@ -37,8 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.nanohttpd.protocols.http.request.IRequest;
-
 public interface IConnection {
 
     /**
@@ -48,12 +46,6 @@ public interface IConnection {
      * packets.
      */
     public void handleNextRequest() throws IOException;
-
-    /** @return an input stream to read from this client. */
-    public InputStream getInputStream();
-
-    /** @return an output stream to write to this client. */
-    public OutputStream getOutputStream();
 
     /** @return this socket's remote IP address */
     public String getRemoteIPAddress();
@@ -65,4 +57,27 @@ public interface IConnection {
      * @return this client's hostname.
      */
     public String getRemoteHostname();
+
+    /**
+     * A more advanced set of functionality we really don't want to have the
+     * average joe messing with. By design all connections are IConnectionIO but
+     * are cast to IConnection masking out the streams which are meant only for
+     * more advanced functionality like WebSockets and other derivative
+     * protocols.<br>
+     * <br>
+     * <b>Using these streams in normal requests **WILL** have serious and
+     * unintended consequences (protocol-wise). Use at your own risk.<br>
+     * <br>
+     * Consider yourselves warned.</b>
+     * 
+     * @author LordFokas
+     */
+    public static interface IConnectionIO extends IConnection {
+
+        /** @return an input stream to read from this client. */
+        public InputStream getInputStream();
+
+        /** @return an output stream to write to this client. */
+        public OutputStream getOutputStream();
+    }
 }

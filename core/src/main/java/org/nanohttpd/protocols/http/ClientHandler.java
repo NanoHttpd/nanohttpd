@@ -40,7 +40,6 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.logging.Level;
 
-import org.nanohttpd.protocols.http._deprecated.DEPRECATED_HTTPSession;
 import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
 /**
@@ -71,9 +70,9 @@ public class ClientHandler implements Runnable {
         try {
             outputStream = this.acceptSocket.getOutputStream();
             ITempFileManager tempFileManager = httpd.getTempFileManagerFactory().create();
-            DEPRECATED_HTTPSession session = new DEPRECATED_HTTPSession(httpd, tempFileManager, this.inputStream, outputStream, this.acceptSocket.getInetAddress());
+            IConnection connection = new Connection(httpd, acceptSocket, tempFileManager);
             while (!this.acceptSocket.isClosed()) {
-                session.execute();
+                connection.handleNextRequest();
             }
         } catch (Exception e) {
             // When the socket is closed by the client,

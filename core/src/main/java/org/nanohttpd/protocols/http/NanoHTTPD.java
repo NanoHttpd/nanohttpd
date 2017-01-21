@@ -59,7 +59,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
+import org.nanohttpd.protocols.http.request.IRequest;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 import org.nanohttpd.protocols.http.sockets.DefaultServerSocketFactory;
@@ -123,7 +123,7 @@ import org.nanohttpd.util.IHandler;
  * See the separate "LICENSE.md" file for the distribution license (Modified BSD
  * licence)
  */
-public abstract class NanoHTTPD {
+public class NanoHTTPD {
 
     public static final String CONTENT_DISPOSITION_REGEX = "([ |\t]*Content-Disposition[ |\t]*:)(.*)";
 
@@ -331,9 +331,9 @@ public abstract class NanoHTTPD {
 
     private Thread myThread;
 
-    private IHandler<DEPRECATED_IHTTPSession, Response> httpHandler;
+    private IHandler<IRequest, Response> httpHandler;
 
-    protected List<IHandler<DEPRECATED_IHTTPSession, Response>> interceptors = new ArrayList<IHandler<DEPRECATED_IHTTPSession, Response>>(4);
+    protected List<IHandler<IRequest, Response>> interceptors = new ArrayList<IHandler<IRequest, Response>>(4);
 
     /**
      * Pluggable strategy for asynchronously executing requests.
@@ -370,20 +370,20 @@ public abstract class NanoHTTPD {
         setAsyncRunner(new DefaultAsyncRunner());
 
         // creates a default handler that redirects to deprecated serve();
-        this.httpHandler = new IHandler<DEPRECATED_IHTTPSession, Response>() {
+        this.httpHandler = new IHandler<IRequest, Response>() {
 
             @Override
-            public Response handle(DEPRECATED_IHTTPSession input) {
+            public Response handle(IRequest input) {
                 return NanoHTTPD.this.serve(input);
             }
         };
     }
 
-    public void setHTTPHandler(IHandler<DEPRECATED_IHTTPSession, Response> handler) {
+    public void setHTTPHandler(IHandler<IRequest, Response> handler) {
         this.httpHandler = handler;
     }
 
-    public void addHTTPInterceptor(IHandler<DEPRECATED_IHTTPSession, Response> interceptor) {
+    public void addHTTPInterceptor(IHandler<IRequest, Response> interceptor) {
         interceptors.add(interceptor);
     }
 
@@ -527,8 +527,8 @@ public abstract class NanoHTTPD {
      *            the incoming session
      * @return a response to the incoming session
      */
-    public Response handle(DEPRECATED_IHTTPSession session) {
-        for (IHandler<DEPRECATED_IHTTPSession, Response> interceptor : interceptors) {
+    public Response handle(IRequest session) {
+        for (IHandler<IRequest, Response> interceptor : interceptors) {
             Response response = interceptor.handle(session);
             if (response != null)
                 return response;
@@ -547,7 +547,7 @@ public abstract class NanoHTTPD {
      * @return HTTP response, see class Response for details
      */
     @Deprecated
-    protected Response serve(DEPRECATED_IHTTPSession session) {
+    protected Response serve(IRequest session) {
         return Response.newFixedLengthResponse(Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found");
     }
 

@@ -37,11 +37,11 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 import org.junit.Test;
-import org.nanohttpd.protocols.http._deprecated.DEPRECATED_HTTPSession;
+import org.nanohttpd.protocols.http.Connection;
 
 public class HttpSessionTest extends HttpServerTest {
 
@@ -50,29 +50,29 @@ public class HttpSessionTest extends HttpServerTest {
     private static final TestTempFileManager TEST_TEMP_FILE_MANAGER = new TestTempFileManager();
 
     @Test
-    public void testSessionRemoteHostnameLocalhost() throws UnknownHostException {
+    public void testSessionRemoteHostnameLocalhost() throws IOException {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(HttpSessionTest.DUMMY_REQUEST_CONTENT.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         InetAddress inetAddress = InetAddress.getByName("127.0.0.1");
-        DEPRECATED_HTTPSession session = this.testServer.createSession(HttpSessionTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
-        assertEquals("localhost", session.getRemoteHostName());
+        Connection session = this.testServer.createSession(HttpSessionTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
+        assertEquals("localhost", session.getRemoteHostname());
     }
 
     @Test
-    public void testSessionRemoteHostname() throws UnknownHostException {
+    public void testSessionRemoteHostname() throws IOException {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(HttpSessionTest.DUMMY_REQUEST_CONTENT.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         InetAddress inetAddress = InetAddress.getByName("google.com");
-        DEPRECATED_HTTPSession session = this.testServer.createSession(HttpSessionTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
-        assertEquals("google.com", session.getRemoteHostName());
+        Connection session = this.testServer.createSession(HttpSessionTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
+        assertEquals("google.com", session.getRemoteHostname());
     }
 
     @Test
-    public void testSessionRemoteIPAddress() throws UnknownHostException {
+    public void testSessionRemoteIPAddress() throws IOException {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(HttpSessionTest.DUMMY_REQUEST_CONTENT.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         InetAddress inetAddress = InetAddress.getByName("127.0.0.1");
-        DEPRECATED_HTTPSession session = this.testServer.createSession(HttpSessionTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
-        assertEquals("127.0.0.1", session.getRemoteIpAddress());
+        Connection session = this.testServer.createSession(HttpSessionTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
+        assertEquals("127.0.0.1", session.getRemoteIPAddress());
     }
 }

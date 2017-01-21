@@ -40,7 +40,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
 import org.junit.Test;
-import org.nanohttpd.protocols.http._deprecated.DEPRECATED_HTTPSession;
+import org.nanohttpd.protocols.http.Connection;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManager;
 
 public class HttpKeepAliveTest extends HttpServerTest {
@@ -97,12 +97,12 @@ public class HttpKeepAliveTest extends HttpServerTest {
                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                     DefaultTempFileManager tempFileManager = new DefaultTempFileManager();
                     try {
-                        DEPRECATED_HTTPSession session = HttpKeepAliveTest.this.testServer.createSession(tempFileManager, inputStream, outputStream);
+                        Connection session = HttpKeepAliveTest.this.testServer.createSession(tempFileManager, inputStream, outputStream);
                         for (int i = 0; i < 2048; i++) {
                             requestStream.write(request.getBytes());
                             requestStream.flush();
                             outputStream.reset();
-                            session.execute();
+                            session.handleNextRequest();
                             assertResponse(outputStream, expected);
                         }
 
@@ -115,7 +115,7 @@ public class HttpKeepAliveTest extends HttpServerTest {
                         // Server should now close the socket by throwing a
                         // SocketException:
                         try {
-                            session.execute();
+                            session.handleNextRequest();
                         } catch (java.net.SocketException se) {
                             junit.framework.Assert.assertEquals(se.getMessage(), "NanoHttpd Shutdown");
                         }

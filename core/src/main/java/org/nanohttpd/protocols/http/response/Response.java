@@ -336,7 +336,13 @@ public class Response implements Closeable {
             if (read <= 0) {
                 break;
             }
-            outputStream.write(buff, 0, read);
+            try {
+                outputStream.write(buff, 0, read);
+            } catch (Exception e) {
+                if (this.data != null) {
+                    this.data.close();
+                }
+            }
             if (!sendEverything) {
                 pending -= read;
             }

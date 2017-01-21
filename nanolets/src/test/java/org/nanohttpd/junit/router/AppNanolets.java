@@ -44,19 +44,14 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 
-import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
+import org.nanohttpd.protocols.http.request.IRequest;
 import org.nanohttpd.protocols.http.response.IStatus;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 import org.nanohttpd.router.RouterNanoHTTPD;
-import org.nanohttpd.router.RouterNanoHTTPD.DefaultHandler;
-import org.nanohttpd.router.RouterNanoHTTPD.DefaultStreamHandler;
-import org.nanohttpd.router.RouterNanoHTTPD.GeneralHandler;
-import org.nanohttpd.router.RouterNanoHTTPD.StaticPageHandler;
-import org.nanohttpd.router.RouterNanoHTTPD.UriResource;
-import org.nanohttpd.router.RouterNanoHTTPD.UriResponder;
 import org.nanohttpd.util.ServerRunner;
 
 public class AppNanolets extends RouterNanoHTTPD {
@@ -70,7 +65,7 @@ public class AppNanolets extends RouterNanoHTTPD {
             return "not implemented";
         }
 
-        public String getText(Map<String, String> urlParams, DEPRECATED_IHTTPSession session) {
+        public String getText(Map<String, String> urlParams, IRequest session) {
             String text = "<html><body>User handler. Method: " + session.getMethod().toString() + "<br>";
             text += "<h1>Uri parameters:</h1>";
             for (Map.Entry<String, String> entry : urlParams.entrySet()) {
@@ -79,9 +74,9 @@ public class AppNanolets extends RouterNanoHTTPD {
                 text += "<div> Param: " + key + "&nbsp;Value: " + value + "</div>";
             }
             text += "<h1>Query parameters:</h1>";
-            for (Map.Entry<String, String> entry : session.getParms().entrySet()) {
+            for (Map.Entry<String, List<String>> entry : session.getAllParameters().entrySet()) {
                 String key = entry.getKey();
-                String value = entry.getValue();
+                String value = entry.getValue().get(0);
                 text += "<div> Query Param: " + key + "&nbsp;Value: " + value + "</div>";
             }
             text += "</body></html>";
@@ -99,7 +94,7 @@ public class AppNanolets extends RouterNanoHTTPD {
             return Status.OK;
         }
 
-        public Response get(UriResource uriResource, Map<String, String> urlParams, DEPRECATED_IHTTPSession session) {
+        public Response get(UriResource uriResource, Map<String, String> urlParams, IRequest session) {
             String text = getText(urlParams, session);
             ByteArrayInputStream inp = new ByteArrayInputStream(text.getBytes());
             int size = text.getBytes().length;

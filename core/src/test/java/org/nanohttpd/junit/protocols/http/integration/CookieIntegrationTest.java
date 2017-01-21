@@ -48,9 +48,9 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.junit.Test;
 import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
 import org.nanohttpd.protocols.http.request.Cookie;
 import org.nanohttpd.protocols.http.request.CookieHandler;
+import org.nanohttpd.protocols.http.request.IRequest;
 import org.nanohttpd.protocols.http.response.Response;
 
 /**
@@ -69,7 +69,7 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
         }
 
         @Override
-        public Response serve(DEPRECATED_IHTTPSession session) {
+        public Response serve(IRequest session) {
             CookieHandler cookies = session.getCookies();
             for (String cookieName : cookies) {
                 this.cookiesReceived.add(new Cookie(cookieName, cookies.read(cookieName)));

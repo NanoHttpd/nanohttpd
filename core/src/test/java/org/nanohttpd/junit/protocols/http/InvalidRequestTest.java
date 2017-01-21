@@ -35,15 +35,16 @@ package org.nanohttpd.junit.protocols.http;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
+import java.io.IOException;
+
 import org.junit.Test;
 
 public class InvalidRequestTest extends HttpServerTest {
 
     @Test
-    public void testGetRequestWithoutProtocol() {
+    public void testGetRequestWithoutProtocol() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "\r\nX-Important-Header: foo");
 
-        assertNotNull(this.testServer.parms);
         assertNotNull(this.testServer.parameters);
         assertTrue(this.testServer.header.size() > 0);
         assertNotNull(this.testServer.files);
@@ -51,10 +52,9 @@ public class InvalidRequestTest extends HttpServerTest {
     }
 
     @Test
-    public void testGetRequestWithProtocol() {
+    public void testGetRequestWithProtocol() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + " HTTP/1.1\r\nX-Important-Header: foo");
 
-        assertNotNull(this.testServer.parms);
         assertNotNull(this.testServer.parameters);
         assertTrue(this.testServer.header.size() > 0);
         assertNotNull(this.testServer.files);
@@ -62,9 +62,8 @@ public class InvalidRequestTest extends HttpServerTest {
     }
 
     @Test
-    public void testPostRequestWithoutProtocol() {
+    public void testPostRequestWithoutProtocol() throws IOException {
         invokeServer("POST " + HttpServerTest.URI + "\r\nContent-Length: 123");
-        assertNotNull(this.testServer.parms);
         assertNotNull(this.testServer.parameters);
         assertTrue(this.testServer.header.size() > 0);
         assertNotNull(this.testServer.files);
@@ -72,9 +71,8 @@ public class InvalidRequestTest extends HttpServerTest {
     }
 
     @Test
-    public void testPostRequestWithProtocol() {
+    public void testPostRequestWithProtocol() throws IOException {
         invokeServer("POST " + HttpServerTest.URI + " HTTP/1.1\r\nContent-Length: 123");
-        assertNotNull(this.testServer.parms);
         assertNotNull(this.testServer.parameters);
         assertTrue(this.testServer.header.size() > 0);
         assertNotNull(this.testServer.files);

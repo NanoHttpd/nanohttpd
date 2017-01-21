@@ -41,7 +41,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 
-import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
+import org.nanohttpd.protocols.http.IConnection.IConnectionIO;
+import org.nanohttpd.protocols.http.request.IRequest;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 
@@ -59,7 +60,7 @@ public abstract class WebSocket {
 
     protected boolean enforceNoGzip = true;
 
-    private final DEPRECATED_IHTTPSession handshakeRequest;
+    private final IRequest handshakeRequest;
 
     private final Response handshakeResponse = new Response(Status.SWITCH_PROTOCOL, null, (InputStream) null, 0) {
 
@@ -74,9 +75,9 @@ public abstract class WebSocket {
         }
     };
 
-    public WebSocket(DEPRECATED_IHTTPSession handshakeRequest) {
+    public WebSocket(IRequest handshakeRequest) {
         this.handshakeRequest = handshakeRequest;
-        this.in = handshakeRequest.getInputStream();
+        this.in = ((IConnectionIO)handshakeRequest.getClientConnection()).getInputStream();
         if (enforceNoGzip)
             handshakeResponse.setUseGzip(false);
         this.handshakeResponse.addHeader(NanoWSD.HEADER_UPGRADE, NanoWSD.HEADER_UPGRADE_VALUE);
@@ -150,7 +151,7 @@ public abstract class WebSocket {
 
     // --------------------------------IO--------------------------------------
 
-    public DEPRECATED_IHTTPSession getHandshakeRequest() {
+    public IRequest getHandshakeRequest() {
         return this.handshakeRequest;
     }
 

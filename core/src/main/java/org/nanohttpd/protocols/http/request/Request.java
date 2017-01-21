@@ -41,21 +41,28 @@ import java.util.Map;
 import org.nanohttpd.protocols.http.IConnection;
 
 /**
- * This implementation of the interface actually works like a
- * per-connection singleton to make a compromise between splitting
- * the request from the connection and sparing Garbage Collection efforts.
+ * This implementation of the interface actually works like a per-connection
+ * singleton to make a compromise between splitting the request from the
+ * connection and sparing Garbage Collection efforts.
  * 
  * @author LordFokas
  */
 public class Request implements IRequest {
+
     private final IConnection connection;
+
     private final Map<String, List<String>> parameters;
+
     private final Map<String, String> headers;
-    
+
     private Method method;
+
     private String resource;
+
     private String query;
+
     private URL url;
+
     private CookieHandler cookies;
 
     public Request(IConnection connection){
@@ -63,7 +70,7 @@ public class Request implements IRequest {
 		this.parameters = new HashMap<>();
 		this.headers = new HashMap<>();
 	}
-    
+
     /** Called internally by the Connection to avoid GC recycling. */
     public void recycle() {
         parameters.clear();
@@ -74,14 +81,14 @@ public class Request implements IRequest {
         url = null;
         cookies = null;
     }
-    
+
     /** Called internally to set the values for the next actual request. */
-    public void setUp(Method method, String resource, String query, URL url, CookieHandler cookies){
-    	this.method = method;
-    	this.resource = resource;
-    	this.query = query;
-    	this.url = url;
-    	this.cookies = cookies;
+    public void setUp(Method method, String resource, String query, URL url, CookieHandler cookies) {
+        this.method = method;
+        this.resource = resource;
+        this.query = query;
+        this.url = url;
+        this.cookies = cookies;
     }
 
     @Override
@@ -116,11 +123,11 @@ public class Request implements IRequest {
 
     @Override
     public String getParameter(String param, int index) {
-        if(!parameters.containsKey(param))
-        	return null;
+        if (!parameters.containsKey(param))
+            return null;
         List<String> params = parameters.get(param);
-        if(index >= params.size())
-        	return null;
+        if (index >= params.size())
+            return null;
         return params.get(index);
     }
 

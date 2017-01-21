@@ -417,7 +417,7 @@ public class DEPRECATED_HTTPSession implements DEPRECATED_IHTTPSession {
             // TODO: long body_size = getBodySize();
             // TODO: long pos_before_serve = this.inputStream.totalRead()
             // (requires implementation for totalRead())
-            r = httpd.handle(this);
+            r = httpd.handle(null); // not this anymore.
             // TODO: this.inputStream.skip(body_size -
             // (this.inputStream.totalRead() - pos_before_serve))
 

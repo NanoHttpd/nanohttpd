@@ -44,8 +44,9 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.junit.Test;
+import org.nanohttpd.protocols.http.IConnection.IConnectionIO;
 import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http._deprecated.DEPRECATED_IHTTPSession;
+import org.nanohttpd.protocols.http.request.IRequest;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
@@ -59,14 +60,14 @@ public class PutStreamIntegrationTest extends IntegrationTestBase<PutStreamInteg
         }
 
         @Override
-        public Response serve(DEPRECATED_IHTTPSession session) {
+        public Response serve(IRequest session) {
             Method method = session.getMethod();
             Map<String, String> headers = session.getHeaders();
             int contentLength = Integer.parseInt(headers.get("content-length"));
 
             byte[] body;
             try {
-                DataInputStream dataInputStream = new DataInputStream(session.getInputStream());
+                DataInputStream dataInputStream = new DataInputStream(((IConnectionIO) session.getClientConnection()).getInputStream());
                 body = new byte[contentLength];
                 dataInputStream.readFully(body, 0, contentLength);
             } catch (IOException e) {

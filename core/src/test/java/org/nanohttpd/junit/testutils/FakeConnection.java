@@ -1,10 +1,10 @@
-package org.nanohttpd.protocols.http._deprecated;
+package org.nanohttpd.junit.testutils;
 
 /*
  * #%L
  * NanoHttpd-Core
  * %%
- * Copyright (C) 2012 - 2016 nanohttpd
+ * Copyright (C) 2012 - 2017 nanohttpd
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -35,66 +35,28 @@ package org.nanohttpd.protocols.http._deprecated;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
 
-import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
-import org.nanohttpd.protocols.http.request.CookieHandler;
-import org.nanohttpd.protocols.http.request.Method;
+import org.mockito.Mockito;
+import org.nanohttpd.protocols.http.Connection;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
-/**
- * Handles one session, i.e. parses the HTTP request and returns the response.
- */
-public interface DEPRECATED_IHTTPSession {
+public class FakeConnection {
 
-    void execute() throws IOException;
+    public static Connection with(NanoHTTPD httpd, ITempFileManager tempFileManager, InputStream in, OutputStream out) throws IOException {
+        return with(httpd, tempFileManager, in, out, InetAddress.getByName("127.0.0.1"));
+    }
 
-    CookieHandler getCookies();
+    public static Connection with(NanoHTTPD httpd, ITempFileManager tempFileManager, InputStream in, OutputStream out, InetAddress address) throws IOException {
+        Socket socket = Mockito.mock(Socket.class);
 
-    Map<String, String> getHeaders();
+        Mockito.when(socket.getInputStream()).thenReturn(in);
+        Mockito.when(socket.getOutputStream()).thenReturn(out);
+        Mockito.when(socket.getInetAddress()).thenReturn(address);
 
-    InputStream getInputStream();
-
-    Method getMethod();
-
-    /**
-     * This method will only return the first value for a given parameter. You
-     * will want to use getParameters if you expect multiple values for a given
-     * key.
-     * 
-     * @deprecated use {@link #getParameters()} instead.
-     */
-    @Deprecated
-    Map<String, String> getParms();
-
-    Map<String, List<String>> getParameters();
-
-    String getQueryParameterString();
-
-    /**
-     * @return the path part of the URL.
-     */
-    String getUri();
-
-    /**
-     * Adds the files in the request body to the files map.
-     * 
-     * @param files
-     *            map to modify
-     */
-    void parseBody(Map<String, String> files) throws IOException, ResponseException;
-
-    /**
-     * Get the remote ip address of the requester.
-     * 
-     * @return the IP address.
-     */
-    String getRemoteIpAddress();
-
-    /**
-     * Get the remote hostname of the requester.
-     * 
-     * @return the hostname.
-     */
-    String getRemoteHostName();
+        return new Connection(httpd, socket, tempFileManager);
+    }
 }

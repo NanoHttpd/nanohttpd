@@ -50,8 +50,10 @@ import java.util.Map;
 
 import javax.net.ssl.SSLException;
 
+import org.nanohttpd.protocols.http.IConnection.IConnectionIO;
 import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
 import org.nanohttpd.protocols.http.request.CookieHandler;
+import org.nanohttpd.protocols.http.request.IRequest;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.request.Request;
 import org.nanohttpd.protocols.http.response.Response;
@@ -59,15 +61,22 @@ import org.nanohttpd.protocols.http.response.Status;
 import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 import org.nanohttpd.util.Pointer;
 
-public class Connection implements IConnection {
-	private static final int BUFFER_SIZE = 0x2000; // 8KB
-	
+public class Connection implements IConnectionIO {
+
+    private static final int BUFFER_SIZE = 0x2000; // 8KB
+
     private final NanoHTTPD httpd;
+
     private final Request request = new Request(this);
+
     private final Socket socket;
+
     private final OutputStream outputStream;
+
     private final InputStream inputStream;
+
     private final ITempFileManager tempFileManager;
+
     private String remoteHostname;
 
     public Connection(NanoHTTPD httpd, Socket socket, ITempFileManager tempFileManager) throws IOException {
@@ -143,12 +152,10 @@ public class Connection implements IConnection {
             CookieHandler cookies = new CookieHandler(headers);
             String uri = pre.get("uri");
             URL url = new URL("<protocol>", "<host>", 0, uri); // TODO
-            request.setUp(method, uri, query.get(), null, cookies);
+            request.setUp(method, uri, query.get(), url, cookies);
 
             String connection = headers.get("connection");
             boolean keepAlive = "HTTP/1.1".equals(protocolVersion.get()) && (connection == null || !connection.matches("(?i).*close.*"));
-            
-            
 
             // Ok, now do the serve()
 
@@ -227,4 +234,10 @@ public class Connection implements IConnection {
         return remoteHostname;
     }
 
+    // ==================== KEEP OUT ================================== //
+    /** @return the current request object. only used for test purposes */
+    public IRequest getCurrentRequest() {
+        return request;
+    }
+    // ==================== KEEP OUT ================================== //
 }
