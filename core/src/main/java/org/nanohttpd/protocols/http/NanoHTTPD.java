@@ -181,6 +181,11 @@ public abstract class NanoHTTPD {
     private static final String QUERY_STRING_PARAMETER = "NanoHttpd.QUERY_STRING";
 
     /**
+     * Default size limit (in bytes) for bodies that are parsed in memory.
+     */
+    private static final int DEFAULT_MEMORY_STORE_LIMIT = 1024;
+
+    /**
      * logger to log to.
      */
     public static final Logger LOG = Logger.getLogger(NanoHTTPD.class.getName());
@@ -226,7 +231,7 @@ public abstract class NanoHTTPD {
         } catch (IOException e) {
             LOG.log(Level.INFO, "no mime types available at " + resourceName);
         }
-    };
+    }
 
     /**
      * Creates an SSLSocketFactory for HTTPS. Pass a loaded KeyStore and an
@@ -284,7 +289,7 @@ public abstract class NanoHTTPD {
 
     /**
      * Get MIME type from file name extension, if possible
-     * 
+     *
      * @param uri
      *            the string representing a file
      * @return the connected mime/type
@@ -344,6 +349,8 @@ public abstract class NanoHTTPD {
      */
     private IFactory<ITempFileManager> tempFileManagerFactory;
 
+    private int memoryStoreLimit = DEFAULT_MEMORY_STORE_LIMIT;
+
     /**
      * Constructs an HTTP server on given port.
      */
@@ -396,7 +403,7 @@ public abstract class NanoHTTPD {
     /**
      * create a instance of the client handler, subclasses can return a subclass
      * of the ClientHandler.
-     * 
+     *
      * @param finalAccept
      *            the socket the cleint is connected to
      * @param inputStream
@@ -410,7 +417,7 @@ public abstract class NanoHTTPD {
     /**
      * Instantiate the server runnable, can be overwritten by subclasses to
      * provide a subclass of the ServerRunnable.
-     * 
+     *
      * @param timeout
      *            the socet timeout to use.
      * @return the server runnable.
@@ -423,7 +430,7 @@ public abstract class NanoHTTPD {
      * Decode parameters from a URL, handing the case where a single parameter
      * name might have been supplied several times, by return lists of values.
      * In general these lists will contain a single element.
-     * 
+     *
      * @param parms
      *            original <b>NanoHTTPD</b> parameters values, as passed to the
      *            <code>serve()</code> method.
@@ -441,7 +448,7 @@ public abstract class NanoHTTPD {
      * Decode parameters from a URL, handing the case where a single parameter
      * name might have been supplied several times, by return lists of values.
      * In general these lists will contain a single element.
-     * 
+     *
      * @param queryString
      *            a query string pulled from the URL.
      * @return a map of <code>String</code> (parameter name) to
@@ -469,7 +476,7 @@ public abstract class NanoHTTPD {
 
     /**
      * Decode percent encoded <code>String</code> values.
-     * 
+     *
      * @param str
      *            the percent encoded <code>String</code>
      * @return expanded form of the input, for example "foo%20bar" becomes
@@ -509,6 +516,10 @@ public abstract class NanoHTTPD {
         return tempFileManagerFactory;
     }
 
+    public int getMemoryStoreLimit() {
+        return memoryStoreLimit;
+    }
+
     /**
      * Call before start() to serve over HTTPS instead of HTTP
      */
@@ -521,7 +532,7 @@ public abstract class NanoHTTPD {
      * sure there is a response to every request. You are not supposed to call
      * or override this method in any circumstances. But no one will stop you if
      * you do. I'm a Javadoc, not Code Police.
-     * 
+     *
      * @param session
      *            the incoming session
      * @return a response to the incoming session
@@ -540,7 +551,7 @@ public abstract class NanoHTTPD {
      * <p/>
      * <p/>
      * (By default, this returns a 404 "Not Found" plain text error response.)
-     * 
+     *
      * @param session
      *            The HTTP session
      * @return HTTP response, see class Response for details
@@ -552,7 +563,7 @@ public abstract class NanoHTTPD {
 
     /**
      * Pluggable strategy for asynchronously executing requests.
-     * 
+     *
      * @param asyncRunner
      *            new strategy for handling threads.
      */
@@ -562,7 +573,7 @@ public abstract class NanoHTTPD {
 
     /**
      * Pluggable strategy for creating and cleaning up temporary files.
-     * 
+     *
      * @param tempFileManagerFactory
      *            new strategy for handling temp files.
      */
@@ -571,8 +582,18 @@ public abstract class NanoHTTPD {
     }
 
     /**
+     * Sets the size limit for bodies that are parsed in memory.
+     *
+     * @param memoryStoreLimit
+     *             The size limit in bytes.
+     */
+    public void setMemoryStoreLimit(final int memoryStoreLimit) {
+        this.memoryStoreLimit = memoryStoreLimit;
+    }
+
+    /**
      * Start the server.
-     * 
+     *
      * @throws IOException
      *             if the socket is in use.
      */
@@ -589,7 +610,7 @@ public abstract class NanoHTTPD {
 
     /**
      * Start the server.
-     * 
+     *
      * @param timeout
      *            timeout to use for socket connections.
      * @param daemon
