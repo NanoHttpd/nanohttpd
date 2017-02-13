@@ -609,7 +609,7 @@ public class HTTPSession implements IHTTPSession {
             DataOutput requestDataOutput = null;
 
             // Store the request in memory or a file, depending on size
-            if (size < httpd.getMemoryStoreLimit()) {
+            if (size <= httpd.getMemoryStoreLimit()) {
                 baos = new ByteArrayOutputStream();
                 requestDataOutput = new DataOutputStream(baos);
             } else {
