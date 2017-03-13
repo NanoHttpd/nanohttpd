@@ -661,7 +661,7 @@ public class HTTPSession implements IHTTPSession {
                         files.put(POST_DATA, postLine);
                     }
                 }
-            } else if (Method.PUT.equals(this.method)) {
+            } else if (Method.PUT.equals(this.method) || Method.PATCH.equals(this.method)) {
                 files.put("content", saveTmpFile(fbuf, 0, fbuf.limit(), null));
             }
         } finally {
