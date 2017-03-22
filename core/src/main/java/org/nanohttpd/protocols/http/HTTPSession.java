@@ -459,6 +459,7 @@ public class HTTPSession implements IHTTPSession {
             NanoHTTPD.safeClose(this.outputStream);
         } finally {
             NanoHTTPD.safeClose(r);
+            NanoHTTPD.safeClose(this.inputStream);
             this.tempFileManager.clear();
         }
     }
