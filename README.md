@@ -13,7 +13,7 @@ It is being developed at Github and uses Apache Maven for builds & unit testing:
 We'll create a custom HTTP server project using Maven for build/dep system. This tutorial assumes you are using a Unix variant and a shell. First, install Maven and Java SDK if not already installed. Then run:
 
     mvn compile
-    mvn exec:java -pl webserver -Dexec.mainClass="org.nanohttpd.SimpleWebServer"
+    mvn exec:java -pl webserver -Dexec.mainClass="org.nanohttpd.webserver.SimpleWebServer"
     
 You should now have a HTTP file server running on <http://localhost:8080/>.
 
