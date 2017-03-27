@@ -33,6 +33,8 @@ package org.nanohttpd.protocols.http.response;
  * #L%
  */
 
+import java.util.Locale;
+
 /**
  * Some HTTP response status codes
  */
@@ -99,13 +101,39 @@ public enum Status implements IStatus {
         return null;
     }
 
+    public static IStatus getStatus(int requestStatus, String description) {
+        return new StatusContainer(requestStatus, description);
+    }
+
     @Override
     public String getDescription() {
-        return "" + this.requestStatus + " " + this.description;
+        return String.format(Locale.US, "%d %s", this.requestStatus, this.description);
     }
 
     @Override
     public int getRequestStatus() {
         return this.requestStatus;
+    }
+
+    private static class StatusContainer implements IStatus {
+
+        private int requestStatus;
+
+        private String description;
+
+        StatusContainer(int requestStatus, String description) {
+            this.requestStatus = requestStatus;
+            this.description = description;
+        }
+
+        @Override
+        public String getDescription() {
+            return String.format(Locale.US, "%d %s", this.requestStatus, this.description);
+        }
+
+        @Override
+        public int getRequestStatus() {
+            return this.requestStatus;
+        }
     }
 }

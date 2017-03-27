@@ -38,6 +38,7 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.nanohttpd.protocols.http.response.IStatus;
 import org.nanohttpd.protocols.http.response.Status;
 
 public class StatusTest {
@@ -82,6 +83,13 @@ public class StatusTest {
         }
 
         return builder.toString().trim();
+    }
+
+    @Test
+    public void testCustom() throws Exception {
+        IStatus test = Status.getStatus(200, "OK");
+        Assert.assertEquals(test.getRequestStatus(), 200);
+        Assert.assertEquals(test.getDescription(), "200 OK");
     }
 
     @Test
