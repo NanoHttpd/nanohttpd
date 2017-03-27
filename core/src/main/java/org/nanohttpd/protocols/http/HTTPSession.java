@@ -390,7 +390,7 @@ public class HTTPSession implements IHTTPSession {
             }
 
             // Create a BufferedReader for parsing the header.
-            BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, this.rlen)));
+            BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, this.splitbyte)));
 
             // Decode the header into parms and header java properties
             Map<String, String> pre = new HashMap<String, String>();
