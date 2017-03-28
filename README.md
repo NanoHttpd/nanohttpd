@@ -69,7 +69,7 @@ Edit `src/main/java/com/example/App.java` and replace it with:
             } else {
                 msg += "<p>Hello, " + parms.get("username") + "!</p>";
             }
-            return newFixedLengthResponse(msg + "</body></html>\n");
+            return new FixedLengthResponse(msg + "</body></html>\n");
         }
     }
 ```
