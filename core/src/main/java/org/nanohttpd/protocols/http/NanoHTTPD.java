@@ -59,6 +59,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
+import org.nanohttpd.protocols.http.middlewares.Middleware;
+import org.nanohttpd.protocols.http.middlewares.MiddlewareHandler;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 import org.nanohttpd.protocols.http.sockets.DefaultServerSocketFactory;
@@ -333,6 +335,8 @@ public abstract class NanoHTTPD {
     private IHandler<IHTTPSession, Response> httpHandler;
 
     protected List<IHandler<IHTTPSession, Response>> interceptors = new ArrayList<IHandler<IHTTPSession, Response>>(4);
+    private List<Middleware> middlewares = new ArrayList<>(4);
+    private MiddlewareHandler middlewareHandler = new MiddlewareHandler();
 
     /**
      * Pluggable strategy for asynchronously executing requests.
@@ -547,6 +551,10 @@ public abstract class NanoHTTPD {
      */
     @Deprecated
     protected Response serve(IHTTPSession session) {
+        return defaultResponse();
+    }
+
+    protected Response defaultResponse() {
         return Response.newFixedLengthResponse(Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "Not Found");
     }
 
@@ -638,4 +646,22 @@ public abstract class NanoHTTPD {
     public final boolean wasStarted() {
         return this.myServerSocket != null && this.myThread != null;
     }
+
+    public void use(Middleware middleware) {
+
+        if ( middleware != null )
+            middlewares.add(middleware);
+    }
+
+    protected Response applyMiddlewares(IHTTPSession session) {
+        for ( Middleware middleware : middlewares )
+        {
+            Response r = middlewareHandler.handle(middleware, session);
+            if ( r != null )
+                return r;
+        }
+
+        return null;
+    }
+
 }
