@@ -72,7 +72,7 @@ import org.nanohttpd.protocols.http.tempfiles.ITempFile;
 import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
 public class HTTPSession implements IHTTPSession {
-    
+
     public static final String POST_DATA = "postData";
 
     private static final int REQUEST_BUFFER_LEN = 512;
@@ -418,7 +418,10 @@ public class HTTPSession implements IHTTPSession {
             // TODO: long body_size = getBodySize();
             // TODO: long pos_before_serve = this.inputStream.totalRead()
             // (requires implementation for totalRead())
-            r = httpd.handle(this);
+
+            Response middlewareResponse = httpd.applyMiddlewares(this);
+
+            r = middlewareResponse != null ? middlewareResponse : httpd.handle(this);
             // TODO: this.inputStream.skip(body_size -
             // (this.inputStream.totalRead() - pos_before_serve))
 
