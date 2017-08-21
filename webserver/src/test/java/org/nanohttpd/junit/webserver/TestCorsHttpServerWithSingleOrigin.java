@@ -78,7 +78,7 @@ public class TestCorsHttpServerWithSingleOrigin extends AbstractTestHttpServer {
             }
         });
         serverStartThread.start();
-        // give the server some tine to start.
+        // give the server some time to start.
         Thread.sleep(100);
     }
 
