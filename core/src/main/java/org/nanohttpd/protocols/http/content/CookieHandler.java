@@ -74,7 +74,7 @@ public class CookieHandler implements Iterable<String> {
      *            The cookie name.
      */
     public void delete(String name) {
-        set(name, "-delete-", -30);
+        set(name, "-delete-", -30, false, false);
     }
 
     @Override
