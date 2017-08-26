@@ -54,6 +54,7 @@ public class Cookie {
     }
 
     private final String n, v, e;
+	private final boolean secure, httpOnly;
 
     public Cookie(String name, String value) {
         this(name, value, 30);
@@ -70,9 +71,21 @@ public class Cookie {
         this.v = value;
         this.e = expires;
     }
-
+	public Cookie(String name, String value, int numDays, boolean secure, boolean httpOnly) {
+		this(name, value, getHTTPTime(numDays), secure, httpOnly);
+	}
+	public Cookie(String name, String value, String expires, boolean secure, boolean httpOnly) {
+		this(name, value, expires);
+		this.secure = secure;
+		this.httpOnly = httpOnly;
+		
+	}
     public String getHTTPHeader() {
-        String fmt = "%s=%s; expires=%s";
-        return String.format(fmt, this.n, this.v, this.e);
+        header = String.format("%s=%s; expires=%s", this.n, this.v, this.e);
+		if(secure)
+			header += "; secure";
+		if(httpOnly)
+			header += "; HttpOnly";
+        return header;
     }
 }

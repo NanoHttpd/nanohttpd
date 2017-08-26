@@ -106,9 +106,13 @@ public class CookieHandler implements Iterable<String> {
      *            The cookie's value.
      * @param expires
      *            How many days until the cookie expires.
+	 * @param secure
+	 *            Adds the secure flag to the cookie
+	 * @param httpOnly
+	 *            Adds the httpOnly flag to the cookie
      */
-    public void set(String name, String value, int expires) {
-        this.queue.add(new Cookie(name, value, Cookie.getHTTPTime(expires)));
+    public void set(String name, String value, int expires, boolean secure, boolean httpOnly) {
+        this.queue.add(new Cookie(name, value, Cookie.getHTTPTime(expires)), secure, httpOnly);
     }
 
     /**
