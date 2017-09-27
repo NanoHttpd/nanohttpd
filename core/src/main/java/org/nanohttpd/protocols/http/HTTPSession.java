@@ -616,7 +616,7 @@ public class HTTPSession implements IHTTPSession {
             final ByteArrayOutputStream baos;
             final DataOutput requestDataOutput;
 
-            Integer memoryStoreLimit = getMemoryStoreLimit();
+            final Integer memoryStoreLimit = getMemoryStoreLimit();
 
             // Store the request in memory or a file, depending on size
             if (memoryStoreLimit == null || size < memoryStoreLimit.intValue()) {
