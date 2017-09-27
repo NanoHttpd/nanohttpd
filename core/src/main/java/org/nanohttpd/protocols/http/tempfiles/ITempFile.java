@@ -45,9 +45,9 @@ import java.io.OutputStream;
  */
 public interface ITempFile {
 
-    public void delete() throws Exception;
+    void delete() throws Exception;
 
-    public String getName();
+    String getName();
 
-    public OutputStream open() throws Exception;
+    OutputStream open() throws Exception;
 }
