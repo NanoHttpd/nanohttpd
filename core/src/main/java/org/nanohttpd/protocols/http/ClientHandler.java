@@ -35,6 +35,7 @@ package org.nanohttpd.protocols.http;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -64,13 +65,17 @@ public class ClientHandler implements Runnable {
         NanoHTTPD.safeClose(this.acceptSocket);
     }
 
+    protected HTTPSession createHTTPSession(NanoHTTPD httpd, ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
+        return new HTTPSession(httpd, tempFileManager, inputStream, outputStream, inetAddress);
+    }
+
     @Override
     public void run() {
         OutputStream outputStream = null;
         try {
             outputStream = this.acceptSocket.getOutputStream();
-            ITempFileManager tempFileManager = httpd.getTempFileManagerFactory().create();
-            HTTPSession session = new HTTPSession(httpd, tempFileManager, this.inputStream, outputStream, this.acceptSocket.getInetAddress());
+            final ITempFileManager tempFileManager = httpd.getTempFileManagerFactory().create();
+            final HTTPSession session = createHTTPSession(httpd, tempFileManager, this.inputStream, outputStream, this.acceptSocket.getInetAddress());
             while (!this.acceptSocket.isClosed()) {
                 session.execute();
             }
