@@ -691,7 +691,7 @@ public class HTTPSession implements IHTTPSession {
      * Retrieves the content of a sent file and saves it to a temporary file.
      * The full path to the saved file is returned.
      */
-    private String saveTmpFile(ByteBuffer b, int offset, int len, String filename_hint) {
+    protected String saveTmpFile(ByteBuffer b, int offset, int len, String filename_hint) {
         String path = "";
         if (len > 0) {
             FileOutputStream fileOutputStream = null;
