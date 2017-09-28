@@ -85,7 +85,7 @@ public class HTTPSession implements IHTTPSession {
 
     private final NanoHTTPD httpd;
 
-    private final ITempFileManager tempFileManager;
+    protected final ITempFileManager tempFileManager;
 
     private final OutputStream outputStream;
 
