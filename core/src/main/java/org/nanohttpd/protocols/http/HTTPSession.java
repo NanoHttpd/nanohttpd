@@ -75,7 +75,7 @@ public class HTTPSession implements IHTTPSession {
     
     public static final String POST_DATA = "postData";
 
-    private static final int REQUEST_BUFFER_LEN = 512;
+    private static final int DEFAULT_REQUEST_BUFFER_LEN = 512;
 
     private static final int DEFAULT_MEMORY_STORE_LIMIT = 1024;
 
@@ -590,6 +590,13 @@ public class HTTPSession implements IHTTPSession {
         return new Integer(DEFAULT_MEMORY_STORE_LIMIT);
     }
 
+    /**
+     * Get the buffer size for network reads.
+     */
+    protected int getRequestBufferLen() {
+        return DEFAULT_REQUEST_BUFFER_LEN;
+    }
+
     @Override
     public final String getUri() {
         return this.uri;
@@ -628,10 +635,12 @@ public class HTTPSession implements IHTTPSession {
                 requestDataOutput = randomAccessFile;
             }
 
+            final int requestBufferLen = getRequestBufferLen();
+
             // Read all the body and write it to request_data_output
-            byte[] buf = new byte[REQUEST_BUFFER_LEN];
+            final byte[] buf = new byte[requestBufferLen];
             while (this.rlen >= 0 && size > 0) {
-                this.rlen = this.inputStream.read(buf, 0, (int) Math.min(size, REQUEST_BUFFER_LEN));
+                this.rlen = this.inputStream.read(buf, 0, (int) Math.min(size, requestBufferLen));
                 size -= this.rlen;
                 if (this.rlen > 0) {
                     requestDataOutput.write(buf, 0, this.rlen);
