@@ -78,6 +78,7 @@ public enum Status implements IStatus {
 
     INTERNAL_ERROR(500, "Internal Server Error"),
     NOT_IMPLEMENTED(501, "Not Implemented"),
+    BAD_GATEWAY(502, "Bad Gateway"),
     SERVICE_UNAVAILABLE(503, "Service Unavailable"),
     UNSUPPORTED_HTTP_VERSION(505, "HTTP Version Not Supported");
 
