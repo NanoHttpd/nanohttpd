@@ -122,7 +122,7 @@ import org.nanohttpd.util.IHandler;
  * See the separate "LICENSE.md" file for the distribution license (Modified BSD
  * licence)
  */
-public abstract class NanoHTTPD {
+public class NanoHTTPD {
 
     public static final String CONTENT_DISPOSITION_REGEX = "([ |\t]*Content-Disposition[ |\t]*:)(.*)";
 
