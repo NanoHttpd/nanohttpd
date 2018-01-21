@@ -1,0 +1,16 @@
+rootProject.name = 'nanohttpd-project'
+include ':nanohttpd'
+include ':nanohttpd-samples'
+include ':nanohttpd-webserver'
+include ':nanohttpd-websocket'
+include ':nanohttpd-webserver-markdown-plugin'
+include ':nanohttpd-nanolets'
+include ':nanohttpd-apache-fileupload'
+
+project(':nanohttpd').projectDir = "$rootDir/core" as File
+project(':nanohttpd-samples').projectDir = "$rootDir/samples" as File
+project(':nanohttpd-webserver').projectDir = "$rootDir/webserver" as File
+project(':nanohttpd-websocket').projectDir = "$rootDir/websocket" as File
+project(':nanohttpd-webserver-markdown-plugin').projectDir = "$rootDir/markdown-plugin" as File
+project(':nanohttpd-nanolets').projectDir = "$rootDir/nanolets" as File
+project(':nanohttpd-apache-fileupload').projectDir = "$rootDir/fileupload" as File

@@ -1,0 +1,11 @@
+description = 'NanoHttpd-Webserver-Markdown-Plugin'
+
+dependencies {
+	compile group: 'org.pegdown', name: 'pegdown', version: '1.4.1'
+	compileOnly project(':nanohttpd')
+	compileOnly project(':nanohttpd-webserver')
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = "4.4.1"
+}
