@@ -1,0 +1,7 @@
+description = 'NanoHttpd-nano application server'
+
+dependencies {
+	compile project(':nanohttpd')
+	
+	testCompile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.4.1'
+}
