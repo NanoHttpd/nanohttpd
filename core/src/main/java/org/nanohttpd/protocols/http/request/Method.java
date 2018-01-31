@@ -53,7 +53,9 @@ public enum Method {
     MOVE,
     COPY,
     LOCK,
-    UNLOCK;
+    UNLOCK,
+    NOTIFY,
+    SUBSCRIBE;
 
     public static Method lookup(String method) {
         if (method == null)
