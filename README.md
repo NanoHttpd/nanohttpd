@@ -39,10 +39,10 @@ Edit `src/main/java/com/example/App.java` and replace it with:
     import java.io.IOException;
     import java.util.Map;
     
-    import org.nanohttpd.NanoHTTPD;
-    // NOTE: If you're using NanoHTTPD < 3.0.0 the namespace is different,
+    import fi.iki.elonen.NanoHTTPD;
+    // NOTE: If you're using NanoHTTPD >= 3.0.0 the namespace is different,
     //       instead of the above import use the following:
-    // import fi.iki.elonen.NanoHTTPD;
+	// import org.nanohttpd.NanoHTTPD;
     
     public class App extends NanoHTTPD {
     
