@@ -121,9 +121,8 @@ public abstract class WebSocket {
         this.state = State.CLOSING;
         if (oldState == State.OPEN) {
             sendFrame(new CloseFrame(code, reason));
-        } else {
-            doClose(code, reason, initiatedByRemote);
         }
+        doClose(code, reason, initiatedByRemote);
     }
 
     private void doClose(CloseCode code, String reason, boolean initiatedByRemote) {
