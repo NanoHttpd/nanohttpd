@@ -790,13 +790,7 @@ public abstract class NanoHTTPD {
                         parms.put(partName, values);
                     }
 
-                    if (partContentType == null) {
-                        // Read the part into a string
-                        byte[] data_bytes = new byte[partDataEnd - partDataStart];
-                        fbuf.get(data_bytes);
-
-                        values.add(new String(data_bytes, contentType.getEncoding()));
-                    } else {
+                    if (partIsFile(fileName, partContentType)) {
                         // Read it into a file
                         String path = saveTmpFile(fbuf, partDataStart, partDataEnd - partDataStart, fileName);
                         if (!files.containsKey(partName)) {
@@ -809,6 +803,17 @@ public abstract class NanoHTTPD {
                             files.put(partName + count, path);
                         }
                         values.add(fileName);
+                    } else {
+                        // Read the part into a string
+                        byte[] data_bytes = new byte[partDataEnd - partDataStart];
+                        fbuf.get(data_bytes);
+
+                        Matcher charsetMatcher = ContentType.CHARSET_PATTERN.matcher(partContentType == null ? "" : partContentType);
+                        if (charsetMatcher.find()) {
+                            values.add(new String(data_bytes, charsetMatcher.group(2)));
+                        } else {
+                            values.add(new String(data_bytes));
+                        }
                     }
                 }
             } catch (ResponseException re) {
@@ -823,6 +828,10 @@ public abstract class NanoHTTPD {
                 index++;
             }
             return ++index;
+        }
+
+        private boolean partIsFile(String fileName, String partContentType) {
+            return fileName != null || "application/octet-stream".equals(partContentType);
         }
 
         /**
