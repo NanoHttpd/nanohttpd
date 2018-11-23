@@ -297,7 +297,13 @@ public class Response implements Closeable {
         if (this.requestMethod != Method.HEAD && this.chunkedTransfer) {
             ChunkedOutputStream chunkedOutputStream = new ChunkedOutputStream(outputStream);
             sendBodyWithCorrectEncoding(chunkedOutputStream, -1);
-            chunkedOutputStream.finish();
+            try {
+                chunkedOutputStream.finish();
+            } catch (Exception e) {
+                if(this.data != null) {
+                    this.data.close();
+                }
+            }
         } else {
             sendBodyWithCorrectEncoding(outputStream, pending);
         }
@@ -305,9 +311,18 @@ public class Response implements Closeable {
 
     private void sendBodyWithCorrectEncoding(OutputStream outputStream, long pending) throws IOException {
         if (useGzipWhenAccepted()) {
-            GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputStream);
-            sendBody(gzipOutputStream, -1);
-            gzipOutputStream.finish();
+            GZIPOutputStream gzipOutputStream = null;
+            try {
+                gzipOutputStream = new GZIPOutputStream(outputStream);
+            } catch (Exception e) {
+                if(this.data != null) {
+                    this.data.close();
+                }
+            }
+            if (gzipOutputStream != null) {
+                sendBody(gzipOutputStream, -1);
+                gzipOutputStream.finish();
+            }
         } else {
             sendBody(outputStream, pending);
         }
