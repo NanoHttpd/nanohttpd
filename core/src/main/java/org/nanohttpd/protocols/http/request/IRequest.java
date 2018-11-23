@@ -1,12 +1,10 @@
-package org.nanohttpd.samples.http;
-
-import java.util.List;
+package org.nanohttpd.protocols.http.request;
 
 /*
  * #%L
- * NanoHttpd-Samples
+ * NanoHttpd-Core
  * %%
- * Copyright (C) 2012 - 2015 nanohttpd
+ * Copyright (C) 2012 - 2017 nanohttpd
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -35,49 +33,54 @@ import java.util.List;
  * #L%
  */
 
+import java.net.URL;
+import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
-import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http.request.IRequest;
-import org.nanohttpd.protocols.http.request.Method;
-import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.util.ServerRunner;
+import org.nanohttpd.protocols.http.IConnection;
 
-/**
- * An example of subclassing NanoHTTPD to make a custom HTTP server.
- */
-public class HelloServer extends NanoHTTPD {
+public interface IRequest {
+
+    /** @return the connection this request originated from */
+    public IConnection getClientConnection();
+
+    /** @return the request method (GET / POST / etc) */
+    public Method getMethod();
 
     /**
-     * logger to log to.
+     * @return the full URL of this request: protocol, address, port, resource +
+     *         query string
      */
-    private static final Logger LOG = Logger.getLogger(HelloServer.class.getName());
+    public URL getURL();
 
-    public static void main(String[] args) {
-        ServerRunner.run(HelloServer.class);
-    }
+    /** @return the path of the requested resource (file) */
+    public String getResource();
 
-    public HelloServer() {
-        super(8080);
-    }
+    /** @return the raw query string */
+    public String getQueryString();
 
-    @Override
-    public Response serve(IRequest request) {
-        Method method = request.getMethod();
-        String uri = request.getResource();
-        HelloServer.LOG.info(method + " '" + uri + "' ");
+    /**
+     * Equivalent to calling getParameter(param, 0);
+     * 
+     * @return the first parameter with this name
+     */
+    public String getFirstParameter(String param);
 
-        String msg = "<html><body><h1>Hello server</h1>\n";
-        Map<String, List<String>> parms = request.getAllParameters();
-        if (parms.get("username") == null) {
-            msg += "<form action='?' method='get'>\n" + "  <p>Your name: <input type='text' name='username'></p>\n" + "</form>\n";
-        } else {
-            msg += "<p>Hello, " + parms.get("username") + "!</p>";
-        }
+    /**
+     * @return the parameter at this index, from the set of parameters with this
+     *         name
+     */
+    public String getParameter(String param, int index);
 
-        msg += "</body></html>\n";
+    /** @return the full data structure with all received parameters */
+    public Map<String, List<String>> getAllParameters();
 
-        return Response.newFixedLengthResponse(msg);
-    }
+    /** @return the map with the received http headers */
+    public Map<String, String> getHeaders();
+
+    /**
+     * @return the CookieHandler containing all the cookies received in this
+     *         request
+     */
+    public CookieHandler getCookies();
 }

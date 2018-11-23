@@ -39,6 +39,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 
 import org.junit.Test;
@@ -48,7 +49,7 @@ import org.nanohttpd.protocols.http.response.Response;
 public class HttpGetRequestTest extends HttpServerTest {
 
     @Test
-    public void testDecodingFieldWithEmptyValueAndFieldWithMissingValueGiveDifferentResults() {
+    public void testDecodingFieldWithEmptyValueAndFieldWithMissingValueGiveDifferentResults() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "?foo&bar= HTTP/1.1");
         assertTrue(this.testServer.decodedParamters.get("foo") instanceof List);
         assertEquals(0, this.testServer.decodedParamters.get("foo").size());
@@ -58,7 +59,7 @@ public class HttpGetRequestTest extends HttpServerTest {
     }
 
     @Test
-    public void testDecodingMixtureOfParameters() {
+    public void testDecodingMixtureOfParameters() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar&foo=baz&zot&zim= HTTP/1.1");
         assertTrue(this.testServer.decodedParamters.get("foo") instanceof List);
         assertEquals(2, this.testServer.decodedParamters.get("foo").size());
@@ -72,7 +73,7 @@ public class HttpGetRequestTest extends HttpServerTest {
     }
 
     @Test
-    public void testDecodingParametersFromParameterMap() {
+    public void testDecodingParametersFromParameterMap() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar&foo=baz&zot&zim= HTTP/1.1");
         assertEquals(this.testServer.decodedParamters, this.testServer.decodedParamtersFromParameter);
     }
@@ -81,7 +82,7 @@ public class HttpGetRequestTest extends HttpServerTest {
     // //
 
     @Test
-    public void testDecodingParametersWithSingleValue() {
+    public void testDecodingParametersWithSingleValue() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar&baz=zot HTTP/1.1");
         assertEquals("foo=bar&baz=zot", this.testServer.queryParameterString);
         assertTrue(this.testServer.decodedParamters.get("foo") instanceof List);
@@ -93,7 +94,7 @@ public class HttpGetRequestTest extends HttpServerTest {
     }
 
     @Test
-    public void testDecodingParametersWithSingleValueAndMissingValue() {
+    public void testDecodingParametersWithSingleValueAndMissingValue() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "?foo&baz=zot HTTP/1.1");
         assertEquals("foo&baz=zot", this.testServer.queryParameterString);
         assertTrue(this.testServer.decodedParamters.get("foo") instanceof List);
@@ -104,7 +105,7 @@ public class HttpGetRequestTest extends HttpServerTest {
     }
 
     @Test
-    public void testDecodingSingleFieldRepeated() {
+    public void testDecodingSingleFieldRepeated() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar&foo=baz HTTP/1.1");
         assertTrue(this.testServer.decodedParamters.get("foo") instanceof List);
         assertEquals(2, this.testServer.decodedParamters.get("foo").size());
@@ -113,9 +114,8 @@ public class HttpGetRequestTest extends HttpServerTest {
     }
 
     @Test
-    public void testEmptyHeadersSuppliedToServeMethodFromSimpleWorkingGetRequest() {
+    public void testEmptyHeadersSuppliedToServeMethodFromSimpleWorkingGetRequest() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + " HTTP/1.1");
-        assertNotNull(this.testServer.parms);
         assertNotNull(this.testServer.parameters);
         assertNotNull(this.testServer.header);
         assertNotNull(this.testServer.files);
@@ -139,35 +139,29 @@ public class HttpGetRequestTest extends HttpServerTest {
     }
 
     @Test
-    public void testMultipleGetParameters() {
+    public void testMultipleGetParameters() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar&baz=zot HTTP/1.1");
-        assertEquals("bar", this.testServer.parms.get("foo"));
-        assertEquals("zot", this.testServer.parms.get("baz"));
         assertEquals("bar", this.testServer.parameters.get("foo").get(0));
         assertEquals("zot", this.testServer.parameters.get("baz").get(0));
     }
 
     @Test
-    public void testMultipleGetParametersWithMissingValue() {
+    public void testMultipleGetParametersWithMissingValue() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "?foo=&baz=zot HTTP/1.1");
-        assertEquals("", this.testServer.parms.get("foo"));
-        assertEquals("zot", this.testServer.parms.get("baz"));
         assertEquals("", this.testServer.parameters.get("foo").get(0));
         assertEquals("zot", this.testServer.parameters.get("baz").get(0));
     }
 
     @Test
-    public void testMultipleGetParametersWithMissingValueAndRequestHeaders() {
+    public void testMultipleGetParametersWithMissingValueAndRequestHeaders() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "?foo=&baz=zot HTTP/1.1\nAccept: text/html");
-        assertEquals("", this.testServer.parms.get("foo"));
-        assertEquals("zot", this.testServer.parms.get("baz"));
         assertEquals("", this.testServer.parameters.get("foo").get(0));
         assertEquals("zot", this.testServer.parameters.get("baz").get(0));
         assertEquals("text/html", this.testServer.header.get("accept"));
     }
 
     @Test
-    public void testMultipleHeaderSuppliedToServeMethodFromSimpleWorkingGetRequest() {
+    public void testMultipleHeaderSuppliedToServeMethodFromSimpleWorkingGetRequest() throws IOException {
         String userAgent = "jUnit 4.8.2 Unit Test";
         String accept = "text/html";
         invokeServer("GET " + HttpServerTest.URI + " HTTP/1.1\nUser-Agent: " + userAgent + "\nAccept: " + accept);
@@ -195,30 +189,27 @@ public class HttpGetRequestTest extends HttpServerTest {
     }
 
     @Test
-    public void testSingleGetParameter() {
+    public void testSingleGetParameter() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar HTTP/1.1");
-        assertEquals("bar", this.testServer.parms.get("foo"));
         assertEquals("bar", this.testServer.parameters.get("foo").get(0));
     }
 
     @Test
-    public void testMultipleValueGetParameter() {
+    public void testMultipleValueGetParameter() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar&foo=baz HTTP/1.1");
-        assertEquals("bar", this.testServer.parms.get("foo"));
         assertEquals(2, this.testServer.parameters.get("foo").size());
         assertEquals("bar", this.testServer.parameters.get("foo").get(0));
         assertEquals("baz", this.testServer.parameters.get("foo").get(1));
     }
 
     @Test
-    public void testSingleGetParameterWithNoValue() {
+    public void testSingleGetParameterWithNoValue() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "?foo HTTP/1.1");
-        assertEquals("", this.testServer.parms.get("foo"));
         assertEquals("", this.testServer.parameters.get("foo").get(0));
     }
 
     @Test
-    public void testSingleUserAgentHeaderSuppliedToServeMethodFromSimpleWorkingGetRequest() {
+    public void testSingleUserAgentHeaderSuppliedToServeMethodFromSimpleWorkingGetRequest() throws IOException {
         String userAgent = "jUnit 4.8.2 Unit Test";
         invokeServer("GET " + HttpServerTest.URI + " HTTP/1.1\nUser-Agent: " + userAgent + "\n");
         assertEquals(userAgent, this.testServer.header.get("user-agent"));
@@ -227,28 +218,28 @@ public class HttpGetRequestTest extends HttpServerTest {
     }
 
     @Test
-    public void testGetQueryParameterContainsSpace() {
+    public void testGetQueryParameterContainsSpace() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar%20baz HTTP/1.1");
         assertEquals("Parameter count in URL and decodedParameters should match.", 1, this.testServer.decodedParamters.size());
         assertEquals("The query parameter value with space decoding incorrect", "bar baz", this.testServer.decodedParamters.get("foo").get(0));
     }
 
     @Test
-    public void testGetQueryParameterContainsQuestionMark() {
+    public void testGetQueryParameterContainsQuestionMark() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar%3F HTTP/1.1");
         assertEquals("Parameter count in URL and decodedParameters should match.", 1, this.testServer.decodedParamters.size());
         assertEquals("The query parameter value with question mark decoding incorrect", "bar?", this.testServer.decodedParamters.get("foo").get(0));
     }
 
     @Test
-    public void testGetQueryParameterContainsAmpersand() {
+    public void testGetQueryParameterContainsAmpersand() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar%26 HTTP/1.1");
         assertEquals("Parameter count in URL and decodedParameters should match.", 1, this.testServer.decodedParamters.size());
         assertEquals("The query parameter value with ampersand decoding incorrect", "bar&", this.testServer.decodedParamters.get("foo").get(0));
     }
 
     @Test
-    public void testGetQueryParameterContainsSpecialCharactersSingleFieldRepeated() {
+    public void testGetQueryParameterContainsSpecialCharactersSingleFieldRepeated() throws IOException {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar%20baz&foo=bar%3F&foo=bar%26 HTTP/1.1");
         assertEquals("Parameter count in URL and decodedParameters should match.", 1, this.testServer.decodedParamters.size());
         String[] parametersAsArray = this.testServer.decodedParamters.get("foo").toArray(new String[0]);

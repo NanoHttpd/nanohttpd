@@ -45,7 +45,8 @@ import org.apache.commons.fileupload.FileUpload;
 import org.apache.commons.fileupload.FileUploadBase;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.UploadContext;
-import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.IConnection.IConnectionIO;
+import org.nanohttpd.protocols.http.request.IRequest;
 import org.nanohttpd.protocols.http.request.Method;
 
 /**
@@ -55,9 +56,9 @@ public class NanoFileUpload extends FileUpload {
 
     public static class NanoHttpdContext implements UploadContext {
 
-        private IHTTPSession session;
+        private IRequest session;
 
-        public NanoHttpdContext(IHTTPSession session) {
+        public NanoHttpdContext(IRequest session) {
             this.session = session;
         }
 
@@ -91,11 +92,11 @@ public class NanoFileUpload extends FileUpload {
 
         @Override
         public InputStream getInputStream() throws IOException {
-            return session.getInputStream();
+            return ((IConnectionIO)session.getClientConnection()).getInputStream();
         }
     }
 
-    public static final boolean isMultipartContent(IHTTPSession session) {
+    public static final boolean isMultipartContent(IRequest session) {
         return session.getMethod() == Method.POST && FileUploadBase.isMultipartContent(new NanoHttpdContext(session));
     }
 
@@ -103,15 +104,15 @@ public class NanoFileUpload extends FileUpload {
         super(fileItemFactory);
     }
 
-    public List<FileItem> parseRequest(IHTTPSession session) throws FileUploadException {
+    public List<FileItem> parseRequest(IRequest session) throws FileUploadException {
         return this.parseRequest(new NanoHttpdContext(session));
     }
 
-    public Map<String, List<FileItem>> parseParameterMap(IHTTPSession session) throws FileUploadException {
+    public Map<String, List<FileItem>> parseParameterMap(IRequest session) throws FileUploadException {
         return this.parseParameterMap(new NanoHttpdContext(session));
     }
 
-    public FileItemIterator getItemIterator(IHTTPSession session) throws FileUploadException, IOException {
+    public FileItemIterator getItemIterator(IRequest session) throws FileUploadException, IOException {
         return super.getItemIterator(new NanoHttpdContext(session));
     }
 

@@ -51,8 +51,8 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.StringTokenizer;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.request.IRequest;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.IStatus;
 import org.nanohttpd.protocols.http.response.Response;
@@ -360,13 +360,13 @@ public class SimpleWebServer extends NanoHTTPD {
         return response;
     }
 
-    private Response respond(Map<String, String> headers, IHTTPSession session, String uri) {
+    private Response respond(Map<String, String> headers, IRequest request, String uri) {
         // First let's handle CORS OPTION query
         Response r;
-        if (cors != null && Method.OPTIONS.equals(session.getMethod())) {
+        if (cors != null && Method.OPTIONS.equals(request.getMethod())) {
             r = Response.newFixedLengthResponse(Status.OK, MIME_PLAINTEXT, null, 0);
         } else {
-            r = defaultRespond(headers, session, uri);
+            r = defaultRespond(headers, request, uri);
         }
 
         if (cors != null) {
@@ -375,7 +375,7 @@ public class SimpleWebServer extends NanoHTTPD {
         return r;
     }
 
-    private Response defaultRespond(Map<String, String> headers, IHTTPSession session, String uri) {
+    private Response defaultRespond(Map<String, String> headers, IRequest request, String uri) {
         // Remove URL arguments
         uri = uri.trim().replace(File.separatorChar, '/');
         if (uri.indexOf('?') >= 0) {
@@ -419,17 +419,17 @@ public class SimpleWebServer extends NanoHTTPD {
                     return getForbiddenResponse("No directory listing.");
                 }
             } else {
-                return respond(headers, session, uri + indexFile);
+                return respond(headers, request, uri + indexFile);
             }
         }
         String mimeTypeForFile = getMimeTypeForFile(uri);
         WebServerPlugin plugin = SimpleWebServer.mimeTypeHandlers.get(mimeTypeForFile);
         Response response = null;
         if (plugin != null && plugin.canServeUri(uri, homeDir)) {
-            response = plugin.serveFile(uri, headers, session, f, mimeTypeForFile);
+            response = plugin.serveFile(uri, headers, request, f, mimeTypeForFile);
             if (response != null && response instanceof InternalRewrite) {
                 InternalRewrite rewrite = (InternalRewrite) response;
-                return respond(rewrite.getHeaders(), session, rewrite.getUri());
+                return respond(rewrite.getHeaders(), request, rewrite.getUri());
             }
         } else {
             response = serveFile(uri, headers, f, mimeTypeForFile);
@@ -438,23 +438,22 @@ public class SimpleWebServer extends NanoHTTPD {
     }
 
     @Override
-    public Response serve(IHTTPSession session) {
-        Map<String, String> header = session.getHeaders();
-        Map<String, String> parms = session.getParms();
-        String uri = session.getUri();
+    public Response serve(IRequest request) {
+        Map<String, String> header = request.getHeaders();
+        String uri = request.getResource();
 
         if (!this.quiet) {
-            System.out.println(session.getMethod() + " '" + uri + "' ");
+            System.out.println(request.getMethod() + " '" + uri + "' ");
 
             Iterator<String> e = header.keySet().iterator();
             while (e.hasNext()) {
                 String value = e.next();
                 System.out.println("  HDR: '" + value + "' = '" + header.get(value) + "'");
             }
-            e = parms.keySet().iterator();
+            e = request.getAllParameters().keySet().iterator();
             while (e.hasNext()) {
                 String value = e.next();
-                System.out.println("  PRM: '" + value + "' = '" + parms.get(value) + "'");
+                System.out.println("  PRM: '" + value + "' = '" + request.getFirstParameter(value) + "'");
             }
         }
 
@@ -464,7 +463,7 @@ public class SimpleWebServer extends NanoHTTPD {
                 return getInternalErrorResponse("given path is not a directory (" + homeDir + ").");
             }
         }
-        return respond(Collections.unmodifiableMap(header), session, uri);
+        return respond(Collections.unmodifiableMap(header), request, uri);
     }
 
     /**

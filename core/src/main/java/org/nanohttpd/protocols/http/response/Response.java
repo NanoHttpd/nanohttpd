@@ -57,7 +57,7 @@ import java.util.logging.Level;
 import java.util.zip.GZIPOutputStream;
 
 import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http.content.ContentType;
+import org.nanohttpd.protocols.http.request.ContentType;
 import org.nanohttpd.protocols.http.request.Method;
 
 /**
@@ -287,8 +287,8 @@ public class Response implements Closeable {
             } catch (NumberFormatException ex) {
                 NanoHTTPD.LOG.severe("content-length was no number " + contentLengthString);
             }
-        }else{
-        	pw.print("Content-Length: " + size + "\r\n");
+        } else {
+            pw.print("Content-Length: " + size + "\r\n");
         }
         return size;
     }
@@ -354,7 +354,7 @@ public class Response implements Closeable {
             try {
                 outputStream.write(buff, 0, read);
             } catch (Exception e) {
-                if(this.data != null) {
+                if (this.data != null) {
                     this.data.close();
                 }
             }

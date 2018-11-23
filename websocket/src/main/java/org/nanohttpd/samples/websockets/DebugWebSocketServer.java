@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.request.IRequest;
 import org.nanohttpd.protocols.websockets.CloseCode;
 import org.nanohttpd.protocols.websockets.NanoWSD;
 import org.nanohttpd.protocols.websockets.WebSocket;
@@ -61,7 +61,7 @@ public class DebugWebSocketServer extends NanoWSD {
     }
 
     @Override
-    protected WebSocket openWebSocket(IHTTPSession handshake) {
+    protected WebSocket openWebSocket(IRequest handshake) {
         return new DebugWebSocket(this, handshake);
     }
 
@@ -69,7 +69,7 @@ public class DebugWebSocketServer extends NanoWSD {
 
         private final DebugWebSocketServer server;
 
-        public DebugWebSocket(DebugWebSocketServer server, IHTTPSession handshakeRequest) {
+        public DebugWebSocket(DebugWebSocketServer server, IRequest handshakeRequest) {
             super(handshakeRequest);
             this.server = server;
         }

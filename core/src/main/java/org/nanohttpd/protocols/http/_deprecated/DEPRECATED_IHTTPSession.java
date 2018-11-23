@@ -1,4 +1,4 @@
-package org.nanohttpd.protocols.http;
+package org.nanohttpd.protocols.http._deprecated;
 
 /*
  * #%L
@@ -39,13 +39,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
-import org.nanohttpd.protocols.http.content.CookieHandler;
+import org.nanohttpd.protocols.http.request.CookieHandler;
 import org.nanohttpd.protocols.http.request.Method;
 
 /**
  * Handles one session, i.e. parses the HTTP request and returns the response.
  */
-public interface IHTTPSession {
+public interface DEPRECATED_IHTTPSession {
 
     void execute() throws IOException;
 

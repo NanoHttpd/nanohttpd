@@ -39,7 +39,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Random;
 
 import org.junit.Test;
-import org.nanohttpd.protocols.http.content.Cookie;
+import org.nanohttpd.protocols.http.request.Cookie;
 
 public class CookieTest {
 

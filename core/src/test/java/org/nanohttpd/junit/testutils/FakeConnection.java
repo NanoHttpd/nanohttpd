@@ -1,10 +1,10 @@
-package org.nanohttpd.protocols.http.content;
+package org.nanohttpd.junit.testutils;
 
 /*
  * #%L
  * NanoHttpd-Core
  * %%
- * Copyright (C) 2012 - 2016 nanohttpd
+ * Copyright (C) 2012 - 2017 nanohttpd
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -33,46 +33,30 @@ package org.nanohttpd.protocols.http.content;
  * #L%
  */
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
 
-/**
- * A simple cookie representation. This is old code and is flawed in many ways.
- * 
- * @author LordFokas
- */
-public class Cookie {
+import org.mockito.Mockito;
+import org.nanohttpd.protocols.http.Connection;
+import org.nanohttpd.protocols.http.NanoHTTPD;
+import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
-    public static String getHTTPTime(int days) {
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        calendar.add(Calendar.DAY_OF_MONTH, days);
-        return dateFormat.format(calendar.getTime());
+public class FakeConnection {
+
+    public static Connection with(NanoHTTPD httpd, ITempFileManager tempFileManager, InputStream in, OutputStream out) throws IOException {
+        return with(httpd, tempFileManager, in, out, InetAddress.getByName("127.0.0.1"));
     }
 
-    private final String n, v, e;
+    public static Connection with(NanoHTTPD httpd, ITempFileManager tempFileManager, InputStream in, OutputStream out, InetAddress address) throws IOException {
+        Socket socket = Mockito.mock(Socket.class);
 
-    public Cookie(String name, String value) {
-        this(name, value, 30);
-    }
+        Mockito.when(socket.getInputStream()).thenReturn(in);
+        Mockito.when(socket.getOutputStream()).thenReturn(out);
+        Mockito.when(socket.getInetAddress()).thenReturn(address);
 
-    public Cookie(String name, String value, int numDays) {
-        this.n = name;
-        this.v = value;
-        this.e = getHTTPTime(numDays);
-    }
-
-    public Cookie(String name, String value, String expires) {
-        this.n = name;
-        this.v = value;
-        this.e = expires;
-    }
-
-    public String getHTTPHeader() {
-        String fmt = "%s=%s; expires=%s";
-        return String.format(fmt, this.n, this.v, this.e);
+        return new Connection(httpd, socket, tempFileManager);
     }
 }

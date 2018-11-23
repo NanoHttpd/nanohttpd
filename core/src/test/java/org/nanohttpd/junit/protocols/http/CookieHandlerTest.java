@@ -48,8 +48,9 @@ import java.util.Set;
 import java.util.TimeZone;
 
 import org.junit.Test;
-import org.nanohttpd.protocols.http.HTTPSession;
-import org.nanohttpd.protocols.http.content.CookieHandler;
+import org.nanohttpd.junit.testutils.FakeConnection;
+import org.nanohttpd.protocols.http.Connection;
+import org.nanohttpd.protocols.http.request.CookieHandler;
 import org.nanohttpd.protocols.http.response.Response;
 
 public class CookieHandlerTest extends HttpServerTest {
@@ -61,10 +62,10 @@ public class CookieHandlerTest extends HttpServerTest {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
-        session.execute();
+        Connection session = FakeConnection.with(testServer, tempFileManager, inputStream, outputStream);
+        session.handleNextRequest();
+        CookieHandler cookieHandler = session.getCurrentRequest().getCookies();
         Set<String> allCookies = new HashSet<String>();
-        CookieHandler cookieHandler = session.getCookies();
         for (String cookie : cookieHandler) {
             allCookies.add(cookie);
         }
@@ -84,10 +85,10 @@ public class CookieHandlerTest extends HttpServerTest {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
-        session.execute();
+        Connection session = FakeConnection.with(testServer, tempFileManager, inputStream, outputStream);
+        session.handleNextRequest();
         Set<String> allCookies = new HashSet<String>();
-        CookieHandler cookieHandler = session.getCookies();
+        CookieHandler cookieHandler = session.getCurrentRequest().getCookies();
         for (String cookie : cookieHandler) {
             allCookies.add(cookie);
         }
@@ -105,9 +106,9 @@ public class CookieHandlerTest extends HttpServerTest {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
-        session.execute();
-        CookieHandler cookieHandler = session.getCookies();
+        Connection session = FakeConnection.with(testServer, tempFileManager, inputStream, outputStream);
+        session.handleNextRequest();
+        CookieHandler cookieHandler = session.getCurrentRequest().getCookies();
         Response response = Response.newFixedLengthResponse("");
         cookieHandler.set("name", "value", 30);
         cookieHandler.unloadQueue(response);
@@ -122,9 +123,9 @@ public class CookieHandlerTest extends HttpServerTest {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
-        session.execute();
-        CookieHandler cookieHandler = session.getCookies();
+        Connection session = FakeConnection.with(testServer, tempFileManager, inputStream, outputStream);
+        session.handleNextRequest();
+        CookieHandler cookieHandler = session.getCurrentRequest().getCookies();
 
         Response response = Response.newFixedLengthResponse("");
         cookieHandler.delete("name");

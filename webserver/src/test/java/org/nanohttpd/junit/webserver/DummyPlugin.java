@@ -38,7 +38,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Map;
 
-import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.request.IRequest;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 import org.nanohttpd.webserver.InternalRewrite;
@@ -56,7 +56,7 @@ public class DummyPlugin implements WebServerPlugin {
     }
 
     @Override
-    public Response serveFile(String uri, Map<String, String> headers, IHTTPSession session, File file, String mimeType) {
+    public Response serveFile(String uri, Map<String, String> headers, IRequest request, File file, String mimeType) {
         if (uri.contains("rewrite")) {
             return new InternalRewrite(headers, "/testdir/test.html");
         }

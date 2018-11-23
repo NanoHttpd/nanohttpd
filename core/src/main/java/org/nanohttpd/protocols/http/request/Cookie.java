@@ -1,12 +1,10 @@
-package org.nanohttpd.samples.http;
-
-import java.util.List;
+package org.nanohttpd.protocols.http.request;
 
 /*
  * #%L
- * NanoHttpd-Samples
+ * NanoHttpd-Core
  * %%
- * Copyright (C) 2012 - 2015 nanohttpd
+ * Copyright (C) 2012 - 2016 nanohttpd
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -35,49 +33,46 @@ import java.util.List;
  * #L%
  */
 
-import java.util.Map;
-import java.util.logging.Logger;
-
-import org.nanohttpd.protocols.http.NanoHTTPD;
-import org.nanohttpd.protocols.http.request.IRequest;
-import org.nanohttpd.protocols.http.request.Method;
-import org.nanohttpd.protocols.http.response.Response;
-import org.nanohttpd.util.ServerRunner;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
- * An example of subclassing NanoHTTPD to make a custom HTTP server.
+ * A simple cookie representation. This is old code and is flawed in many ways.
+ * 
+ * @author LordFokas
  */
-public class HelloServer extends NanoHTTPD {
+public class Cookie {
 
-    /**
-     * logger to log to.
-     */
-    private static final Logger LOG = Logger.getLogger(HelloServer.class.getName());
-
-    public static void main(String[] args) {
-        ServerRunner.run(HelloServer.class);
+    public static String getHTTPTime(int days) {
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        calendar.add(Calendar.DAY_OF_MONTH, days);
+        return dateFormat.format(calendar.getTime());
     }
 
-    public HelloServer() {
-        super(8080);
+    private final String n, v, e;
+
+    public Cookie(String name, String value) {
+        this(name, value, 30);
     }
 
-    @Override
-    public Response serve(IRequest request) {
-        Method method = request.getMethod();
-        String uri = request.getResource();
-        HelloServer.LOG.info(method + " '" + uri + "' ");
+    public Cookie(String name, String value, int numDays) {
+        this.n = name;
+        this.v = value;
+        this.e = getHTTPTime(numDays);
+    }
 
-        String msg = "<html><body><h1>Hello server</h1>\n";
-        Map<String, List<String>> parms = request.getAllParameters();
-        if (parms.get("username") == null) {
-            msg += "<form action='?' method='get'>\n" + "  <p>Your name: <input type='text' name='username'></p>\n" + "</form>\n";
-        } else {
-            msg += "<p>Hello, " + parms.get("username") + "!</p>";
-        }
+    public Cookie(String name, String value, String expires) {
+        this.n = name;
+        this.v = value;
+        this.e = expires;
+    }
 
-        msg += "</body></html>\n";
-
-        return Response.newFixedLengthResponse(msg);
+    public String getHTTPHeader() {
+        String fmt = "%s=%s; expires=%s";
+        return String.format(fmt, this.n, this.v, this.e);
     }
 }
