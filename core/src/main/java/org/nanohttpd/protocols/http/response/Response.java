@@ -303,8 +303,7 @@ public class Response implements Closeable {
                 if(this.data != null) {
                     this.data.close();
                 }
-            }
-        } else {
+            }        } else {
             sendBodyWithCorrectEncoding(outputStream, pending);
         }
     }
@@ -376,6 +375,10 @@ public class Response implements Closeable {
         this.mimeType = mimeType;
     }
 
+    public void setMimeType(MimeTypes mimeType) {
+        setMimeType(mimeType.getContentType());
+    }
+
     public void setRequestMethod(Method requestMethod) {
         this.requestMethod = requestMethod;
     }
@@ -424,7 +427,24 @@ public class Response implements Closeable {
             return newFixedLengthResponse(status, contentType.getContentTypeHeader(), new ByteArrayInputStream(bytes), bytes.length);
         }
     }
-
+    /**
+     * Create a text response with known length.
+     */
+    public static Response newFixedLengthResponse(IStatus iStatus, MimeTypes mimeTypes, String txt){
+        return newFixedLengthResponse(iStatus, mimeTypes.getContentType(), txt);
+    }
+    /**
+     * Create a text response with known length.
+     */
+    public static Response newFixedLengthResponse(IStatus iStatus, MimeTypes mimeTypes, byte[] data){
+        return newFixedLengthResponse(iStatus, mimeTypes.getContentType(), data);
+    }
+    /**
+     * Create a response with known length.
+     */
+    public static Response newFixedLengthResponse(IStatus status, MimeTypes mimeType, InputStream data, long totalBytes) {
+        return new Response(status, mimeType.getContentType(), data, totalBytes);
+    }
     /**
      * Create a text response with known length.
      */
