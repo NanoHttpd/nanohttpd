@@ -183,6 +183,8 @@ Or add:
 
     implementation 'org.nanohttpd:nanohttpd:CURRENT_VERSION'
 
+under `dependencies` of your `build.gradle`.
+
 ### Develop your own specialized HTTP service
 
 For a specialized HTTP (HTTPS) service you can use the module with artifactId *nanohttpd*.
