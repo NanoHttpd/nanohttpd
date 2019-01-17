@@ -181,7 +181,7 @@ Just replace the name with the artifact id of the module you want to use and gra
 
 Or add:
 
-    implementation 'org.nanohttpd:nanohttpd:2.3.1'
+    implementation 'org.nanohttpd:nanohttpd:CURRENT_VERSION'
 
 ### Develop your own specialized HTTP service
 
