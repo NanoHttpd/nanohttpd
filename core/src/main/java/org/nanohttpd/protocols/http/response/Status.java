@@ -74,6 +74,7 @@ public enum Status implements IStatus {
     UNSUPPORTED_MEDIA_TYPE(415, "Unsupported Media Type"),
     RANGE_NOT_SATISFIABLE(416, "Requested Range Not Satisfiable"),
     EXPECTATION_FAILED(417, "Expectation Failed"),
+    IM_A_TEAPOT(418, "Im A Teapot"),
     TOO_MANY_REQUESTS(429, "Too Many Requests"),
 
     INTERNAL_ERROR(500, "Internal Server Error"),
