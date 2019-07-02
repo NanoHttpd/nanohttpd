@@ -72,7 +72,7 @@ import org.nanohttpd.protocols.http.tempfiles.ITempFile;
 import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
 public class HTTPSession implements IHTTPSession {
-    
+
     public static final String POST_DATA = "postData";
 
     private static final int REQUEST_BUFFER_LEN = 512;
@@ -109,8 +109,6 @@ public class HTTPSession implements IHTTPSession {
 
     private String remoteIp;
 
-    private String remoteHostname;
-
     private String protocolVersion;
 
     public HTTPSession(NanoHTTPD httpd, ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
@@ -126,7 +124,6 @@ public class HTTPSession implements IHTTPSession {
         this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
         this.outputStream = outputStream;
         this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
-        this.remoteHostname = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "localhost" : inetAddress.getHostName().toString();
         this.headers = new HashMap<String, String>();
     }
 
@@ -697,10 +694,5 @@ public class HTTPSession implements IHTTPSession {
     @Override
     public String getRemoteIpAddress() {
         return this.remoteIp;
-    }
-
-    @Override
-    public String getRemoteHostName() {
-        return this.remoteHostname;
     }
 }

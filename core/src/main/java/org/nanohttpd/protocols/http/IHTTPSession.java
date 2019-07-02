@@ -90,11 +90,4 @@ public interface IHTTPSession {
      * @return the IP address.
      */
     String getRemoteIpAddress();
-
-    /**
-     * Get the remote hostname of the requester.
-     * 
-     * @return the hostname.
-     */
-    String getRemoteHostName();
 }

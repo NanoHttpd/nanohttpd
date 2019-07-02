@@ -60,7 +60,6 @@ public class HttpSessionHeadersTest extends HttpServerTest {
         for (String ipAddress : ipAddresses) {
             InetAddress inetAddress = InetAddress.getByName(ipAddress);
             HTTPSession session = this.testServer.createSession(HttpSessionHeadersTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
-            assertNotNull(ipAddress, session.getRemoteHostName());
             assertEquals(ipAddress, session.getRemoteIpAddress());
         }
     }
