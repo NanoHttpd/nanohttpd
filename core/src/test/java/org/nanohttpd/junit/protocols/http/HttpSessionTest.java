@@ -50,24 +50,6 @@ public class HttpSessionTest extends HttpServerTest {
     private static final TestTempFileManager TEST_TEMP_FILE_MANAGER = new TestTempFileManager();
 
     @Test
-    public void testSessionRemoteHostnameLocalhost() throws UnknownHostException {
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(HttpSessionTest.DUMMY_REQUEST_CONTENT.getBytes());
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        InetAddress inetAddress = InetAddress.getByName("127.0.0.1");
-        HTTPSession session = this.testServer.createSession(HttpSessionTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
-        assertEquals("localhost", session.getRemoteHostName());
-    }
-
-    @Test
-    public void testSessionRemoteHostname() throws UnknownHostException {
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(HttpSessionTest.DUMMY_REQUEST_CONTENT.getBytes());
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        InetAddress inetAddress = InetAddress.getByName("google.com");
-        HTTPSession session = this.testServer.createSession(HttpSessionTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
-        assertEquals("google.com", session.getRemoteHostName());
-    }
-
-    @Test
     public void testSessionRemoteIPAddress() throws UnknownHostException {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(HttpSessionTest.DUMMY_REQUEST_CONTENT.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
