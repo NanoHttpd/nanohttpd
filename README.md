@@ -179,6 +179,12 @@ In gradle you can use NanoHTTPD the same way because gradle accesses the same ce
 
 Just replace the name with the artifact id of the module you want to use and gradle will find it for you. 
 
+Or add:
+
+    implementation 'org.nanohttpd:nanohttpd:CURRENT_VERSION'
+
+under `dependencies` of your `build.gradle`.
+
 ### Develop your own specialized HTTP service
 
 For a specialized HTTP (HTTPS) service you can use the module with artifactId *nanohttpd*.
