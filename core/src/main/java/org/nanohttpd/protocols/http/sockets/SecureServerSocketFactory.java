@@ -49,10 +49,12 @@ public class SecureServerSocketFactory implements IFactoryThrowing<ServerSocket,
     private SSLServerSocketFactory sslServerSocketFactory;
 
     private String[] sslProtocols;
+    private String[] cipherSuites;
 
-    public SecureServerSocketFactory(SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols) {
+    public SecureServerSocketFactory(SSLServerSocketFactory sslServerSocketFactory, String[] sslProtocols, String[] cipherSuites) {
         this.sslServerSocketFactory = sslServerSocketFactory;
         this.sslProtocols = sslProtocols;
+        this.cipherSuites = cipherSuites;
     }
 
     @Override
@@ -63,6 +65,11 @@ public class SecureServerSocketFactory implements IFactoryThrowing<ServerSocket,
             ss.setEnabledProtocols(this.sslProtocols);
         } else {
             ss.setEnabledProtocols(ss.getSupportedProtocols());
+        }
+        if (this.cipherSuites != null) {
+            ss.setEnabledCipherSuites(this.cipherSuites);
+        } else {
+            ss.setEnabledCipherSuites(ss.getSupportedCipherSuites());
         }
         ss.setUseClientMode(false);
         ss.setWantClientAuth(false);
