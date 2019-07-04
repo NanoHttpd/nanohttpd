@@ -75,9 +75,9 @@ public class HTTPSession implements IHTTPSession {
 
     public static final String POST_DATA = "postData";
 
-    private static final int REQUEST_BUFFER_LEN = 512;
+    private static final int DEFAULT_REQUEST_BUFFER_LEN = 512;
 
-    private static final int MEMORY_STORE_LIMIT = 1024;
+    private static final int DEFAULT_MEMORY_STORE_LIMIT = 1024;
 
     public static final int BUFSIZE = 8192;
 
@@ -85,7 +85,7 @@ public class HTTPSession implements IHTTPSession {
 
     private final NanoHTTPD httpd;
 
-    private final ITempFileManager tempFileManager;
+    protected final ITempFileManager tempFileManager;
 
     private final OutputStream outputStream;
 
@@ -119,10 +119,7 @@ public class HTTPSession implements IHTTPSession {
     }
 
     public HTTPSession(NanoHTTPD httpd, ITempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
-        this.httpd = httpd;
-        this.tempFileManager = tempFileManager;
-        this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
-        this.outputStream = outputStream;
+        this(httpd, tempFileManager, inputStream, outputStream);
         this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
         this.headers = new HashMap<String, String>();
     }
@@ -581,6 +578,22 @@ public class HTTPSession implements IHTTPSession {
         }
     }
 
+    /**
+     * Get the maximum size of uploaded data to be stored in memory;
+     * otherwise it will be dumped to disk.
+     * If null, disk storage is never used.
+     */
+    protected Integer getMemoryStoreLimit() {
+        return new Integer(DEFAULT_MEMORY_STORE_LIMIT);
+    }
+
+    /**
+     * Get the buffer size for network reads.
+     */
+    protected int getRequestBufferLen() {
+        return DEFAULT_REQUEST_BUFFER_LEN;
+    }
+
     @Override
     public final String getUri() {
         return this.uri;
@@ -604,29 +617,34 @@ public class HTTPSession implements IHTTPSession {
         RandomAccessFile randomAccessFile = null;
         try {
             long size = getBodySize();
-            ByteArrayOutputStream baos = null;
-            DataOutput requestDataOutput = null;
+            final ByteArrayOutputStream baos;
+            final DataOutput requestDataOutput;
+
+            final Integer memoryStoreLimit = getMemoryStoreLimit();
 
             // Store the request in memory or a file, depending on size
-            if (size < MEMORY_STORE_LIMIT) {
+            if (memoryStoreLimit == null || size < memoryStoreLimit.intValue()) {
                 baos = new ByteArrayOutputStream();
                 requestDataOutput = new DataOutputStream(baos);
             } else {
+                baos = null;
                 randomAccessFile = getTmpBucket();
                 requestDataOutput = randomAccessFile;
             }
 
+            final int requestBufferLen = getRequestBufferLen();
+
             // Read all the body and write it to request_data_output
-            byte[] buf = new byte[REQUEST_BUFFER_LEN];
+            final byte[] buf = new byte[requestBufferLen];
             while (this.rlen >= 0 && size > 0) {
-                this.rlen = this.inputStream.read(buf, 0, (int) Math.min(size, REQUEST_BUFFER_LEN));
+                this.rlen = this.inputStream.read(buf, 0, (int) Math.min(size, requestBufferLen));
                 size -= this.rlen;
                 if (this.rlen > 0) {
                     requestDataOutput.write(buf, 0, this.rlen);
                 }
             }
 
-            ByteBuffer fbuf = null;
+            final ByteBuffer fbuf;
             if (baos != null) {
                 fbuf = ByteBuffer.wrap(baos.toByteArray(), 0, baos.size());
             } else {
@@ -670,7 +688,7 @@ public class HTTPSession implements IHTTPSession {
      * Retrieves the content of a sent file and saves it to a temporary file.
      * The full path to the saved file is returned.
      */
-    private String saveTmpFile(ByteBuffer b, int offset, int len, String filename_hint) {
+    protected String saveTmpFile(ByteBuffer b, int offset, int len, String filename_hint) {
         String path = "";
         if (len > 0) {
             FileOutputStream fileOutputStream = null;
