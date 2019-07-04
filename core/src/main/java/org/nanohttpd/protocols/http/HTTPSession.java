@@ -374,6 +374,15 @@ public class HTTPSession implements IHTTPSession {
                 read = this.inputStream.read(buf, this.rlen, HTTPSession.BUFSIZE - this.rlen);
             }
 
+            if (this.splitbyte == 0) {
+                // The header end marker was not found so it is possible we have
+                // an incomplete header. The full header should fit in our
+                // buffer but a long URI can cause us an overflow issue.
+                if (this.rlen == HTTPSession.BUFSIZE && findRequestLineEnd(buf, this.rlen) == 0 && this.inputStream.available() > 0) {
+                    throw new ResponseException(Status.URI_TOO_LONG, "URI Too Long");
+                }
+            }
+
             if (this.splitbyte < this.rlen) {
                 this.inputStream.reset();
                 this.inputStream.skip(this.splitbyte);
@@ -458,6 +467,28 @@ public class HTTPSession implements IHTTPSession {
             NanoHTTPD.safeClose(r);
             this.tempFileManager.clear();
         }
+    }
+
+    /**
+     * Find byte index signalling the end of the request line. If index is not
+     * found, return 0.
+     */
+    private int findRequestLineEnd(final byte[] buf, int rlen) {
+        int lineEndByte = 0;
+        while (lineEndByte + 1 < rlen) {
+
+            // RFC2616
+            if (buf[lineEndByte] == '\r' && buf[lineEndByte + 1] == '\n') {
+                return lineEndByte + 2;
+            }
+
+            // tolerance
+            if (buf[lineEndByte] == '\n') {
+                return lineEndByte + 1;
+            }
+            lineEndByte++;
+        }
+        return 0;
     }
 
     /**
