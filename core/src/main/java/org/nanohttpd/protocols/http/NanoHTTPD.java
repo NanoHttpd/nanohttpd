@@ -41,6 +41,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -476,13 +477,7 @@ public abstract class NanoHTTPD {
      *         "foo bar"
      */
     public static String decodePercent(String str) {
-        String decoded = null;
-        try {
-            decoded = URLDecoder.decode(str, "UTF8");
-        } catch (UnsupportedEncodingException ignored) {
-            NanoHTTPD.LOG.log(Level.WARNING, "Encoding not supported, ignored", ignored);
-        }
-        return decoded;
+        return URLDecoder.decode(str, StandardCharsets.UTF_8);
     }
 
     public final int getListeningPort() {
