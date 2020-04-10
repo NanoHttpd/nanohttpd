@@ -38,6 +38,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -373,11 +375,29 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             return Pattern.compile(patternUri);
         }
 
+        private Object getHandlerInstance() throws IllegalAccessException, InvocationTargetException, InstantiationException {
+            if (initParameter.length > 0) {
+                Class<?>[] classArray = new Class<?>[initParameter.length];
+                for (int i = 0; i < initParameter.length; i++) {
+                    classArray[i] = initParameter[i].getClass();
+                }
+                try {
+                    Constructor conts = handler.getConstructor(classArray);
+                    return conts.newInstance(initParameter);
+                } catch (NoSuchMethodException nsme) {
+                    return handler.newInstance();
+                }
+
+            } else {
+                return handler.newInstance();
+            }
+        }
+
         public Response process(Map<String, String> urlParams, IHTTPSession session) {
             String error = "General error!";
             if (handler != null) {
                 try {
-                    Object object = handler.newInstance();
+                    Object object = getHandlerInstance();
                     if (object instanceof UriResponder) {
                         UriResponder responder = (UriResponder) object;
                         switch (session.getMethod()) {
@@ -580,8 +600,9 @@ public class RouterNanoHTTPD extends NanoHTTPD {
          * is www.example.com/user/help - mapping 2 is returned if the incoming
          * uri is www.example.com/user/3232 - mapping 1 is returned
          * 
-         * @param url
-         * @return
+         * @param session
+         *            The session
+         * @return response The response
          */
         public Response process(IHTTPSession session) {
             String work = normalizeUri(session.getUri());

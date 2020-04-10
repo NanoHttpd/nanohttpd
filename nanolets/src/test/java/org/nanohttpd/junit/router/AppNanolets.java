@@ -169,6 +169,12 @@ public class AppNanolets extends RouterNanoHTTPD {
         removeRoute("/toBeDeleted");
         addRoute("/stream", StreamUrl.class);
         addRoute("/browse/(.)+", StaticPageTestHandler.class, new File("src/test/resources").getAbsoluteFile());
+
+        addRoute("/none", MultipleConstructorHandler.class);
+        addRoute("/string", MultipleConstructorHandler.class, "string");
+        addRoute("/int", MultipleConstructorHandler.class, 1);
+        addRoute("/bool", MultipleConstructorHandler.class, false);
+        addRoute("/all", MultipleConstructorHandler.class, "string", 1, false);
     }
 
     /**

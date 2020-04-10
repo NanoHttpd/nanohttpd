@@ -522,6 +522,42 @@ public class TestNanolets {
     }
 
     @Test
+    public void testMultipleConstructorHandler() throws IOException, InterruptedException {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+
+        HttpGet httpget = new HttpGet("http://localhost:9090/none");
+        CloseableHttpResponse response = httpclient.execute(httpget);
+        HttpEntity entity = response.getEntity();
+        Assert.assertEquals("none", new String(readContents(entity), "UTF-8"));
+        response.close();
+
+        httpget = new HttpGet("http://localhost:9090/all");
+        response = httpclient.execute(httpget);
+        entity = response.getEntity();
+        Assert.assertEquals("string1false", new String(readContents(entity), "UTF-8"));
+        response.close();
+
+        httpget = new HttpGet("http://localhost:9090/bool");
+        response = httpclient.execute(httpget);
+        entity = response.getEntity();
+        Assert.assertEquals("false", new String(readContents(entity), "UTF-8"));
+        response.close();
+
+        httpget = new HttpGet("http://localhost:9090/int");
+        response = httpclient.execute(httpget);
+        entity = response.getEntity();
+        Assert.assertEquals("1", new String(readContents(entity), "UTF-8"));
+        response.close();
+
+        httpget = new HttpGet("http://localhost:9090/string");
+        response = httpclient.execute(httpget);
+        entity = response.getEntity();
+        Assert.assertEquals("string", new String(readContents(entity), "UTF-8"));
+        response.close();
+
+    }
+
+    @Test
     public void testUriResourceComparator() {
         UriResource r1 = new UriResource("uri", null);
         r1.setPriority(100);
