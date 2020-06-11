@@ -54,7 +54,7 @@ public class Cookie {
     }
 
     private final String n, v, e;
-	private final boolean secure, httpOnly;
+    private final boolean secure, httpOnly;
 
     public Cookie(String name, String value) {
         this(name, value, 30);
