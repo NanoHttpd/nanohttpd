@@ -82,10 +82,10 @@ public class Cookie {
 	}
     public String getHTTPHeader() {
         String header = String.format("%s=%s; expires=%s", this.n, this.v, this.e);
-		if(secure)
-			header += "; secure";
-		if(httpOnly)
-			header += "; HttpOnly";
+        if(secure)
+            header += "; secure";
+        if(httpOnly)
+            header += "; HttpOnly";
         return header;
     }
 }
