@@ -74,7 +74,7 @@ public class CookieHandler implements Iterable<String> {
      *            The cookie name.
      */
     public void delete(String name) {
-        set(name, "-delete-", -30, false, false);
+        set(name, "-delete-", -30);
     }
 
     @Override
@@ -107,12 +107,26 @@ public class CookieHandler implements Iterable<String> {
      * @param expires
      *            How many days until the cookie expires.
 	 * @param secure
-	 *            Adds the secure flag to the cookie
+	 *            Cookies with the 'secure' attribute will only be sent over encrypted connections
 	 * @param httpOnly
-	 *            Adds the httpOnly flag to the cookie
+	 *            Cookies withthe 'httponly' attribute will not be accessible to JavaScript's cookies API
      */
     public void set(String name, String value, int expires, boolean secure, boolean httpOnly) {
         this.queue.add(new Cookie(name, value, Cookie.getHTTPTime(expires)), secure, httpOnly);
+    }
+	
+	 /**
+     * Sets a cookie.
+     * 
+     * @param name
+     *            The cookie's name.
+     * @param value
+     *            The cookie's value.
+     * @param expires
+     *            How many days until the cookie expires.
+	 */
+	public void set(String name, String value, int expires) {
+        this.queue.add(new Cookie(name, value, Cookie.getHTTPTime(expires)), false, false);
     }
 
     /**
