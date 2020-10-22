@@ -2,6 +2,8 @@ language: java
 jdk:
 - openjdk7
 
+dist: trusty
+
 before_install:
   - cat ~/.m2/settings.xml
   - rm  ~/.m2/settings.xml
