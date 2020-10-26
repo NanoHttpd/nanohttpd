@@ -58,6 +58,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
@@ -274,6 +275,96 @@ public class HttpServerTest {
     }
 
     @Test
+    public void testGetPostBody() throws IOException {
+        final int testPort = 4589;
+        NanoHTTPD server = null;
+
+        try {
+            server = new NanoHTTPD(testPort) {
+
+                Map<String, String> files = new HashMap<>();
+
+                @Override
+                public Response serve(IHTTPSession session) {
+                    try {
+                        files = session.getPostBody();
+                    } catch (Exception e) {
+                        return Response.newFixedLengthResponse(e.getMessage());
+                    }
+                    return Response.newFixedLengthResponse(files.toString());
+                }
+            };
+            server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost("http://localhost:" + testPort);
+            StringEntity reqEntity = new StringEntity("sample");
+            reqEntity.setContentType("text/html; charset=utf-8");
+            httppost.setEntity(reqEntity);
+
+
+            HttpResponse response = httpclient.execute(httppost);
+            HttpEntity entity = response.getEntity();
+
+            if (entity != null) {
+                InputStream instream = entity.getContent();
+                String sample = convertStreamToString(instream);
+                assertNotNull(sample, "Invalid server reponse");
+                assertEquals("Server failed post data parse" + sample, "{postData=sample}", sample);
+                instream.close();
+            }
+        } finally {
+            if (server != null) {
+                server.stop();
+            }
+        }
+    }
+    @Test
+    public void testGetPostData() throws IOException {
+        final int testPort = 4589;
+        NanoHTTPD server = null;
+
+        try {
+            server = new NanoHTTPD(testPort) {
+
+                String postData;
+
+                @Override
+                public Response serve(IHTTPSession session) {
+                    try {
+                        postData = session.getPostData();
+                    } catch (Exception e) {
+                        return Response.newFixedLengthResponse(e.getMessage());
+                    }
+                    return Response.newFixedLengthResponse(postData);
+                }
+            };
+            server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost("http://localhost:" + testPort);
+            StringEntity reqEntity = new StringEntity("sample");
+            reqEntity.setContentType("text/html; charset=utf-8");
+            httppost.setEntity(reqEntity);
+
+
+            HttpResponse response = httpclient.execute(httppost);
+            HttpEntity entity = response.getEntity();
+
+            if (entity != null) {
+                InputStream instream = entity.getContent();
+                String sample = convertStreamToString(instream);
+                assertNotNull(sample, "Invalid server reponse");
+                assertEquals("Server failed post data parse" + sample, "sample", sample);
+                instream.close();
+            }
+        } finally {
+            if (server != null) {
+                server.stop();
+            }
+        }
+    }
+    @Test
     public void testTempFileInterface() throws IOException {
         final int testPort = 4589;
         NanoHTTPD server = new NanoHTTPD(testPort) {
@@ -327,5 +418,9 @@ public class HttpServerTest {
             fail("No server response");
         }
         server.stop();
+    }
+    private static String convertStreamToString(java.io.InputStream is) {
+        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        return s.hasNext() ? s.next() : "";
     }
 }
