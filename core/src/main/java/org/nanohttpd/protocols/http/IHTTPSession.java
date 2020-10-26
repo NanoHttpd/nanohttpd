@@ -85,6 +85,18 @@ public interface IHTTPSession {
     void parseBody(Map<String, String> files) throws IOException, ResponseException;
 
     /**
+     *
+     * @return the post response body
+     */
+    Map<String, String> getPostBody() throws IOException, ResponseException;
+
+    /**
+     *
+     * @return the post response data
+     */
+    String getPostData() throws IOException, ResponseException;
+
+    /**
      * Get the remote ip address of the requester.
      * 
      * @return the IP address.

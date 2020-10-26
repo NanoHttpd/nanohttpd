@@ -666,6 +666,18 @@ public class HTTPSession implements IHTTPSession {
         }
     }
 
+    @Override
+    public Map<String, String> getPostBody() throws IOException, ResponseException {
+        Map<String, String> responseBody = new HashMap<>();
+        parseBody(responseBody);
+        return responseBody;
+    }
+
+    @Override
+    public String getPostData() throws IOException, ResponseException {
+        return getPostBody().get(POST_DATA);
+    }
+
     /**
      * Retrieves the content of a sent file and saves it to a temporary file.
      * The full path to the saved file is returned.
