@@ -94,7 +94,7 @@ We are currently in the process of stabilizing NanoHTTPD from the many pull requ
 
 NanoHTTPD project currently consist of four parts:
 
- * `/core` – Fully functional HTTP(s) server consisting of one (1) Java file, ready to be customized/inherited for your own project.
+ * `/core` – Fully functional HTTP(s) server consisting of a few Java files, ready to be customized/inherited for your own project.
 
  * `/samples` – Simple examples on how to customize NanoHTTPD. See *HelloServer.java* for a killer app that greets you enthusiastically!
 
@@ -108,7 +108,7 @@ NanoHTTPD project currently consist of four parts:
 
 ## Features
 ### Core
-* Only one Java file, providing HTTP 1.1 support.
+* HTTP 1.1 support.
 * No fixed config files, logging, authorization etc. (Implement by yourself if you need them. Errors are passed to java.util.logging, though.)
 * Support for HTTPS (SSL).
 * Basic support for cookies.
