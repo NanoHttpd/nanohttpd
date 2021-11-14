@@ -257,11 +257,16 @@ public class Response implements Closeable {
                 printHeader(pw, "Content-Encoding", "gzip");
                 setChunkedTransfer(true);
             }
+
+            // check if WebSocket handshaking is on
+            boolean wsHandshake = this.status == Status.SWITCH_PROTOCOL;
+
             long pending = this.data != null ? this.contentLength : 0;
             if (this.requestMethod != Method.HEAD && this.chunkedTransfer) {
                 printHeader(pw, "Transfer-Encoding", "chunked");
             } else if (!useGzipWhenAccepted()) {
-                pending = sendContentLengthHeaderIfNotAlreadyPresent(pw, pending);
+                // https://datatracker.ietf.org/doc/html/rfc7230#section-3.3.2
+                pending = wsHandshake ? 0 : sendContentLengthHeaderIfNotAlreadyPresent(pw, pending);
             }
             pw.append("\r\n");
             pw.flush();
