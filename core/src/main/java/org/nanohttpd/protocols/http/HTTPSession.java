@@ -374,6 +374,10 @@ public class HTTPSession implements IHTTPSession {
                 read = this.inputStream.read(buf, this.rlen, HTTPSession.BUFSIZE - this.rlen);
             }
 
+            if(this.splitbyte == 0 && this.rlen == HTTPSession.BUFSIZE){
+                throw new ResponseException(Status.BAD_REQUEST, "BAD REQUEST: Request header is too large.");
+            }
+
             if (this.splitbyte < this.rlen) {
                 this.inputStream.reset();
                 this.inputStream.skip(this.splitbyte);
