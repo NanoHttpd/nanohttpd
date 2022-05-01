@@ -162,8 +162,8 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             Map<String, String> queryParams = session.getParms();
             if (queryParams.size() > 0) {
                 for (Map.Entry<String, String> entry : queryParams.entrySet()) {
-                    String key = entry.getKey();
-                    String value = entry.getValue();
+                    String key = sanitise(entry.getKey());
+                    String value = sanitise(entry.getValue());
                     text.append("<p>Param '");
                     text.append(key);
                     text.append("' = ");
@@ -174,6 +174,10 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                 text.append("<p>no params in url</p><br>");
             }
             return Response.newFixedLengthResponse(getStatus(), getMimeType(), text.toString());
+        }
+
+        private String sanitise(String possibleCode) {
+            return org.apache.commons.text.StringEscapeUtils.escapeHtml4(possibleCode);
         }
     }
 
