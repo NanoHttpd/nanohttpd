@@ -38,7 +38,9 @@ import java.util.regex.Pattern;
 
 public class ContentType {
 
-    private static final String ASCII_ENCODING = "US-ASCII";
+    public static final String ASCII_ENCODING = "US-ASCII";
+
+    public static final String UTF8_ENCODING = "UTF-8";
 
     private static final String MULTIPART_FORM_DATA_HEADER = "multipart/form-data";
 
@@ -69,7 +71,7 @@ public class ContentType {
             encoding = getDetailFromContentHeader(contentTypeHeader, CHARSET_PATTERN, null, 2);
         } else {
             contentType = "";
-            encoding = "UTF-8";
+            encoding = UTF8_ENCODING;
         }
         if (MULTIPART_FORM_DATA_HEADER.equalsIgnoreCase(contentType)) {
             boundary = getDetailFromContentHeader(contentTypeHeader, BOUNDARY_PATTERN, null, 2);
@@ -92,7 +94,7 @@ public class ContentType {
     }
 
     public String getEncoding() {
-        return encoding == null ? ASCII_ENCODING : encoding;
+        return encoding == null ? UTF8_ENCODING : encoding;
     }
 
     public String getBoundary() {
