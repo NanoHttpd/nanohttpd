@@ -478,7 +478,7 @@ public abstract class NanoHTTPD {
     public static String decodePercent(String str) {
         String decoded = null;
         try {
-            decoded = URLDecoder.decode(str, "UTF8");
+            decoded = URLDecoder.decode(str, "UTF-8");
         } catch (UnsupportedEncodingException ignored) {
             NanoHTTPD.LOG.log(Level.WARNING, "Encoding not supported, ignored", ignored);
         }
