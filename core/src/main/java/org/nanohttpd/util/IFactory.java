@@ -32,10 +32,9 @@ package org.nanohttpd.util;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 /**
  * Represents a simple factory
- * 
+ *
  * @author LordFokas
  * @param <T>
  *            The Type of object to create

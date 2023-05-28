@@ -32,7 +32,6 @@ package org.nanohttpd.markdown;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -42,7 +41,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.Response;

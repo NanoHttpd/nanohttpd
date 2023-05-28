@@ -32,11 +32,9 @@ package org.nanohttpd.junit.protocols.http;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFile;
@@ -54,7 +52,6 @@ public class JavaIOTempDirExistTest {
         DefaultTempFile tempFile = (DefaultTempFile) manager.createTempFile("xx");
         File tempFileBackRef = new File(tempFile.getName());
         Assert.assertEquals(tempFileBackRef.getParentFile(), new File(tmpdir));
-
         // force an exception
         tempFileBackRef.delete();
         Exception e = null;
@@ -81,7 +78,5 @@ public class JavaIOTempDirExistTest {
         } finally {
             System.setProperty("java.io.tmpdir", tmpdir);
         }
-
     }
-
 }

@@ -32,11 +32,9 @@ package org.nanohttpd.util;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.nanohttpd.protocols.http.NanoHTTPD;
 
 public class ServerRunner {
@@ -53,14 +51,11 @@ public class ServerRunner {
             System.err.println("Couldn't start server:\n" + ioe);
             System.exit(-1);
         }
-
         System.out.println("Server started, Hit Enter to stop.\n");
-
         try {
             System.in.read();
         } catch (Throwable ignored) {
         }
-
         server.stop();
         System.out.println("Server stopped.\n");
     }

@@ -32,7 +32,6 @@ package org.nanohttpd.router;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,7 +49,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.IStatus;
@@ -183,16 +181,13 @@ public class RouterNanoHTTPD extends NanoHTTPD {
     public static class StaticPageHandler extends DefaultHandler {
 
         private static String[] getPathArray(String uri) {
-            String array[] = uri.split("/");
+            String[] array = uri.split("/");
             ArrayList<String> pathArray = new ArrayList<String>();
-
             for (String s : array) {
                 if (s.length() > 0)
                     pathArray.add(s);
             }
-
-            return pathArray.toArray(new String[]{});
-
+            return pathArray.toArray(new String[] {});
         }
 
         @Override
@@ -283,7 +278,6 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         public IStatus getStatus() {
             return Status.OK;
         }
-
     }
 
     public static class NotImplementedHandler extends DefaultHandler {
@@ -314,7 +308,6 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             value = value.substring(0, value.length() - 1);
         }
         return value;
-
     }
 
     public static class UriResource implements Comparable<UriResource> {
@@ -364,9 +357,9 @@ public class RouterNanoHTTPD extends NanoHTTPD {
             int start = 0;
             while (matcher.find(start)) {
                 uriParams.add(patternUri.substring(matcher.start() + 1, matcher.end()));
-                patternUri = new StringBuilder(patternUri.substring(0, matcher.start()))//
-                        .append(PARAM_MATCHER)//
-                        .append(patternUri.substring(matcher.end())).toString();
+                patternUri = //
+                new StringBuilder(patternUri.substring(0, matcher.start())).append(//
+                PARAM_MATCHER).append(patternUri.substring(matcher.end())).toString();
                 start = matcher.start() + PARAM_MATCHER.length();
                 matcher = PARAM_PATTERN.matcher(patternUri);
             }
@@ -380,7 +373,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                     Object object = handler.newInstance();
                     if (object instanceof UriResponder) {
                         UriResponder responder = (UriResponder) object;
-                        switch (session.getMethod()) {
+                        switch(session.getMethod()) {
                             case GET:
                                 return responder.get(this, urlParams, session);
                             case POST:
@@ -393,12 +386,15 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                                 return responder.other(session.getMethod().toString(), this, urlParams, session);
                         }
                     } else {
-                        return Response.newFixedLengthResponse(Status.OK, "text/plain", //
-                                new StringBuilder("Return: ")//
-                                        .append(handler.getCanonicalName())//
-                                        .append(".toString() -> ")//
-                                        .append(object)//
-                                        .toString());
+                        return //
+                        Response.//
+                        newFixedLengthResponse(//
+                        Status.OK, //
+                        "text/plain", //
+                        new StringBuilder("Return: ").append(//
+                        handler.getCanonicalName()).append(//
+                        ".toString() -> ").append(//
+                        object).toString());
                     }
                 } catch (Exception e) {
                     error = "Error: " + e.getClass().getName() + " : " + e.getMessage();
@@ -410,10 +406,10 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
         @Override
         public String toString() {
-            return new StringBuilder("UrlResource{uri='").append((uri == null ? "/" : uri))//
-                    .append("', urlParts=").append(uriParams)//
-                    .append('}')//
-                    .toString();
+            return //
+            new StringBuilder("UrlResource{uri='").append((uri == null ? "/" : uri)).append("', urlParts=").append(//
+            uriParams).append(//
+            '}').toString();
         }
 
         public String getUri() {
@@ -464,7 +460,6 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         public void setPriority(int priority) {
             this.priority = priority;
         }
-
     }
 
     public static interface IRoutePrioritizer {
@@ -536,7 +531,6 @@ public class RouterNanoHTTPD extends NanoHTTPD {
                 } else {
                     resource = new UriResource(url, handler, notImplemented);
                 }
-
                 resource.setPriority(priority);
                 mappings.add(resource);
             }
@@ -546,7 +540,6 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         protected Collection<UriResource> newMappingCollection() {
             return new PriorityQueue<UriResource>();
         }
-
     }
 
     public static class DefaultRoutePrioritizer extends BaseRoutePrioritizer {
@@ -579,7 +572,7 @@ public class RouterNanoHTTPD extends NanoHTTPD {
          * e.g. mapping 1 = /user/:id mapping 2 = /user/help if the incoming uri
          * is www.example.com/user/help - mapping 2 is returned if the incoming
          * uri is www.example.com/user/3232 - mapping 1 is returned
-         * 
+         *
          * @param url
          * @return
          */
@@ -616,7 +609,6 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         public void setRoutePrioritizer(IRoutePrioritizer routePrioritizer) {
             this.routePrioritizer = routePrioritizer;
         }
-
     }
 
     private UriRouter router;
@@ -633,12 +625,11 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
     /**
      * default routings, they are over writable.
-     * 
+     *
      * <pre>
      * router.setNotFoundHandler(GeneralHandler.class);
      * </pre>
      */
-
     public void addMappings() {
         router.setNotImplemented(NotImplementedHandler.class);
         router.setNotFoundHandler(Error404UriHandler.class);

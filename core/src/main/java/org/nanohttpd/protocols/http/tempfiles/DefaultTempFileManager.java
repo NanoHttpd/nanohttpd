@@ -32,12 +32,10 @@ package org.nanohttpd.protocols.http.tempfiles;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-
 import org.nanohttpd.protocols.http.NanoHTTPD;
 
 /**

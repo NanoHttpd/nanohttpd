@@ -50,7 +50,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.StringTokenizer;
-
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.request.Method;
@@ -77,6 +76,7 @@ public class SimpleWebServer extends NanoHTTPD {
      * The distribution licence
      */
     private static final String LICENCE;
+
     static {
         mimeTypes();
         String text;
@@ -103,13 +103,12 @@ public class SimpleWebServer extends NanoHTTPD {
     public static void main(String[] args) {
         // Defaults
         int port = 8080;
-
-        String host = null; // bind to all interfaces by default
+        // bind to all interfaces by default
+        String host = null;
         List<File> rootDirs = new ArrayList<File>();
         boolean quiet = false;
         String cors = null;
         Map<String, String> options = new HashMap<String, String>();
-
         // Parse command-line, with short and long versions of the options.
         for (int i = 0; i < args.length; ++i) {
             if ("-h".equalsIgnoreCase(args[i]) || "--host".equalsIgnoreCase(args[i])) {
@@ -137,7 +136,6 @@ public class SimpleWebServer extends NanoHTTPD {
                 }
             }
         }
-
         if (rootDirs.isEmpty()) {
             rootDirs.add(new File(".").getAbsoluteFile());
         }
@@ -180,7 +178,6 @@ public class SimpleWebServer extends NanoHTTPD {
         if (mimeType == null || plugin == null) {
             return;
         }
-
         if (indexFiles != null) {
             for (String filename : indexFiles) {
                 int dot = filename.lastIndexOf('.');
@@ -218,7 +215,6 @@ public class SimpleWebServer extends NanoHTTPD {
         this.quiet = quiet;
         this.cors = cors;
         this.rootDirs = new ArrayList<File>(wwwroots);
-
         init();
     }
 
@@ -288,10 +284,7 @@ public class SimpleWebServer extends NanoHTTPD {
 
     protected String listDirectory(String uri, File f) {
         String heading = "Directory " + uri;
-        StringBuilder msg =
-                new StringBuilder("<html><head><title>" + heading + "</title><style><!--\n" + "span.dirname { font-weight: bold; }\n" + "span.filesize { font-size: 75%; }\n"
-                        + "// -->\n" + "</style>" + "</head><body><h1>" + heading + "</h1>");
-
+        StringBuilder msg = new StringBuilder("<html><head><title>" + heading + "</title><style><!--\n" + "span.dirname { font-weight: bold; }\n" + "span.filesize { font-size: 75%; }\n" + "// -->\n" + "</style>" + "</head><body><h1>" + heading + "</h1>");
         String up = null;
         if (uri.length() > 1) {
             String u = uri.substring(0, uri.length() - 1);
@@ -300,7 +293,6 @@ public class SimpleWebServer extends NanoHTTPD {
                 up = uri.substring(0, slash + 1);
             }
         }
-
         List<String> files = Arrays.asList(f.list(new FilenameFilter() {
 
             @Override
@@ -368,7 +360,6 @@ public class SimpleWebServer extends NanoHTTPD {
         } else {
             r = defaultRespond(headers, session, uri);
         }
-
         if (cors != null) {
             r = addCORSHeaders(headers, r, cors);
         }
@@ -381,12 +372,10 @@ public class SimpleWebServer extends NanoHTTPD {
         if (uri.indexOf('?') >= 0) {
             uri = uri.substring(0, uri.indexOf('?'));
         }
-
         // Prohibit getting out of current directory
         if (uri.contains("../")) {
             return getForbiddenResponse("Won't serve ../ for security reasons.");
         }
-
         boolean canServeUri = false;
         File homeDir = null;
         for (int i = 0; !canServeUri && i < this.rootDirs.size(); i++) {
@@ -396,7 +385,6 @@ public class SimpleWebServer extends NanoHTTPD {
         if (!canServeUri) {
             return getNotFoundResponse();
         }
-
         // Browsers get confused without '/' after the directory, send a
         // redirect.
         File f = new File(homeDir, uri);
@@ -406,7 +394,6 @@ public class SimpleWebServer extends NanoHTTPD {
             res.addHeader("Location", uri);
             return res;
         }
-
         if (f.isDirectory()) {
             // First look for index files (index.html, index.htm, etc) and if
             // none found, list the directory if readable.
@@ -442,10 +429,8 @@ public class SimpleWebServer extends NanoHTTPD {
         Map<String, String> header = session.getHeaders();
         Map<String, String> parms = session.getParms();
         String uri = session.getUri();
-
         if (!this.quiet) {
             System.out.println(session.getMethod() + " '" + uri + "' ");
-
             Iterator<String> e = header.keySet().iterator();
             while (e.hasNext()) {
                 String value = e.next();
@@ -457,7 +442,6 @@ public class SimpleWebServer extends NanoHTTPD {
                 System.out.println("  PRM: '" + value + "' = '" + parms.get(value) + "'");
             }
         }
-
         for (File homeDir : this.rootDirs) {
             // Make sure we won't die of an exception later
             if (!homeDir.isDirectory()) {
@@ -476,7 +460,6 @@ public class SimpleWebServer extends NanoHTTPD {
         try {
             // Calculate etag
             String etag = Integer.toHexString((file.getAbsolutePath() + file.lastModified() + "" + file.length()).hashCode());
-
             // Support (simple) skipping:
             long startFrom = 0;
             long endAt = -1;
@@ -494,19 +477,15 @@ public class SimpleWebServer extends NanoHTTPD {
                     }
                 }
             }
-
             // get if-range header. If present, it must match etag or else we
             // should ignore the range request
             String ifRange = header.get("if-range");
             boolean headerIfRangeMissingOrMatching = (ifRange == null || etag.equals(ifRange));
-
             String ifNoneMatch = header.get("if-none-match");
             boolean headerIfNoneMatchPresentAndMatching = ifNoneMatch != null && ("*".equals(ifNoneMatch) || ifNoneMatch.equals(etag));
-
             // Change return code and add Content-Range header when skipping is
             // requested
             long fileLen = file.length();
-
             if (headerIfRangeMissingOrMatching && range != null && startFrom >= 0 && startFrom < fileLen) {
                 // range request that matches current etag
                 // and the startFrom of the range is satisfiable
@@ -525,10 +504,8 @@ public class SimpleWebServer extends NanoHTTPD {
                     if (newLen < 0) {
                         newLen = 0;
                     }
-
                     FileInputStream fis = new FileInputStream(file);
                     fis.skip(startFrom);
-
                     res = Response.newFixedLengthResponse(Status.PARTIAL_CONTENT, mime, fis, newLen);
                     res.addHeader("Accept-Ranges", "bytes");
                     res.addHeader("Content-Length", "" + newLen);
@@ -536,7 +513,6 @@ public class SimpleWebServer extends NanoHTTPD {
                     res.addHeader("ETag", etag);
                 }
             } else {
-
                 if (headerIfRangeMissingOrMatching && range != null && startFrom >= fileLen) {
                     // return the size of the file
                     // 4xx responses are not trumped by if-none-match
@@ -553,7 +529,6 @@ public class SimpleWebServer extends NanoHTTPD {
                     // range request that doesn't match current etag
                     // would return entire (different) file
                     // respond with not-modified
-
                     res = newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
                     res.addHeader("ETag", etag);
                 } else {
@@ -566,7 +541,6 @@ public class SimpleWebServer extends NanoHTTPD {
         } catch (IOException ioe) {
             res = getForbiddenResponse("Reading file failed.");
         }
-
         return res;
     }
 
@@ -583,7 +557,6 @@ public class SimpleWebServer extends NanoHTTPD {
         resp.addHeader("Access-Control-Allow-Credentials", "true");
         resp.addHeader("Access-Control-Allow-Methods", ALLOWED_METHODS);
         resp.addHeader("Access-Control-Max-Age", "" + MAX_AGE);
-
         return resp;
     }
 

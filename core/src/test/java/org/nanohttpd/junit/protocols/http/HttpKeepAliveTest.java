@@ -32,13 +32,10 @@ package org.nanohttpd.junit.protocols.http;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import static junit.framework.Assert.fail;
-
 import java.io.ByteArrayOutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-
 import org.junit.Test;
 import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFileManager;
@@ -50,14 +47,7 @@ public class HttpKeepAliveTest extends HttpServerTest {
     @Test
     public void testManyGetRequests() throws Exception {
         String request = "GET " + HttpServerTest.URI + " HTTP/1.1\r\n\r\n";
-        String[] expected = {
-            "HTTP/1.1 200 OK",
-            "Content-Type: text/html",
-            "Date: .*",
-            "Connection: keep-alive",
-            "Content-Length: 0",
-            ""
-        };
+        String[] expected = { "HTTP/1.1 200 OK", "Content-Type: text/html", "Date: .*", "Connection: keep-alive", "Content-Length: 0", "" };
         testManyRequests(request, expected);
     }
 
@@ -65,14 +55,7 @@ public class HttpKeepAliveTest extends HttpServerTest {
     public void testManyPutRequests() throws Exception {
         String data = "BodyData 1\nLine 2";
         String request = "PUT " + HttpServerTest.URI + " HTTP/1.1\r\nContent-Length: " + data.length() + "\r\n\r\n" + data;
-        String[] expected = {
-            "HTTP/1.1 200 OK",
-            "Content-Type: text/html",
-            "Date: .*",
-            "Connection: keep-alive",
-            "Content-Length: 0",
-            ""
-        };
+        String[] expected = { "HTTP/1.1 200 OK", "Content-Type: text/html", "Date: .*", "Connection: keep-alive", "Content-Length: 0", "" };
         testManyRequests(request, expected);
     }
 
@@ -80,7 +63,7 @@ public class HttpKeepAliveTest extends HttpServerTest {
      * Issue the given request many times to check whether an error occurs. For
      * this test, a small stack size is used, since a stack overflow is among
      * the possible errors.
-     * 
+     *
      * @param request
      *            The request to issue
      * @param expected
@@ -105,7 +88,6 @@ public class HttpKeepAliveTest extends HttpServerTest {
                             session.execute();
                             assertResponse(outputStream, expected);
                         }
-
                         // Finally, try "Connection: Close"
                         String closeReq = request.replaceAll("HTTP/1.1", "HTTP/1.1\r\nConnection: Close");
                         expected[3] = "Connection: close";
@@ -120,7 +102,6 @@ public class HttpKeepAliveTest extends HttpServerTest {
                             junit.framework.Assert.assertEquals(se.getMessage(), "NanoHttpd Shutdown");
                         }
                         assertResponse(outputStream, expected);
-
                     } finally {
                         tempFileManager.clear();
                     }

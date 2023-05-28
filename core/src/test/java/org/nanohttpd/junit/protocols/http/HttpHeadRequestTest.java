@@ -32,14 +32,11 @@ package org.nanohttpd.junit.protocols.http;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
-
 import java.io.ByteArrayOutputStream;
 import java.util.List;
-
 import org.junit.Test;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
@@ -85,7 +82,6 @@ public class HttpHeadRequestTest extends HttpServerTest {
 
     // --------------------------------------------------------------------------------------------------------
     // //
-
     @Test
     public void testDecodingParametersWithSingleValue() {
         invokeServer("HEAD " + HttpServerTest.URI + "?foo=bar&baz=zot HTTP/1.1");
@@ -131,16 +127,7 @@ public class HttpHeadRequestTest extends HttpServerTest {
     @Test
     public void testHeadRequestDoesntSendBackResponseBody() throws Exception {
         ByteArrayOutputStream outputStream = invokeServer("HEAD " + HttpServerTest.URI + " HTTP/1.1");
-
-        String[] expected = {
-            "HTTP/1.1 200 OK",
-            "Content-Type: text/html",
-            "Date: .*",
-            "Connection: keep-alive",
-            "Content-Length: 8",
-            ""
-        };
-
+        String[] expected = { "HTTP/1.1 200 OK", "Content-Type: text/html", "Date: .*", "Connection: keep-alive", "Content-Length: 8", "" };
         assertResponse(outputStream, expected);
     }
 
@@ -212,5 +199,4 @@ public class HttpHeadRequestTest extends HttpServerTest {
         assertEquals(Method.HEAD, this.testServer.method);
         assertEquals(HttpServerTest.URI, this.testServer.uri);
     }
-
 }

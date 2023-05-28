@@ -32,8 +32,8 @@ package org.nanohttpd.protocols.websockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 public enum CloseCode {
+
     NormalClosure(1000),
     GoingAway(1001),
     ProtocolError(1002),

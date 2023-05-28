@@ -32,11 +32,10 @@ package org.nanohttpd.util;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 /**
  * Defines a generic handler that returns an object of type O when given an
  * object of type I.
- * 
+ *
  * @author LordFokas
  * @param <I>
  *            The input type.

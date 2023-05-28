@@ -32,10 +32,8 @@ package org.nanohttpd.junit.protocols.http;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.File;
 import java.io.IOException;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -56,14 +54,13 @@ public class HttpSSLServerTest extends HttpServerTest {
         HttpResponse response = httpclient.execute(httphead);
         HttpEntity entity = response.getEntity();
         Assert.assertEquals(200, response.getStatusLine().getStatusCode());
-
         Assert.assertEquals(9043, this.testServer.getListeningPort());
         Assert.assertTrue(this.testServer.isAlive());
     }
 
     /**
      * using http to connect to https.
-     * 
+     *
      * @throws ClientProtocolException
      * @throws IOException
      */

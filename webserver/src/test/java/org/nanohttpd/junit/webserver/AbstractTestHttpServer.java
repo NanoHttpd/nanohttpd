@@ -32,11 +32,9 @@ package org.nanohttpd.junit.webserver;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
 import org.apache.http.HttpEntity;
 
 /**
@@ -64,5 +62,4 @@ public class AbstractTestHttpServer {
         }
         return bytes;
     }
-
 }

@@ -32,9 +32,7 @@ package org.nanohttpd.junit.protocols.http;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import static junit.framework.Assert.assertEquals;
-
 import org.junit.Test;
 
 public class HttpParsingTest extends HttpServerTest {

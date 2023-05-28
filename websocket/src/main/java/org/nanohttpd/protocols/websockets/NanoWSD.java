@@ -32,12 +32,10 @@ package org.nanohttpd.protocols.websockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.logging.Logger;
-
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.Response;
@@ -80,7 +78,7 @@ public abstract class NanoWSD extends NanoHTTPD {
      * hast java.util.Base64, I have this from stackoverflow:
      * http://stackoverflow.com/a/4265472
      * </p>
-     * 
+     *
      * @param buf
      *            the byte array (not null)
      * @return the translated Base64 string (not null)
@@ -94,14 +92,13 @@ public abstract class NanoWSD extends NanoHTTPD {
             byte b0 = buf[i++];
             byte b1 = i < size ? buf[i++] : 0;
             byte b2 = i < size ? buf[i++] : 0;
-
             int mask = 0x3F;
             ar[a++] = NanoWSD.ALPHABET[b0 >> 2 & mask];
             ar[a++] = NanoWSD.ALPHABET[(b0 << 4 | (b1 & 0xFF) >> 4) & mask];
             ar[a++] = NanoWSD.ALPHABET[(b1 << 2 | (b2 & 0xFF) >> 6) & mask];
             ar[a++] = NanoWSD.ALPHABET[b2 & mask];
         }
-        switch (size % 3) {
+        switch(size % 3) {
             case 1:
                 ar[--a] = '=';
             case 2:
@@ -153,34 +150,27 @@ public abstract class NanoWSD extends NanoHTTPD {
     }
 
     // --------------------------------Listener--------------------------------
-
     protected abstract WebSocket openWebSocket(IHTTPSession handshake);
 
     public Response handleWebSocket(final IHTTPSession session) {
         Map<String, String> headers = session.getHeaders();
         if (isWebsocketRequested(session)) {
             if (!NanoWSD.HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION))) {
-                return Response.newFixedLengthResponse(Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
-                        "Invalid Websocket-Version " + headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION));
+                return Response.newFixedLengthResponse(Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Invalid Websocket-Version " + headers.get(NanoWSD.HEADER_WEBSOCKET_VERSION));
             }
-
             if (!headers.containsKey(NanoWSD.HEADER_WEBSOCKET_KEY)) {
                 return Response.newFixedLengthResponse(Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT, "Missing Websocket-Key");
             }
-
             WebSocket webSocket = openWebSocket(session);
             Response handshakeResponse = webSocket.getHandshakeResponse();
             try {
                 handshakeResponse.addHeader(NanoWSD.HEADER_WEBSOCKET_ACCEPT, makeAcceptKey(headers.get(NanoWSD.HEADER_WEBSOCKET_KEY)));
             } catch (NoSuchAlgorithmException e) {
-                return Response.newFixedLengthResponse(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
-                        "The SHA-1 Algorithm required for websockets is not available on the server.");
+                return Response.newFixedLengthResponse(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, "The SHA-1 Algorithm required for websockets is not available on the server.");
             }
-
             if (headers.containsKey(NanoWSD.HEADER_WEBSOCKET_PROTOCOL)) {
                 handshakeResponse.addHeader(NanoWSD.HEADER_WEBSOCKET_PROTOCOL, headers.get(NanoWSD.HEADER_WEBSOCKET_PROTOCOL).split(",")[0]);
             }
-
             return handshakeResponse;
         } else {
             return null;

@@ -1,7 +1,6 @@
 package org.nanohttpd.junit.protocols.http;
 
 import static org.junit.Assert.assertEquals;
-
 /*
  * #%L
  * NanoHttpd-Core
@@ -34,11 +33,9 @@ import static org.junit.Assert.assertEquals;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -53,7 +50,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -132,7 +128,6 @@ public class HttpServerTest {
             this.queryParameterString = session.getQueryParameterString();
             this.decodedParamtersFromParameter = decodeParameters(this.queryParameterString);
             this.decodedParamters = decodeParameters(session.getQueryParameterString());
-
             return this.response;
         }
     }
@@ -218,7 +213,6 @@ public class HttpServerTest {
     public void testMultipartFormData() throws IOException {
         final int testPort = 4589;
         NanoHTTPD server = null;
-
         try {
             server = new NanoHTTPD(testPort) {
 
@@ -227,7 +221,6 @@ public class HttpServerTest {
                 @Override
                 public Response serve(IHTTPSession session) {
                     StringBuilder responseMsg = new StringBuilder();
-
                     try {
                         session.parseBody(this.files);
                         for (String key : files.keySet()) {
@@ -236,27 +229,21 @@ public class HttpServerTest {
                     } catch (Exception e) {
                         responseMsg.append(e.getMessage());
                     }
-
                     return Response.newFixedLengthResponse(responseMsg.toString());
                 }
             };
             server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
-
             HttpClient httpclient = new DefaultHttpClient();
             HttpPost httppost = new HttpPost("http://localhost:" + testPort);
-
             final String fileName = "file-upload-test.htm";
             FileBody bin = new FileBody(new File(getClass().getClassLoader().getResource(fileName).getFile()));
             StringBody comment = new StringBody("Filename: " + fileName);
-
             MultipartEntity reqEntity = new MultipartEntity();
             reqEntity.addPart("bin", bin);
             reqEntity.addPart("comment", comment);
             httppost.setEntity(reqEntity);
-
             HttpResponse response = httpclient.execute(httppost);
             HttpEntity entity = response.getEntity();
-
             if (entity != null) {
                 InputStream instream = entity.getContent();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(instream, "UTF-8"));
@@ -283,7 +270,6 @@ public class HttpServerTest {
             @Override
             public Response serve(IHTTPSession session) {
                 String responseMsg = "pass";
-
                 try {
                     session.parseBody(this.files);
                     for (String key : files.keySet()) {
@@ -294,27 +280,21 @@ public class HttpServerTest {
                 } catch (Exception e) {
                     responseMsg = e.getMessage();
                 }
-
                 return Response.newFixedLengthResponse(responseMsg.toString());
             }
         };
         server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
-
         HttpClient httpclient = new DefaultHttpClient();
         HttpPost httppost = new HttpPost("http://localhost:" + testPort);
-
         final String fileName = "file-upload-test.htm";
         FileBody bin = new FileBody(new File(getClass().getClassLoader().getResource(fileName).getFile()));
         StringBody comment = new StringBody("Filename: " + fileName);
-
         MultipartEntity reqEntity = new MultipartEntity();
         reqEntity.addPart("bin", bin);
         reqEntity.addPart("comment", comment);
         httppost.setEntity(reqEntity);
-
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();
-
         if (entity != null) {
             InputStream instream = entity.getContent();
             BufferedReader reader = new BufferedReader(new InputStreamReader(instream, "UTF-8"));

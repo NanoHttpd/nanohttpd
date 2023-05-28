@@ -32,14 +32,11 @@ package org.nanohttpd.junit.protocols.http;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import static org.junit.Assert.assertEquals;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-
 import org.junit.Test;
 import org.nanohttpd.protocols.http.HTTPSession;
 

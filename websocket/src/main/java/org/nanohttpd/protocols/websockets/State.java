@@ -32,11 +32,7 @@ package org.nanohttpd.protocols.websockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 public enum State {
-    UNCONNECTED,
-    CONNECTING,
-    OPEN,
-    CLOSING,
-    CLOSED
+
+    UNCONNECTED, CONNECTING, OPEN, CLOSING, CLOSED
 }

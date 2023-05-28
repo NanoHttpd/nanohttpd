@@ -32,7 +32,6 @@ package org.nanohttpd.protocols.http;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;

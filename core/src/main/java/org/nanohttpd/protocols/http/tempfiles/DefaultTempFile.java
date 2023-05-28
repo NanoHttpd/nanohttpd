@@ -32,12 +32,10 @@ package org.nanohttpd.protocols.http.tempfiles;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-
 import org.nanohttpd.protocols.http.NanoHTTPD;
 
 /**

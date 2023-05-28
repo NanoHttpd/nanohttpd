@@ -32,10 +32,8 @@ package org.nanohttpd.samples.http;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.util.Map;
 import java.util.logging.Logger;
-
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.request.Method;
@@ -65,7 +63,6 @@ public class HelloServer extends NanoHTTPD {
         Method method = session.getMethod();
         String uri = session.getUri();
         HelloServer.LOG.info(method + " '" + uri + "' ");
-
         String msg = "<html><body><h1>Hello server</h1>\n";
         Map<String, String> parms = session.getParms();
         if (parms.get("username") == null) {
@@ -73,9 +70,7 @@ public class HelloServer extends NanoHTTPD {
         } else {
             msg += "<p>Hello, " + parms.get("username") + "!</p>";
         }
-
         msg += "</body></html>\n";
-
         return Response.newFixedLengthResponse(msg);
     }
 }

@@ -32,10 +32,8 @@ package org.nanohttpd.junit.webserver;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -65,15 +63,7 @@ public class TestCorsHttpServer extends AbstractTestHttpServer {
 
             @Override
             public void run() {
-                String[] args = {
-                    "--host",
-                    "localhost",
-                    "--port",
-                    "9090",
-                    "--dir",
-                    "src/test/resources",
-                    "--cors"
-                };
+                String[] args = { "--host", "localhost", "--port", "9090", "--dir", "src/test/resources", "--cors" };
                 SimpleWebServer.main(args);
             }
         });
@@ -107,7 +97,6 @@ public class TestCorsHttpServer extends AbstractTestHttpServer {
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
         String string = new String(readContents(entity), "UTF-8");
-
         Assert.assertNotNull("Cors should have added a header: Access-Control-Allow-Origin", response.getLastHeader("Access-Control-Allow-Origin"));
         Assert.assertEquals("Cors should have added a header: Access-Control-Allow-Origin: *", "*", response.getLastHeader("Access-Control-Allow-Origin").getValue());
         Assert.assertEquals("<html>\n<head>\n<title>dummy</title>\n</head>\n<body>\n\t<h1>it works</h1>\n</body>\n</html>", string);
@@ -116,33 +105,26 @@ public class TestCorsHttpServer extends AbstractTestHttpServer {
 
     @Test
     public void testAccessControlAllowHeaderUsesDefaultsWithoutSystemProperty() throws Exception {
-        Assert.assertNull("no System " + SimpleWebServer.ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME + " shoudl be set",
-                System.getProperty(SimpleWebServer.ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME));
-
+        Assert.assertNull("no System " + SimpleWebServer.ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME + " shoudl be set", System.getProperty(SimpleWebServer.ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME));
         CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpOptions httpOption = new HttpOptions("http://localhost:9090/xxx/yyy.html");
         CloseableHttpResponse response = httpclient.execute(httpOption);
         Assert.assertEquals(200, response.getStatusLine().getStatusCode());
-        Assert.assertEquals("Cors should have added a header: Access-Control-Allow-Headers: " + SimpleWebServer.DEFAULT_ALLOWED_HEADERS,
-                SimpleWebServer.DEFAULT_ALLOWED_HEADERS, response.getLastHeader("Access-Control-Allow-Headers").getValue());
+        Assert.assertEquals("Cors should have added a header: Access-Control-Allow-Headers: " + SimpleWebServer.DEFAULT_ALLOWED_HEADERS, SimpleWebServer.DEFAULT_ALLOWED_HEADERS, response.getLastHeader("Access-Control-Allow-Headers").getValue());
         response.close();
     }
 
     @Test
     public void testAccessControlAllowHeaderUsesSystemPropertyWhenSet() throws Exception {
-        Assert.assertNull("no System " + SimpleWebServer.ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME + " shoudl be set",
-                System.getProperty(SimpleWebServer.ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME));
-
+        Assert.assertNull("no System " + SimpleWebServer.ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME + " shoudl be set", System.getProperty(SimpleWebServer.ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME));
         final String expectedValue = "origin";
         System.setProperty(SimpleWebServer.ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME, expectedValue);
-
         try {
             CloseableHttpClient httpclient = HttpClients.createDefault();
             HttpOptions httpOption = new HttpOptions("http://localhost:9090/xxx/yyy.html");
             CloseableHttpResponse response = httpclient.execute(httpOption);
             Assert.assertEquals(200, response.getStatusLine().getStatusCode());
-            Assert.assertEquals("Cors should have added a header: Access-Control-Allow-Headers: " + expectedValue, expectedValue,
-                    response.getLastHeader("Access-Control-Allow-Headers").getValue());
+            Assert.assertEquals("Cors should have added a header: Access-Control-Allow-Headers: " + expectedValue, expectedValue, response.getLastHeader("Access-Control-Allow-Headers").getValue());
             response.close();
         } finally {
             System.clearProperty(SimpleWebServer.ACCESS_CONTROL_ALLOW_HEADER_PROPERTY_NAME);

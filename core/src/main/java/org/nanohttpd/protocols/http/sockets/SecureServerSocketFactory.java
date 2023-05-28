@@ -32,13 +32,10 @@ package org.nanohttpd.protocols.http.sockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.IOException;
 import java.net.ServerSocket;
-
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
-
 import org.nanohttpd.util.IFactoryThrowing;
 
 /**
@@ -69,5 +66,4 @@ public class SecureServerSocketFactory implements IFactoryThrowing<ServerSocket,
         ss.setNeedClientAuth(false);
         return ss;
     }
-
 }

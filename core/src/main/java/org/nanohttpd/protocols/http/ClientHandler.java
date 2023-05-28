@@ -32,14 +32,12 @@ package org.nanohttpd.protocols.http;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.logging.Level;
-
 import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
 /**

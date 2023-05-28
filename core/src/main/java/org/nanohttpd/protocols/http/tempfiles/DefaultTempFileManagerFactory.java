@@ -32,7 +32,6 @@ package org.nanohttpd.protocols.http.tempfiles;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import org.nanohttpd.util.IFactory;
 
 /**

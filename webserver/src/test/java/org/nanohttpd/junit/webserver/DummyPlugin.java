@@ -32,12 +32,10 @@ package org.nanohttpd.junit.webserver;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Map;
-
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
@@ -64,5 +62,4 @@ public class DummyPlugin implements WebServerPlugin {
         InputStream data = new ByteArrayInputStream(bytes);
         return Response.newFixedLengthResponse(Status.OK, "text/xml", data, bytes.length);
     }
-
 }

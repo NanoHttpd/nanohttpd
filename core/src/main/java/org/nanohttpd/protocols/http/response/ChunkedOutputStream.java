@@ -32,7 +32,6 @@ package org.nanohttpd.protocols.http.response;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -50,9 +49,7 @@ public class ChunkedOutputStream extends FilterOutputStream {
 
     @Override
     public void write(int b) throws IOException {
-        byte[] data = {
-            (byte) b
-        };
+        byte[] data = { (byte) b };
         write(data, 0, 1);
     }
 

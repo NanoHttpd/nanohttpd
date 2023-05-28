@@ -32,10 +32,8 @@ package org.nanohttpd.junit.webserver;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -65,15 +63,7 @@ public class TestCorsHttpServerWithSingleOrigin extends AbstractTestHttpServer {
 
             @Override
             public void run() {
-                String[] args = {
-                    "--host",
-                    "localhost",
-                    "--port",
-                    "9090",
-                    "--dir",
-                    "src/test/resources",
-                    "--cors=http://localhost:9090"
-                };
+                String[] args = { "--host", "localhost", "--port", "9090", "--dir", "src/test/resources", "--cors=http://localhost:9090" };
                 SimpleWebServer.main(args);
             }
         });
@@ -96,8 +86,7 @@ public class TestCorsHttpServerWithSingleOrigin extends AbstractTestHttpServer {
         CloseableHttpResponse response = httpclient.execute(httpOption);
         Assert.assertEquals(200, response.getStatusLine().getStatusCode());
         Assert.assertNotNull("Cors should have added a header: Access-Control-Allow-Origin", response.getLastHeader("Access-Control-Allow-Origin"));
-        Assert.assertEquals("Cors should have added a header: Access-Control-Allow-Origin: http://localhost:9090", "http://localhost:9090",
-                response.getLastHeader("Access-Control-Allow-Origin").getValue());
+        Assert.assertEquals("Cors should have added a header: Access-Control-Allow-Origin: http://localhost:9090", "http://localhost:9090", response.getLastHeader("Access-Control-Allow-Origin").getValue());
         response.close();
     }
 
@@ -108,10 +97,8 @@ public class TestCorsHttpServerWithSingleOrigin extends AbstractTestHttpServer {
         CloseableHttpResponse response = httpclient.execute(httpget);
         HttpEntity entity = response.getEntity();
         String string = new String(readContents(entity), "UTF-8");
-
         Assert.assertNotNull("Cors should have added a header: Access-Control-Allow-Origin", response.getLastHeader("Access-Control-Allow-Origin"));
-        Assert.assertEquals("Cors should have added a header: Access-Control-Allow-Origin: http://localhost:9090", "http://localhost:9090",
-                response.getLastHeader("Access-Control-Allow-Origin").getValue());
+        Assert.assertEquals("Cors should have added a header: Access-Control-Allow-Origin: http://localhost:9090", "http://localhost:9090", response.getLastHeader("Access-Control-Allow-Origin").getValue());
         Assert.assertEquals("<html>\n<head>\n<title>dummy</title>\n</head>\n<body>\n\t<h1>it works</h1>\n</body>\n</html>", string);
         response.close();
     }

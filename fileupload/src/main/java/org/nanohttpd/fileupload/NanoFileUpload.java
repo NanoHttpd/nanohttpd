@@ -32,12 +32,10 @@ package org.nanohttpd.fileupload;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.FileItemIterator;
@@ -70,7 +68,6 @@ public class NanoFileUpload extends FileUpload {
             } catch (NumberFormatException var4) {
                 size = -1L;
             }
-
             return size;
         }
 
@@ -114,5 +111,4 @@ public class NanoFileUpload extends FileUpload {
     public FileItemIterator getItemIterator(IHTTPSession session) throws FileUploadException, IOException {
         return super.getItemIterator(new NanoHttpdContext(session));
     }
-
 }

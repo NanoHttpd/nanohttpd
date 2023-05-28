@@ -32,7 +32,6 @@ package org.nanohttpd.protocols.http.response;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 public interface IStatus {
 
     String getDescription();

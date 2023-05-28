@@ -32,7 +32,6 @@ package org.nanohttpd.protocols.websockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.IOException;
 
 public class WebSocketException extends IOException {

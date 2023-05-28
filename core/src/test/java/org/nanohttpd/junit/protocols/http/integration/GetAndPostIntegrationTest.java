@@ -32,10 +32,8 @@ package org.nanohttpd.junit.protocols.http.integration;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -43,7 +41,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -80,7 +77,6 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
         @Override
         public Response serve(IHTTPSession session) {
             StringBuilder sb = new StringBuilder(String.valueOf(session.getMethod()) + ':' + this.response);
-
             Method method = session.getMethod();
             Map<String, String> files = new HashMap<String, String>();
             if (Method.PUT.equals(method) || Method.POST.equals(method)) {
@@ -90,7 +86,6 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
                     fail(e.getMessage());
                 }
             }
-
             String uri = session.getUri();
             Map<String, String> parms = session.getParms();
             if (parms.size() > 1) {
@@ -120,72 +115,59 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
     @Test
     public void testGetRequestWithParameters() throws Exception {
         this.testServer.response = "testGetRequestWithParameters";
-
         HttpGet httpget = new HttpGet("http://localhost:8192/?age=120&gender=Male");
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         String responseBody = this.httpclient.execute(httpget, responseHandler);
-
         assertEquals("GET:testGetRequestWithParameters-params=2;age=120;gender=Male", responseBody);
     }
 
     @Test
     public void testPostRequestWithFormEncodedParameters() throws Exception {
         this.testServer.response = "testPostRequestWithFormEncodedParameters";
-
         HttpPost httppost = new HttpPost("http://localhost:8192/");
         List<NameValuePair> postParameters = new ArrayList<NameValuePair>();
         postParameters.add(new BasicNameValuePair("age", "120"));
         postParameters.add(new BasicNameValuePair("gender", "Male"));
         httppost.setEntity(new UrlEncodedFormEntity(postParameters));
-
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         String responseBody = this.httpclient.execute(httppost, responseHandler);
-
         assertEquals("POST:testPostRequestWithFormEncodedParameters-params=2;age=120;gender=Male", responseBody);
     }
 
     @Test
     public void testPostRequestWithMultipartEncodedParameters() throws Exception {
         this.testServer.response = "testPostRequestWithMultipartEncodedParameters";
-
         HttpPost httppost = new HttpPost("http://localhost:8192/");
         MultipartEntity reqEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
         reqEntity.addPart("age", new StringBody("120"));
         reqEntity.addPart("gender", new StringBody("Male"));
         httppost.setEntity(reqEntity);
-
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         String responseBody = this.httpclient.execute(httppost, responseHandler);
-
         assertEquals("POST:testPostRequestWithMultipartEncodedParameters-params=2;age=120;gender=Male", responseBody);
     }
 
     @Test
     public void testPostWithNoParameters() throws Exception {
         this.testServer.response = "testPostWithNoParameters";
-
         HttpPost httppost = new HttpPost("http://localhost:8192/");
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         String responseBody = this.httpclient.execute(httppost, responseHandler);
-
         assertEquals("POST:testPostWithNoParameters", responseBody);
     }
 
     @Test
     public void testSimpleGetRequest() throws Exception {
         this.testServer.response = "testSimpleGetRequest";
-
         HttpGet httpget = new HttpGet("http://localhost:8192/");
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         String responseBody = this.httpclient.execute(httpget, responseHandler);
-
         assertEquals("GET:testSimpleGetRequest", responseBody);
     }
 
     @Test
     public void testPostRequestWithMultipartExtremEncodedParameters() throws Exception {
         this.testServer.response = "testPostRequestWithMultipartEncodedParameters";
-
         HttpPost httppost = new HttpPost("http://localhost:8192/chin");
         MultipartEntity reqEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE, "sfsadfasdf", Charset.forName("UTF-8"));
         reqEntity.addPart("specialString", new StringBody("拖拉图片到浏览器，可以实现预览功能", "text/plain", Charset.forName("UTF-8")));
@@ -198,23 +180,18 @@ public class GetAndPostIntegrationTest extends IntegrationTestBase<GetAndPostInt
         });
         httppost.setEntity(reqEntity);
         HttpResponse response = this.httpclient.execute(httppost);
-
         HttpEntity entity = response.getEntity();
         String responseBody = EntityUtils.toString(entity, "UTF-8");
-
         assertEquals("POST:testPostRequestWithMultipartEncodedParameters-params=2;gender=图片名称;specialString=拖拉图片到浏览器，可以实现预览功能", responseBody);
     }
 
     @Test
     public void testPostRequestWithEncodedParameters() throws Exception {
         this.testServer.response = "testPostRequestWithEncodedParameters";
-
         HttpPost httppost = new HttpPost("http://localhost:8192/encodingtest");
         HttpResponse response = this.httpclient.execute(httppost);
-
         HttpEntity entity = response.getEntity();
         String responseBody = EntityUtils.toString(entity);
-
         assertEquals("<html><head><title>Testé ça</title></head><body>Testé ça</body></html>", responseBody);
     }
 }

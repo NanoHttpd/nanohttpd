@@ -32,12 +32,12 @@ package org.nanohttpd.protocols.http.request;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 /**
  * HTTP Request methods, with the ability to decode a <code>String</code> back
  * to its enum value.
  */
 public enum Method {
+
     GET,
     PUT,
     POST,
@@ -60,7 +60,6 @@ public enum Method {
     public static Method lookup(String method) {
         if (method == null)
             return null;
-
         try {
             return valueOf(method);
         } catch (IllegalArgumentException e) {

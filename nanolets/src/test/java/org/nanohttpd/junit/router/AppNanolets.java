@@ -32,20 +32,17 @@ package org.nanohttpd.junit.router;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 /**
  * Created by vnnv on 7/17/15.
  * Simple httpd server based on NanoHTTPD
  * Read the source. Everything is there.
  */
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.IStatus;
 import org.nanohttpd.protocols.http.response.Response;
@@ -85,7 +82,6 @@ public class AppNanolets extends RouterNanoHTTPD {
                 text += "<div> Query Param: " + key + "&nbsp;Value: " + value + "</div>";
             }
             text += "</body></html>";
-
             return text;
         }
 
@@ -105,7 +101,6 @@ public class AppNanolets extends RouterNanoHTTPD {
             int size = text.getBytes().length;
             return Response.newFixedLengthResponse(getStatus(), getMimeType(), inp, size);
         }
-
     }
 
     static public class StreamUrl extends DefaultStreamHandler {
@@ -124,7 +119,6 @@ public class AppNanolets extends RouterNanoHTTPD {
         public InputStream getData() {
             return new ByteArrayInputStream("a stream of data ;-)".getBytes());
         }
-
     }
 
     public static class StaticPageTestHandler extends StaticPageHandler {
@@ -156,15 +150,17 @@ public class AppNanolets extends RouterNanoHTTPD {
     public void addMappings() {
         super.addMappings();
         addRoute("/user", UserHandler.class);
-        addRoute("/user", UserHandler.class); // add it twice to execute the
-                                              // priority == priority case
+        // add it twice to execute the
+        addRoute("/user", UserHandler.class);
+        // priority == priority case
         addRoute("/user/help", GeneralHandler.class);
         addRoute("/user/:id", UserHandler.class);
         addRoute("/general/:param1/:param2", GeneralHandler.class);
         addRoute("/photos/:customer_id/:photo_id", null);
         addRoute("/test", String.class);
-        addRoute("/interface", UriResponder.class); // this will cause an error
-                                                    // when called
+        // this will cause an error
+        addRoute("/interface", UriResponder.class);
+        // when called
         addRoute("/toBeDeleted", String.class);
         removeRoute("/toBeDeleted");
         addRoute("/stream", StreamUrl.class);
@@ -173,7 +169,7 @@ public class AppNanolets extends RouterNanoHTTPD {
 
     /**
      * Main entry point
-     * 
+     *
      * @param args
      */
     public static void main(String[] args) {

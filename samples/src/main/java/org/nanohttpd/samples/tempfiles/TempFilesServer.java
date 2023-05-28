@@ -32,11 +32,9 @@ package org.nanohttpd.samples.tempfiles;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.nanohttpd.protocols.http.tempfiles.DefaultTempFile;
 import org.nanohttpd.protocols.http.tempfiles.ITempFile;
 import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;

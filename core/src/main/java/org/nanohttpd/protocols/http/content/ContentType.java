@@ -32,7 +32,6 @@ package org.nanohttpd.protocols.http.content;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
