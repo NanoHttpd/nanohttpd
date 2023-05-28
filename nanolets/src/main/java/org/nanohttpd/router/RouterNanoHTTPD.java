@@ -96,18 +96,22 @@ public class RouterNanoHTTPD extends NanoHTTPD {
         }
 
         public Response post(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
-            return get(uriResource, urlParams, session);
+            return getUriResourceSession(uriResource, urlParams, session);
         }
 
         public Response put(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
-            return get(uriResource, urlParams, session);
+            return getUriResourceSession(uriResource, urlParams, session);
         }
 
         public Response delete(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
-            return get(uriResource, urlParams, session);
+            return getUriResourceSession(uriResource, urlParams, session);
         }
 
         public Response other(String method, UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
+            return get(uriResource, urlParams, session);
+        }
+
+        private Response getUriResourceSession(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session) {
             return get(uriResource, urlParams, session);
         }
     }
@@ -192,12 +196,12 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
         @Override
         public String getText() {
-            throw new IllegalStateException("this method should not be called");
+            return invalidateUserInput();
         }
 
         @Override
         public String getMimeType() {
-            throw new IllegalStateException("this method should not be called");
+            return invalidateUserInput();
         }
 
         @Override
@@ -237,6 +241,10 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
         protected BufferedInputStream fileToInputStream(File fileOrdirectory) throws IOException {
             return new BufferedInputStream(new FileInputStream(fileOrdirectory));
+        }
+
+        private String invalidateUserInput() {
+            throw new IllegalStateException("this method should not be called");
         }
     }
 
