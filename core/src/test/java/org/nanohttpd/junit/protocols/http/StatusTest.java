@@ -2,7 +2,6 @@ package org.nanohttpd.junit.protocols.http;
 
 import java.util.HashMap;
 import java.util.Map;
-
 /*
  * #%L
  * NanoHttpd-Core
@@ -35,7 +34,6 @@ import java.util.Map;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.nanohttpd.protocols.http.response.Status;
@@ -58,7 +56,6 @@ public class StatusTest {
         overrideValues.put(Status.REDIRECT_SEE_OTHER, "303 See Other");
         overrideValues.put(Status.RANGE_NOT_SATISFIABLE, "416 Requested Range Not Satisfiable");
         overrideValues.put(Status.UNSUPPORTED_HTTP_VERSION, "505 HTTP Version Not Supported");
-
         for (Status status : Status.values()) {
             if (overrideValues.containsKey(status)) {
                 Assert.assertEquals(overrideValues.get(status), status.getDescription());
@@ -74,33 +71,28 @@ public class StatusTest {
         StringBuilder builder = new StringBuilder();
         builder.append(status.getRequestStatus());
         builder.append(' ');
-
         for (int i = 0; i < words.length; i++) {
             builder.append(Character.toUpperCase(words[i].charAt(0)));
             builder.append(words[i].substring(1));
             builder.append(' ');
         }
-
         return builder.toString().trim();
     }
 
     @Test
     public void testLookup() throws Exception {
         Assert.assertEquals(Status.SWITCH_PROTOCOL, Status.lookup(101));
-
         Assert.assertEquals(Status.OK, Status.lookup(200));
         Assert.assertEquals(Status.CREATED, Status.lookup(201));
         Assert.assertEquals(Status.ACCEPTED, Status.lookup(202));
         Assert.assertEquals(Status.NO_CONTENT, Status.lookup(204));
         Assert.assertEquals(Status.PARTIAL_CONTENT, Status.lookup(206));
         Assert.assertEquals(Status.MULTI_STATUS, Status.lookup(207));
-
         Assert.assertEquals(Status.REDIRECT, Status.lookup(301));
         Assert.assertEquals(Status.FOUND, Status.lookup(302));
         Assert.assertEquals(Status.REDIRECT_SEE_OTHER, Status.lookup(303));
         Assert.assertEquals(Status.NOT_MODIFIED, Status.lookup(304));
         Assert.assertEquals(Status.TEMPORARY_REDIRECT, Status.lookup(307));
-
         Assert.assertEquals(Status.BAD_REQUEST, Status.lookup(400));
         Assert.assertEquals(Status.UNAUTHORIZED, Status.lookup(401));
         Assert.assertEquals(Status.FORBIDDEN, Status.lookup(403));

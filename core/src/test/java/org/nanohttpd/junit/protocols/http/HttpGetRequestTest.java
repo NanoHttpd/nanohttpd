@@ -32,15 +32,12 @@ package org.nanohttpd.junit.protocols.http;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-
 import java.io.ByteArrayOutputStream;
 import java.util.List;
-
 import org.junit.Test;
 import org.nanohttpd.protocols.http.request.Method;
 import org.nanohttpd.protocols.http.response.Response;
@@ -79,7 +76,6 @@ public class HttpGetRequestTest extends HttpServerTest {
 
     // --------------------------------------------------------------------------------------------------------
     // //
-
     @Test
     public void testDecodingParametersWithSingleValue() {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar&baz=zot HTTP/1.1");
@@ -125,16 +121,7 @@ public class HttpGetRequestTest extends HttpServerTest {
     @Test
     public void testFullyQualifiedWorkingGetRequest() throws Exception {
         ByteArrayOutputStream outputStream = invokeServer("GET " + HttpServerTest.URI + " HTTP/1.1");
-
-        String[] expected = {
-            "HTTP/1.1 200 OK",
-            "Content-Type: text/html",
-            "Date: .*",
-            "Connection: keep-alive",
-            "Content-Length: 0",
-            ""
-        };
-
+        String[] expected = { "HTTP/1.1 200 OK", "Content-Type: text/html", "Date: .*", "Connection: keep-alive", "Content-Length: 0", "" };
         assertResponse(outputStream, expected);
     }
 
@@ -180,17 +167,7 @@ public class HttpGetRequestTest extends HttpServerTest {
         String responseBody = "Success!";
         this.testServer.response = Response.newFixedLengthResponse(responseBody);
         ByteArrayOutputStream outputStream = invokeServer("GET " + HttpServerTest.URI + " HTTP/1.1");
-
-        String[] expected = {
-            "HTTP/1.1 200 OK",
-            "Content-Type: text/html",
-            "Date: .*",
-            "Connection: keep-alive",
-            "Content-Length: 8",
-            "",
-            responseBody
-        };
-
+        String[] expected = { "HTTP/1.1 200 OK", "Content-Type: text/html", "Date: .*", "Connection: keep-alive", "Content-Length: 8", "", responseBody };
         assertResponse(outputStream, expected);
     }
 
@@ -252,11 +229,7 @@ public class HttpGetRequestTest extends HttpServerTest {
         invokeServer("GET " + HttpServerTest.URI + "?foo=bar%20baz&foo=bar%3F&foo=bar%26 HTTP/1.1");
         assertEquals("Parameter count in URL and decodedParameters should match.", 1, this.testServer.decodedParamters.size());
         String[] parametersAsArray = this.testServer.decodedParamters.get("foo").toArray(new String[0]);
-        String[] expected = new String[]{
-            "bar baz",
-            "bar?",
-            "bar&"
-        };
+        String[] expected = new String[] { "bar baz", "bar?", "bar&" };
         assertArrayEquals("Repeated parameter not decoded correctly", expected, parametersAsArray);
     }
 }

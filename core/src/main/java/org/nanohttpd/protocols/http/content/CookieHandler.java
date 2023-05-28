@@ -32,19 +32,17 @@ package org.nanohttpd.protocols.http.content;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
 import org.nanohttpd.protocols.http.response.Response;
 
 /**
  * Provides rudimentary support for cookies. Doesn't support 'path', 'secure'
  * nor 'httpOnly'. Feel free to improve it and/or add unsupported features. This
  * is old code and it's flawed in many ways.
- * 
+ *
  * @author LordFokas
  */
 public class CookieHandler implements Iterable<String> {
@@ -69,7 +67,7 @@ public class CookieHandler implements Iterable<String> {
     /**
      * Set a cookie with an expiration date from a month ago, effectively
      * deleting it on the client side.
-     * 
+     *
      * @param name
      *            The cookie name.
      */
@@ -84,7 +82,7 @@ public class CookieHandler implements Iterable<String> {
 
     /**
      * Read a cookie from the HTTP Headers.
-     * 
+     *
      * @param name
      *            The cookie's name.
      * @return The cookie's value if it exists, null otherwise.
@@ -99,7 +97,7 @@ public class CookieHandler implements Iterable<String> {
 
     /**
      * Sets a cookie.
-     * 
+     *
      * @param name
      *            The cookie's name.
      * @param value
@@ -114,7 +112,7 @@ public class CookieHandler implements Iterable<String> {
     /**
      * Internally used by the webserver to add all queued cookies into the
      * Response's HTTP Headers.
-     * 
+     *
      * @param response
      *            The Response object to which headers the queued cookies will
      *            be added.

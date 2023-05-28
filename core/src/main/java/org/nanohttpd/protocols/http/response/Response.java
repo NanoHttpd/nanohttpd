@@ -32,7 +32,6 @@ package org.nanohttpd.protocols.http.response;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
@@ -55,7 +54,6 @@ import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.zip.GZIPOutputStream;
-
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.content.ContentType;
 import org.nanohttpd.protocols.http.request.Method;
@@ -92,7 +90,7 @@ public class Response implements Closeable {
         public String put(String key, String value) {
             lowerCaseHeader.put(key == null ? key : key.toLowerCase(), value);
             return super.put(key, value);
-        };
+        }
     };
 
     /**
@@ -117,18 +115,14 @@ public class Response implements Closeable {
     private GzipUsage gzipUsage = GzipUsage.DEFAULT;
 
     private static enum GzipUsage {
-        DEFAULT,
-        ALWAYS,
-        NEVER;
+
+        DEFAULT, ALWAYS, NEVER
     }
 
     /**
      * Creates a fixed length response if totalBytes>=0, otherwise chunked.
      */
-    @SuppressWarnings({
-        "rawtypes",
-        "unchecked"
-    })
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     protected Response(IStatus status, String mimeType, InputStream data, long totalBytes) {
         this.status = status;
         this.mimeType = mimeType;
@@ -162,7 +156,7 @@ public class Response implements Closeable {
     /**
      * Should not be called manually. This is an internally utility for JUnit
      * test purposes.
-     * 
+     *
      * @return All unloaded cookie headers.
      */
     public List<String> getCookieHeaders() {
@@ -178,7 +172,7 @@ public class Response implements Closeable {
 
     /**
      * Indicate to close the connection after the Response has been sent.
-     * 
+     *
      * @param close
      *            {@code true} to hint connection closing, {@code false} to let
      *            connection be closed by client.
@@ -228,7 +222,6 @@ public class Response implements Closeable {
     public void send(OutputStream outputStream) {
         SimpleDateFormat gmtFrmt = new SimpleDateFormat("E, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
         gmtFrmt.setTimeZone(TimeZone.getTimeZone("GMT"));
-
         try {
             if (this.status == null) {
                 throw new Error("sendResponse(): Status can't be null.");
@@ -287,8 +280,8 @@ public class Response implements Closeable {
             } catch (NumberFormatException ex) {
                 NanoHTTPD.LOG.severe("content-length was no number " + contentLengthString);
             }
-        }else{
-        	pw.print("Content-Length: " + size + "\r\n");
+        } else {
+            pw.print("Content-Length: " + size + "\r\n");
         }
         return size;
     }
@@ -300,7 +293,7 @@ public class Response implements Closeable {
             try {
                 chunkedOutputStream.finish();
             } catch (Exception e) {
-                if(this.data != null) {
+                if (this.data != null) {
                     this.data.close();
                 }
             }
@@ -315,7 +308,7 @@ public class Response implements Closeable {
             try {
                 gzipOutputStream = new GZIPOutputStream(outputStream);
             } catch (Exception e) {
-                if(this.data != null) {
+                if (this.data != null) {
                     this.data.close();
                 }
             }
@@ -332,7 +325,7 @@ public class Response implements Closeable {
      * Sends the body to the specified OutputStream. The pending parameter
      * limits the maximum amounts of bytes sent unless it is -1, in which case
      * everything is sent.
-     * 
+     *
      * @param outputStream
      *            the OutputStream to send data to
      * @param pending
@@ -354,7 +347,7 @@ public class Response implements Closeable {
             try {
                 outputStream.write(buff, 0, read);
             } catch (Exception e) {
-                if(this.data != null) {
+                if (this.data != null) {
                     this.data.close();
                 }
             }

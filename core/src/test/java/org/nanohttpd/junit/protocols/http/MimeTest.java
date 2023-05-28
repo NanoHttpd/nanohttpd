@@ -32,7 +32,6 @@ package org.nanohttpd.junit.protocols.http;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.nanohttpd.protocols.http.NanoHTTPD;

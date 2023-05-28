@@ -32,10 +32,8 @@ package org.nanohttpd.junit.protocols.http;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -46,7 +44,6 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
-
 import org.junit.Test;
 import org.nanohttpd.protocols.http.HTTPSession;
 import org.nanohttpd.protocols.http.content.CookieHandler;
@@ -58,7 +55,6 @@ public class CookieHandlerTest extends HttpServerTest {
     public void testCookieHeaderCorrectlyParsed() throws IOException {
         StringBuilder requestBuilder = new StringBuilder();
         requestBuilder.append("GET " + HttpServerTest.URI + " HTTP/1.1").append(System.getProperty("line.separator")).append("Cookie: theme=light; sessionToken=abc123");
-
         ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
@@ -72,16 +68,13 @@ public class CookieHandlerTest extends HttpServerTest {
         assertTrue("cookie specified in header not correctly parsed", allCookies.contains("sessionToken"));
         assertEquals("cookie value not correctly parsed", "light", cookieHandler.read("theme"));
         assertEquals("cookie value not correctly parsed", "abc123", cookieHandler.read("sessionToken"));
-
     }
 
     @Test
     public void testCookieHeaderWithSpecialCharactersCorrectlyParsed() throws IOException {
         StringBuilder requestBuilder = new StringBuilder();
         // not including ; = and ,
-        requestBuilder.append("GET " + HttpServerTest.URI + " HTTP/1.1").append(System.getProperty("line.separator"))
-                .append("Cookie: theme=light; sessionToken=abc123!@#$%^&*()-_+{}[]\\|:\"'<>.?/");
-
+        requestBuilder.append("GET " + HttpServerTest.URI + " HTTP/1.1").append(System.getProperty("line.separator")).append("Cookie: theme=light; sessionToken=abc123!@#$%^&*()-_+{}[]\\|:\"'<>.?/");
         ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
@@ -95,14 +88,12 @@ public class CookieHandlerTest extends HttpServerTest {
         assertTrue("cookie specified in header not correctly parsed", allCookies.contains("sessionToken"));
         assertEquals("cookie value not correctly parsed", "light", cookieHandler.read("theme"));
         assertEquals("cookie value not correctly parsed", "abc123!@#$%^&*()-_+{}[]\\|:\"'<>.?/", cookieHandler.read("sessionToken"));
-
     }
 
     @Test
     public void testUnloadQueue() throws IOException {
         StringBuilder requestBuilder = new StringBuilder();
         requestBuilder.append("GET " + HttpServerTest.URI + " HTTP/1.1").append(System.getProperty("line.separator")).append("Cookie: theme=light; sessionToken=abc123");
-
         ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
@@ -119,17 +110,14 @@ public class CookieHandlerTest extends HttpServerTest {
     public void testDelete() throws IOException, ParseException {
         StringBuilder requestBuilder = new StringBuilder();
         requestBuilder.append("GET " + HttpServerTest.URI + " HTTP/1.1").append(System.getProperty("line.separator")).append("Cookie: theme=light; sessionToken=abc123");
-
         ByteArrayInputStream inputStream = new ByteArrayInputStream(requestBuilder.toString().getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         HTTPSession session = this.testServer.createSession(this.tempFileManager, inputStream, outputStream);
         session.execute();
         CookieHandler cookieHandler = session.getCookies();
-
         Response response = Response.newFixedLengthResponse("");
         cookieHandler.delete("name");
         cookieHandler.unloadQueue(response);
-
         String setCookieHeader = response.getCookieHeaders().get(0);
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));

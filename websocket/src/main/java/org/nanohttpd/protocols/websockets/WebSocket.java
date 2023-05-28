@@ -32,7 +32,6 @@ package org.nanohttpd.protocols.websockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -40,7 +39,6 @@ import java.nio.charset.CharacterCodingException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
-
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
@@ -99,7 +97,7 @@ public abstract class WebSocket {
 
     /**
      * Debug method. <b>Do not Override unless for debug purposes!</b>
-     * 
+     *
      * @param frame
      *            The received WebSocket Frame.
      */
@@ -109,7 +107,7 @@ public abstract class WebSocket {
     /**
      * Debug method. <b>Do not Override unless for debug purposes!</b><br>
      * This method is called before actually sending the frame.
-     * 
+     *
      * @param frame
      *            The sent WebSocket Frame.
      */
@@ -149,7 +147,6 @@ public abstract class WebSocket {
     }
 
     // --------------------------------IO--------------------------------------
-
     public IHTTPSession getHandshakeRequest() {
         return this.handshakeRequest;
     }
@@ -220,14 +217,12 @@ public abstract class WebSocket {
     }
 
     // --------------------------------Close-----------------------------------
-
     public void ping(byte[] payload) throws IOException {
         sendFrame(new WebSocketFrame(OpCode.Ping, true, payload));
     }
 
     // --------------------------------Public
     // Facade---------------------------
-
     private void readWebsocket() {
         try {
             while (this.state == State.OPEN) {

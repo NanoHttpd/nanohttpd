@@ -1,7 +1,6 @@
 package org.nanohttpd.junit.protocols.http;
 
 import java.io.File;
-
 /*
  * #%L
  * NanoHttpd-Core
@@ -34,10 +33,8 @@ import java.io.File;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.IOException;
 import java.net.ServerSocket;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.nanohttpd.protocols.http.NanoHTTPD;
@@ -50,7 +47,6 @@ public class ServerSocketFactoryTest extends NanoHTTPD {
 
     public ServerSocketFactoryTest() {
         super(PORT);
-
         this.setServerSocketFactory(new TestFactory());
     }
 
@@ -73,9 +69,7 @@ public class ServerSocketFactoryTest extends NanoHTTPD {
 
     @Test
     public void testSSLServerSocketFail() {
-        String[] protocols = {
-            ""
-        };
+        String[] protocols = { "" };
         System.setProperty("javax.net.ssl.trustStore", new File("src/test/resources/keystore.jks").getAbsolutePath());
         IFactoryThrowing<ServerSocket, IOException> ssFactory = new SecureServerSocketFactory(null, protocols);
         ServerSocket ss = null;
@@ -84,7 +78,6 @@ public class ServerSocketFactoryTest extends NanoHTTPD {
         } catch (Exception e) {
         }
         Assert.assertTrue(ss == null);
-
     }
 
     private class TestFactory implements IFactoryThrowing<ServerSocket, IOException> {

@@ -35,27 +35,20 @@ import org.nanohttpd.webserver.WebServerPluginInfo;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 public class DummyPluginInfo implements WebServerPluginInfo {
 
     @Override
     public String[] getIndexFilesForMimeType(String mime) {
-
-        return new String[]{
-            "index.xml"
-        };
+        return new String[] { "index.xml" };
     }
 
     @Override
     public String[] getMimeTypes() {
-        return new String[]{
-            "text/xml"
-        };
+        return new String[] { "text/xml" };
     }
 
     @Override
     public WebServerPlugin getWebServerPlugin(String mimeType) {
         return new DummyPlugin();
     }
-
 }

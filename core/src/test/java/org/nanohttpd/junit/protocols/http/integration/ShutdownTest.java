@@ -32,15 +32,12 @@ package org.nanohttpd.junit.protocols.http.integration;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import static org.junit.Assert.fail;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-
 import org.junit.Test;
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
@@ -84,5 +81,4 @@ public class ShutdownTest {
         }
         in.close();
     }
-
 }

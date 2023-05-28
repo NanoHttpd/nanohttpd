@@ -32,11 +32,9 @@ package org.nanohttpd.protocols.http.threading;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.nanohttpd.protocols.http.ClientHandler;
 
 /**

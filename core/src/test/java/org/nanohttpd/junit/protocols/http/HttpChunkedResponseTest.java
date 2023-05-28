@@ -32,11 +32,9 @@ package org.nanohttpd.junit.protocols.http;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PipedInputStream;
-
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 
@@ -64,33 +62,11 @@ public class HttpChunkedResponseTest extends HttpServerTest {
 
     @org.junit.Test
     public void thatChunkedContentIsChunked() throws Exception {
-        PipedInputStream pipedInputStream = new ChunkedInputStream(new String[]{
-            "some",
-            "thing which is longer than sixteen characters",
-            "whee!",
-            ""
-        });
-        String[] expected = {
-            "HTTP/1.1 200 OK",
-            "Content-Type: what/ever",
-            "Date: .*",
-            "Connection: keep-alive",
-            "Transfer-Encoding: chunked",
-            "",
-            "4",
-            "some",
-            "2d",
-            "thing which is longer than sixteen characters",
-            "5",
-            "whee!",
-            "0",
-            ""
-        };
+        PipedInputStream pipedInputStream = new ChunkedInputStream(new String[] { "some", "thing which is longer than sixteen characters", "whee!", "" });
+        String[] expected = { "HTTP/1.1 200 OK", "Content-Type: what/ever", "Date: .*", "Connection: keep-alive", "Transfer-Encoding: chunked", "", "4", "some", "2d", "thing which is longer than sixteen characters", "5", "whee!", "0", "" };
         this.testServer.response = Response.newChunkedResponse(Status.OK, "what/ever", pipedInputStream);
         this.testServer.response.setChunkedTransfer(true);
-
         ByteArrayOutputStream byteArrayOutputStream = invokeServer("GET / HTTP/1.1");
-
         assertResponse(byteArrayOutputStream, expected);
     }
 }

@@ -32,14 +32,11 @@ package org.nanohttpd.junit.protocols.http;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
-
 import org.junit.Test;
 import org.nanohttpd.protocols.http.HTTPSession;
 
@@ -53,15 +50,11 @@ public class HttpSessionHeadersTest extends HttpServerTest {
     public void testHeadersRemoteIp() throws Exception {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(HttpSessionHeadersTest.DUMMY_REQUEST_CONTENT.getBytes());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        String[] ipAddresses = {
-            "127.0.0.1",
-            "8.8.8.8",
-        };
+        String[] ipAddresses = { "127.0.0.1", "8.8.8.8" };
         for (String ipAddress : ipAddresses) {
             InetAddress inetAddress = InetAddress.getByName(ipAddress);
             HTTPSession session = this.testServer.createSession(HttpSessionHeadersTest.TEST_TEMP_FILE_MANAGER, inputStream, outputStream, inetAddress);
             assertEquals(ipAddress, session.getRemoteIpAddress());
         }
     }
-
 }

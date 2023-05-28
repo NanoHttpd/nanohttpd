@@ -32,20 +32,18 @@ package org.nanohttpd.protocols.http.response;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 /**
  * Some HTTP response status codes
  */
 public enum Status implements IStatus {
-    SWITCH_PROTOCOL(101, "Switching Protocols"),
 
+    SWITCH_PROTOCOL(101, "Switching Protocols"),
     OK(200, "OK"),
     CREATED(201, "Created"),
     ACCEPTED(202, "Accepted"),
     NO_CONTENT(204, "No Content"),
     PARTIAL_CONTENT(206, "Partial Content"),
     MULTI_STATUS(207, "Multi-Status"),
-
     REDIRECT(301, "Moved Permanently"),
     /**
      * Many user agents mishandle 302 in ways that violate the RFC1945 spec
@@ -58,7 +56,6 @@ public enum Status implements IStatus {
     REDIRECT_SEE_OTHER(303, "See Other"),
     NOT_MODIFIED(304, "Not Modified"),
     TEMPORARY_REDIRECT(307, "Temporary Redirect"),
-
     BAD_REQUEST(400, "Bad Request"),
     UNAUTHORIZED(401, "Unauthorized"),
     FORBIDDEN(403, "Forbidden"),
@@ -75,7 +72,6 @@ public enum Status implements IStatus {
     RANGE_NOT_SATISFIABLE(416, "Requested Range Not Satisfiable"),
     EXPECTATION_FAILED(417, "Expectation Failed"),
     TOO_MANY_REQUESTS(429, "Too Many Requests"),
-
     INTERNAL_ERROR(500, "Internal Server Error"),
     NOT_IMPLEMENTED(501, "Not Implemented"),
     SERVICE_UNAVAILABLE(503, "Service Unavailable"),

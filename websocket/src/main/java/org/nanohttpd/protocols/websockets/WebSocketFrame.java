@@ -32,7 +32,6 @@ package org.nanohttpd.protocols.websockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -73,7 +72,6 @@ public class WebSocketFrame {
         } else if (opCode.isControlFrame() && !fin) {
             throw new WebSocketException(CloseCode.ProtocolError, "Fragmented control frame.");
         }
-
         WebSocketFrame frame = new WebSocketFrame(opCode, fin);
         frame.readPayloadInfo(in);
         frame.readPayload(in);
@@ -97,7 +95,6 @@ public class WebSocketFrame {
     private byte[] payload;
 
     // --------------------------------GETTERS---------------------------------
-
     private transient int _payloadLength;
 
     private transient String _payloadString;
@@ -130,7 +127,6 @@ public class WebSocketFrame {
     public WebSocketFrame(OpCode opCode, List<WebSocketFrame> fragments) throws WebSocketException {
         setOpCode(opCode);
         setFin(true);
-
         long _payloadLength = 0;
         for (WebSocketFrame inter : fragments) {
             _payloadLength += inter.getBinaryPayload().length;
@@ -168,7 +164,6 @@ public class WebSocketFrame {
     }
 
     // --------------------------------SERIALIZATION---------------------------
-
     public String getTextPayload() {
         if (this._payloadString == null) {
             try {
@@ -220,13 +215,11 @@ public class WebSocketFrame {
         while (read < this._payloadLength) {
             read += checkedRead(in.read(this.payload, read, this._payloadLength - read));
         }
-
         if (isMasked()) {
             for (int i = 0; i < this.payload.length; i++) {
                 this.payload[i] ^= this.maskingKey[i % 4];
             }
         }
-
         // Test for Unicode errors
         if (getOpCode() == OpCode.Text) {
             this._payloadString = binary2Text(getBinaryPayload());
@@ -234,11 +227,9 @@ public class WebSocketFrame {
     }
 
     // --------------------------------ENCODING--------------------------------
-
     private void readPayloadInfo(InputStream in) throws IOException {
         byte b = (byte) checkedRead(in.read());
         boolean masked = (b & 0x80) != 0;
-
         this._payloadLength = (byte) (0x7F & b);
         if (this._payloadLength == 126) {
             // checkedRead must return int for this to work
@@ -247,9 +238,7 @@ public class WebSocketFrame {
                 throw new WebSocketException(CloseCode.ProtocolError, "Invalid data frame 2byte length. (not using minimal length encoding)");
             }
         } else if (this._payloadLength == 127) {
-            long _payloadLength =
-                    (long) checkedRead(in.read()) << 56 | (long) checkedRead(in.read()) << 48 | (long) checkedRead(in.read()) << 40 | (long) checkedRead(in.read()) << 32
-                            | checkedRead(in.read()) << 24 | checkedRead(in.read()) << 16 | checkedRead(in.read()) << 8 | checkedRead(in.read());
+            long _payloadLength = (long) checkedRead(in.read()) << 56 | (long) checkedRead(in.read()) << 48 | (long) checkedRead(in.read()) << 40 | (long) checkedRead(in.read()) << 32 | checkedRead(in.read()) << 24 | checkedRead(in.read()) << 16 | checkedRead(in.read()) << 8 | checkedRead(in.read());
             if (_payloadLength < 65536) {
                 throw new WebSocketException(CloseCode.ProtocolError, "Invalid data frame 4byte length. (not using minimal length encoding)");
             }
@@ -258,7 +247,6 @@ public class WebSocketFrame {
             }
             this._payloadLength = (int) _payloadLength;
         }
-
         if (this.opCode.isControlFrame()) {
             if (this._payloadLength > 125) {
                 throw new WebSocketException(CloseCode.ProtocolError, "Control frame with payload length > 125 bytes.");
@@ -267,7 +255,6 @@ public class WebSocketFrame {
                 throw new WebSocketException(CloseCode.ProtocolError, "Received close frame with payload len 1.");
             }
         }
-
         if (masked) {
             this.maskingKey = new byte[4];
             int read = 0;
@@ -305,7 +292,6 @@ public class WebSocketFrame {
     }
 
     // --------------------------------CONSTANTS-------------------------------
-
     public void setUnmasked() {
         setMaskingKey(null);
     }
@@ -322,7 +308,6 @@ public class WebSocketFrame {
     }
 
     // ------------------------------------------------------------------------
-
     public void write(OutputStream out) throws IOException {
         byte header = 0;
         if (this.fin) {
@@ -330,7 +315,6 @@ public class WebSocketFrame {
         }
         header |= this.opCode.getValue() & 0x0F;
         out.write(header);
-
         this._payloadLength = getBinaryPayload().length;
         if (this._payloadLength <= 125) {
             out.write(isMasked() ? 0x80 | (byte) this._payloadLength : (byte) this._payloadLength);
@@ -340,8 +324,9 @@ public class WebSocketFrame {
             out.write(this._payloadLength);
         } else {
             out.write(isMasked() ? 0xFF : 127);
-            out.write(this._payloadLength >>> 56 & 0); // integer only
-                                                       // contains
+            // integer only
+            out.write(this._payloadLength >>> 56 & 0);
+            // contains
             // 31 bit
             out.write(this._payloadLength >>> 48 & 0);
             out.write(this._payloadLength >>> 40 & 0);
@@ -351,7 +336,6 @@ public class WebSocketFrame {
             out.write(this._payloadLength >>> 8);
             out.write(this._payloadLength);
         }
-
         if (isMasked()) {
             out.write(this.maskingKey);
             for (int i = 0; i < this._payloadLength; i++) {

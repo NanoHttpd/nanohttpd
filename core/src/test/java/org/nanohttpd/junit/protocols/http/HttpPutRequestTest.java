@@ -32,14 +32,11 @@ package org.nanohttpd.junit.protocols.http;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import static junit.framework.Assert.assertTrue;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.FileReader;
 import java.util.List;
-
 import org.junit.Test;
 
 public class HttpPutRequestTest extends HttpServerTest {
@@ -47,25 +44,12 @@ public class HttpPutRequestTest extends HttpServerTest {
     @Test
     public void testPutRequestSendsContent() throws Exception {
         ByteArrayOutputStream outputStream = invokeServer("PUT " + HttpServerTest.URI + " HTTP/1.1\r\n\r\nBodyData 1\nLine 2");
-
-        String[] expectedOutput = {
-            "HTTP/1.1 200 OK",
-            "Content-Type: text/html",
-            "Date: .*",
-            "Connection: keep-alive",
-            "Content-Length: 0",
-            ""
-        };
-
+        String[] expectedOutput = { "HTTP/1.1 200 OK", "Content-Type: text/html", "Date: .*", "Connection: keep-alive", "Content-Length: 0", "" };
         assertResponse(outputStream, expectedOutput);
-
         assertTrue(this.testServer.files.containsKey("content"));
         BufferedReader reader = null;
         try {
-            String[] expectedInputToServeMethodViaFile = {
-                "BodyData 1",
-                "Line 2"
-            };
+            String[] expectedInputToServeMethodViaFile = { "BodyData 1", "Line 2" };
             reader = new BufferedReader(new FileReader(this.testServer.files.get("content")));
             List<String> lines = readLinesFromFile(reader);
             assertLinesOfText(expectedInputToServeMethodViaFile, lines);

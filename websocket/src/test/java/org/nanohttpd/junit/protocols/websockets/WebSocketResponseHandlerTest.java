@@ -32,19 +32,16 @@ package org.nanohttpd.junit.protocols.websockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static org.mockito.Mockito.when;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -86,7 +83,6 @@ public class WebSocketResponseHandlerTest {
         public void initialize() {
             interceptors = new ArrayList<IHandler<IHTTPSession, Response>>();
             addHTTPInterceptor(new Interceptor());
-
             setHTTPHandler(new IHandler<IHTTPSession, Response>() {
 
                 @Override
@@ -98,7 +94,9 @@ public class WebSocketResponseHandlerTest {
 
         @Override
         protected WebSocket openWebSocket(IHTTPSession handshake) {
-            return new WebSocket(handshake) { // Dummy websocket inner class.
+            return new // Dummy websocket inner class.
+            WebSocket(// Dummy websocket inner class.
+            handshake) {
 
                 @Override
                 protected void onPong(WebSocketFrame pong) {
@@ -133,14 +131,12 @@ public class WebSocketResponseHandlerTest {
         // this could have been avoided if Mockito had a way to call fucking
         // constructors!!
         this.nanoWebSocketServer.initialize();
-
         this.headers = new HashMap<String, String>();
         this.headers.put("upgrade", "websocket");
         this.headers.put("connection", "Upgrade");
         this.headers.put("sec-websocket-key", "x3JJHMbDL1EzLkh9GBhXDw==");
         this.headers.put("sec-websocket-protocol", "chat, superchat");
         this.headers.put("sec-websocket-version", "13");
-
         when(this.session.getHeaders()).thenReturn(this.headers);
     }
 
@@ -148,16 +144,13 @@ public class WebSocketResponseHandlerTest {
     public void testConnectionHeaderHandlesKeepAlive_FixingFirefoxConnectIssue() {
         this.headers.put("connection", "keep-alive, Upgrade");
         Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
-
         assertNotNull(handshakeResponse);
     }
 
     @Test
     public void testHandshakeReturnsResponseWithExpectedHeaders() {
         Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
-
         assertNotNull(handshakeResponse);
-
         assertEquals(handshakeResponse.getHeader(NanoWSD.HEADER_WEBSOCKET_ACCEPT), "HSmrc0sMlYUkAGmm5OPpG2HaGWk=");
         assertEquals(handshakeResponse.getHeader(NanoWSD.HEADER_WEBSOCKET_PROTOCOL), "chat");
     }
@@ -165,9 +158,7 @@ public class WebSocketResponseHandlerTest {
     @Test
     public void testMissingKeyReturnsErrorResponse() {
         this.headers.remove("sec-websocket-key");
-
         Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
-
         assertNotNull(handshakeResponse);
         assertEquals(Status.BAD_REQUEST, handshakeResponse.getStatus());
     }
@@ -189,9 +180,7 @@ public class WebSocketResponseHandlerTest {
     @Test
     public void testWrongWebsocketVersionReturnsErrorResponse() {
         this.headers.put("sec-websocket-version", "12");
-
         Response handshakeResponse = this.nanoWebSocketServer.handle(this.session);
-
         assertNotNull(handshakeResponse);
         assertEquals(Status.BAD_REQUEST, handshakeResponse.getStatus());
     }
@@ -206,7 +195,6 @@ public class WebSocketResponseHandlerTest {
                 webSocketFrame.setMaskingKey(new byte[maskingKeyLength]);
                 Assert.fail("IllegalArgumentException expected but not thrown");
             } catch (IllegalArgumentException e) {
-
             }
         }
     }
@@ -215,10 +203,8 @@ public class WebSocketResponseHandlerTest {
     public void testIsMasked() {
         WebSocketFrame webSocketFrame = new WebSocketFrame(OpCode.Text, true, new byte[0]);
         Assert.assertFalse("isMasked should return true if masking key is not set.", webSocketFrame.isMasked());
-
         webSocketFrame.setMaskingKey(new byte[4]);
         Assert.assertTrue("isMasked should return true if correct masking key is set.", webSocketFrame.isMasked());
-
     }
 
     @Test
@@ -230,49 +216,20 @@ public class WebSocketResponseHandlerTest {
         Assert.assertEquals(9, writtenBytes.length);
         Assert.assertEquals("Header byte incorrect.", -127, writtenBytes[0]);
         Assert.assertEquals("Payload length byte incorrect.", 7, writtenBytes[1]);
-        Assert.assertArrayEquals(new byte[]{
-            -127,
-            7,
-            112,
-            97,
-            121,
-            108,
-            111,
-            97,
-            100
-        }, writtenBytes);
+        Assert.assertArrayEquals(new byte[] { -127, 7, 112, 97, 121, 108, 111, 97, 100 }, writtenBytes);
     }
 
     @Test
     public void testWriteWhenMasked() throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         WebSocketFrame webSocketFrame = new WebSocketFrame(OpCode.Binary, true, "payload".getBytes());
-        webSocketFrame.setMaskingKey(new byte[]{
-            12,
-            45,
-            33,
-            32
-        });
+        webSocketFrame.setMaskingKey(new byte[] { 12, 45, 33, 32 });
         webSocketFrame.write(byteArrayOutputStream);
         byte[] writtenBytes = byteArrayOutputStream.toByteArray();
         Assert.assertEquals(13, writtenBytes.length);
         Assert.assertEquals("Header byte incorrect.", -126, writtenBytes[0]);
         Assert.assertEquals("Payload length byte incorrect.", -121, writtenBytes[1]);
-        Assert.assertArrayEquals(new byte[]{
-            -126,
-            -121,
-            12,
-            45,
-            33,
-            32,
-            124,
-            76,
-            88,
-            76,
-            99,
-            76,
-            69
-        }, writtenBytes);
+        Assert.assertArrayEquals(new byte[] { -126, -121, 12, 45, 33, 32, 124, 76, 88, 76, 99, 76, 69 }, writtenBytes);
     }
 
     @Test
@@ -283,40 +240,19 @@ public class WebSocketResponseHandlerTest {
         byte[] writtenBytes = byteArrayOutputStream.toByteArray();
         Assert.assertEquals(261, writtenBytes.length);
         Assert.assertEquals("Header byte incorrect.", -119, writtenBytes[0]);
-        Assert.assertArrayEquals("Payload length bytes incorrect.", new byte[]{
-            126,
-            1,
-            1
-        }, new byte[]{
-            writtenBytes[1],
-            writtenBytes[2],
-            writtenBytes[3]
-        });
+        Assert.assertArrayEquals("Payload length bytes incorrect.", new byte[] { 126, 1, 1 }, new byte[] { writtenBytes[1], writtenBytes[2], writtenBytes[3] });
     }
 
     @Test
     public void testWriteWhenMaskedPayloadLengthGreaterThan125() throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         WebSocketFrame webSocketFrame = new WebSocketFrame(OpCode.Ping, false, new byte[257]);
-        webSocketFrame.setMaskingKey(new byte[]{
-            19,
-            25,
-            79,
-            11
-        });
+        webSocketFrame.setMaskingKey(new byte[] { 19, 25, 79, 11 });
         webSocketFrame.write(byteArrayOutputStream);
         byte[] writtenBytes = byteArrayOutputStream.toByteArray();
         Assert.assertEquals(265, writtenBytes.length);
         Assert.assertEquals("Header byte incorrect.", 9, writtenBytes[0]);
-        Assert.assertArrayEquals("Payload length bytes incorrect.", new byte[]{
-            -2,
-            1,
-            1
-        }, new byte[]{
-            writtenBytes[1],
-            writtenBytes[2],
-            writtenBytes[3]
-        });
+        Assert.assertArrayEquals("Payload length bytes incorrect.", new byte[] { -2, 1, 1 }, new byte[] { writtenBytes[1], writtenBytes[2], writtenBytes[3] });
     }
 
     @Test
@@ -327,16 +263,6 @@ public class WebSocketResponseHandlerTest {
         byte[] writtenBytes = byteArrayOutputStream.toByteArray();
         Assert.assertEquals(65546, writtenBytes.length);
         Assert.assertEquals("Header byte incorrect.", -119, writtenBytes[0]);
-        Assert.assertArrayEquals("Payload length bytes incorrect.", new byte[]{
-            127,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            0,
-            0
-        }, Arrays.copyOfRange(writtenBytes, 1, 10));
+        Assert.assertArrayEquals("Payload length bytes incorrect.", new byte[] { 127, 0, 0, 0, 0, 0, 1, 0, 0 }, Arrays.copyOfRange(writtenBytes, 1, 10));
     }
 }

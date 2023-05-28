@@ -32,9 +32,7 @@ package org.nanohttpd.samples.websockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.IOException;
-
 import org.nanohttpd.protocols.websockets.NanoWSD;
 
 public class EchoSocketSample {
@@ -51,5 +49,4 @@ public class EchoSocketSample {
         ws.stop();
         System.out.println("Server stopped.\n");
     }
-
 }

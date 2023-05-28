@@ -32,7 +32,6 @@ package org.nanohttpd.protocols.websockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.nio.charset.CharacterCodingException;
 
 public class CloseFrame extends WebSocketFrame {

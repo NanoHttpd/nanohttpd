@@ -32,8 +32,8 @@ package org.nanohttpd.protocols.websockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 public enum OpCode {
+
     Continuation(0),
     Text(1),
     Binary(2),

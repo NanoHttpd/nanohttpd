@@ -32,11 +32,10 @@ package org.nanohttpd.util;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 /**
  * Represents a factory that can throw an exception instead of actually creating
  * an object
- * 
+ *
  * @author LordFokas
  * @param <T>
  *            The Type of object to create

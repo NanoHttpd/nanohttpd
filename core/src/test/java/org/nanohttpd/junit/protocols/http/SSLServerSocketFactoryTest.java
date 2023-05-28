@@ -1,7 +1,6 @@
 package org.nanohttpd.junit.protocols.http;
 
 import java.io.File;
-
 /*
  * #%L
  * NanoHttpd-Core
@@ -34,12 +33,9 @@ import java.io.File;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.IOException;
 import java.util.Arrays;
-
 import javax.net.ssl.SSLServerSocket;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -61,7 +57,6 @@ public class SSLServerSocketFactoryTest extends HttpServerTest {
         HttpResponse response = httpclient.execute(httphead);
         HttpEntity entity = response.getEntity();
         Assert.assertEquals(200, response.getStatusLine().getStatusCode());
-
         Assert.assertEquals(9043, this.testServer.getListeningPort());
         Assert.assertTrue(this.testServer.isAlive());
     }
@@ -72,12 +67,10 @@ public class SSLServerSocketFactoryTest extends HttpServerTest {
         SecureServerSocketFactory secureServerSocketFactory = new SecureServerSocketFactory(NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()), null);
         SSLServerSocket socket = (SSLServerSocket) secureServerSocketFactory.create();
         String[] protocols = socket.getSupportedProtocols();
-
         // remove one element from supported protocols
         if (protocols.length > 0) {
             protocols = Arrays.copyOfRange(protocols, 0, protocols.length - 1);
         }
-
         // test
         secureServerSocketFactory = new SecureServerSocketFactory(NanoHTTPD.makeSSLSocketFactory("/keystore.jks", "password".toCharArray()), protocols);
         socket = (SSLServerSocket) secureServerSocketFactory.create();

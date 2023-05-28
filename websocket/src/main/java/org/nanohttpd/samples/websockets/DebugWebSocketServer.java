@@ -32,11 +32,9 @@ package org.nanohttpd.samples.websockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.websockets.CloseCode;
 import org.nanohttpd.protocols.websockets.NanoWSD;
@@ -81,8 +79,7 @@ public class DebugWebSocketServer extends NanoWSD {
         @Override
         protected void onClose(CloseCode code, String reason, boolean initiatedByRemote) {
             if (server.debug) {
-                System.out.println("C [" + (initiatedByRemote ? "Remote" : "Self") + "] " + (code != null ? code : "UnknownCloseCode[" + code + "]")
-                        + (reason != null && !reason.isEmpty() ? ": " + reason : ""));
+                System.out.println("C [" + (initiatedByRemote ? "Remote" : "Self") + "] " + (code != null ? code : "UnknownCloseCode[" + code + "]") + (reason != null && !reason.isEmpty() ? ": " + reason : ""));
             }
         }
 

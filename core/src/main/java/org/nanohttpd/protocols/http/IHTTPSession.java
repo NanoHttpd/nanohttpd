@@ -32,12 +32,10 @@ package org.nanohttpd.protocols.http;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-
 import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
 import org.nanohttpd.protocols.http.content.CookieHandler;
 import org.nanohttpd.protocols.http.request.Method;
@@ -61,7 +59,7 @@ public interface IHTTPSession {
      * This method will only return the first value for a given parameter. You
      * will want to use getParameters if you expect multiple values for a given
      * key.
-     * 
+     *
      * @deprecated use {@link #getParameters()} instead.
      */
     @Deprecated
@@ -78,7 +76,7 @@ public interface IHTTPSession {
 
     /**
      * Adds the files in the request body to the files map.
-     * 
+     *
      * @param files
      *            map to modify
      */
@@ -86,7 +84,7 @@ public interface IHTTPSession {
 
     /**
      * Get the remote ip address of the requester.
-     * 
+     *
      * @return the IP address.
      */
     String getRemoteIpAddress();

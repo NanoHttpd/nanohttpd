@@ -32,7 +32,6 @@ package org.nanohttpd.junit.fileupload;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +41,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
@@ -77,7 +75,7 @@ import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
 /**
  * very strange but if the file upload is the first request the test fails.
- * 
+ *
  * @author ritchieGitHub
  */
 @FixMethodOrder
@@ -124,7 +122,6 @@ public class TestNanoFileUpLoad {
 
         @Override
         public Response serve(IHTTPSession session) {
-
             this.uri = session.getUri();
             this.method = session.getMethod();
             this.header = session.getHeaders();
@@ -147,9 +144,7 @@ public class TestNanoFileUpLoad {
                             FileItemStream item = iter.next();
                             final String fileName = item.getName();
                             FileItem fileItem = uploader.getFileItemFactory().createItem(item.getFieldName(), item.getContentType(), item.isFormField(), fileName);
-                            files.put(fileItem.getFieldName(), Arrays.asList(new FileItem[]{
-                                fileItem
-                            }));
+                            files.put(fileItem.getFieldName(), Arrays.asList(new FileItem[] { fileItem }));
                             try {
                                 Streams.copy(item.openStream(), fileItem.getOutputStream(), true);
                             } catch (Exception e) {
@@ -167,7 +162,6 @@ public class TestNanoFileUpLoad {
             this.decodedParamters = decodeParameters(session.getQueryParameterString());
             return this.response;
         }
-
     }
 
     @Test
@@ -184,7 +178,6 @@ public class TestNanoFileUpLoad {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         String textFileName = UPLOAD_JAVA_FILE;
         HttpPost post = new HttpPost("http://localhost:8192/uploadFile1");
-
         executeUpload(httpclient, textFileName, post);
         FileItem file = this.testServer.files.get("upfile").get(0);
         Assert.assertEquals(file.getSize(), new File(textFileName).length());
@@ -195,7 +188,6 @@ public class TestNanoFileUpLoad {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         String textFileName = UPLOAD_JAVA_FILE;
         HttpPost post = new HttpPost("http://localhost:8192/uploadFile2");
-
         executeUpload(httpclient, textFileName, post);
         FileItem file = this.testServer.files.get("upfile").get(0);
         Assert.assertEquals(file.getSize(), new File(textFileName).length());
@@ -206,7 +198,6 @@ public class TestNanoFileUpLoad {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         String textFileName = UPLOAD_JAVA_FILE;
         HttpPost post = new HttpPost("http://localhost:8192/uploadFile3");
-
         executeUpload(httpclient, textFileName, post);
         FileItem file = this.testServer.files.get("upfile").get(0);
         Assert.assertEquals(file.getSize(), new File(textFileName).length());
@@ -215,7 +206,6 @@ public class TestNanoFileUpLoad {
     private void executeUpload(CloseableHttpClient httpclient, String textFileName, HttpPost post) throws IOException, ClientProtocolException {
         FileBody fileBody = new FileBody(new File(textFileName), ContentType.DEFAULT_BINARY);
         StringBody stringBody1 = new StringBody("Message 1", ContentType.MULTIPART_FORM_DATA);
-
         MultipartEntityBuilder builder = MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
         builder.addPart("upfile", fileBody);
@@ -248,5 +238,4 @@ public class TestNanoFileUpLoad {
     public void tearDown() {
         this.testServer.stop();
     }
-
 }

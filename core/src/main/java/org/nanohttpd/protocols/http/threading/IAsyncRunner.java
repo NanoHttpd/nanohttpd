@@ -32,7 +32,6 @@ package org.nanohttpd.protocols.http.threading;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import org.nanohttpd.protocols.http.ClientHandler;
 
 /**

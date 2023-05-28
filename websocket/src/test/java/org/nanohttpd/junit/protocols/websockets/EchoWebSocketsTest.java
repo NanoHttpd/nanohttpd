@@ -32,16 +32,13 @@ package org.nanohttpd.junit.protocols.websockets;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
-
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
-
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.junit.AfterClass;
@@ -70,18 +67,13 @@ public class EchoWebSocketsTest {
     @Test
     public void testDirectoryArgument() throws IOException, InterruptedException {
         final String testPort = "9458";
-
         PipedOutputStream stdIn = new PipedOutputStream();
         System.setIn(new PipedInputStream(stdIn));
-
         Thread testServer = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                String[] args = {
-                    testPort,
-                    "-d"
-                };
+                String[] args = { testPort, "-d" };
                 try {
                     EchoSocketSample.main(args);
                 } catch (IOException e) {
@@ -89,7 +81,6 @@ public class EchoWebSocketsTest {
                 }
             }
         });
-
         testServer.start();
         Thread.sleep(1000);
         stdIn.write(System.getProperty("line.separator").getBytes());
@@ -100,7 +91,6 @@ public class EchoWebSocketsTest {
     @Test
     public void testWebsocketClient() throws Exception {
         String destUri = "ws://localhost:9191";
-
         WebSocketClient client = new WebSocketClient();
         SimpleEchoSocket socket = new SimpleEchoSocket();
         socket.getToSendMessages().add("Hello");
@@ -126,7 +116,6 @@ public class EchoWebSocketsTest {
         Assert.assertEquals(4, socket.getReceivedMessages().size());
         Assert.assertEquals("Hello", socket.getReceivedMessages().get(0));
         Assert.assertEquals("Thanks for the conversation.", socket.getReceivedMessages().get(1));
-
     }
 
     private String createString(int i) {

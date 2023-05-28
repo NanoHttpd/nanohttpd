@@ -32,7 +32,6 @@ package org.nanohttpd.protocols.http.content;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -40,7 +39,7 @@ import java.util.TimeZone;
 
 /**
  * A simple cookie representation. This is old code and is flawed in many ways.
- * 
+ *
  * @author LordFokas
  */
 public class Cookie {

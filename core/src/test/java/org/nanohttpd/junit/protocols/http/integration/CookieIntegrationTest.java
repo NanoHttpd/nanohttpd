@@ -32,15 +32,12 @@ package org.nanohttpd.junit.protocols.http.integration;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
@@ -92,7 +89,6 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
         HttpGet httpget = new HttpGet("http://localhost:8192/");
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         this.httpclient.execute(httpget, responseHandler);
-
         CookieStore cookies = this.httpclient.getCookieStore();
         assertEquals(1, cookies.getCookies().size());
         assertEquals("name", cookies.getCookies().get(0).getName());
@@ -108,7 +104,6 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
         HttpGet httpget = new HttpGet("http://localhost:8192/");
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         this.httpclient.execute(httpget, responseHandler);
-
         assertEquals(4, this.httpclient.getCookieStore().getCookies().size());
     }
 
@@ -117,7 +112,6 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
         HttpGet httpget = new HttpGet("http://localhost:8192/");
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         this.httpclient.execute(httpget, responseHandler);
-
         CookieStore cookies = this.httpclient.getCookieStore();
         assertEquals(0, cookies.getCookies().size());
     }
@@ -133,7 +127,6 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
         HttpGet httpget = new HttpGet("http://localhost:8192/");
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         this.httpclient.execute(httpget, responseHandler);
-
         assertEquals(1, this.testServer.cookiesReceived.size());
         assertTrue(this.testServer.cookiesReceived.get(0).getHTTPHeader().contains("name=value"));
     }
@@ -162,7 +155,6 @@ public class CookieIntegrationTest extends IntegrationTestBase<CookieIntegration
         HttpGet httpget = new HttpGet("http://localhost:8192/");
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         this.httpclient.execute(httpget, responseHandler);
-
         assertEquals(4, this.testServer.cookiesReceived.size());
     }
 }

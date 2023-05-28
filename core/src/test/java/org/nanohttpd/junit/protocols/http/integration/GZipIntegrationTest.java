@@ -32,18 +32,15 @@ package org.nanohttpd.junit.protocols.http.integration;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -159,7 +156,5 @@ public class GZipIntegrationTest extends IntegrationTestBase<GZipIntegrationTest
         Header contentEncoding = response.getFirstHeader("content-encoding");
         assertNull("Content-Encoding should not be set when manually setting content-length", contentEncoding);
         assertEquals("This is a test", EntityUtils.toString(response.getEntity()));
-
     }
-
 }

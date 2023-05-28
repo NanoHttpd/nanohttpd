@@ -2,12 +2,9 @@ package org.nanohttpd.junit.protocols.http;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.net.ssl.SSLServerSocketFactory;
-
 /*
  * #%L
  * NanoHttpd-Core
@@ -40,7 +37,6 @@ import javax.net.ssl.SSLServerSocketFactory;
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -56,7 +52,6 @@ public class LoadKeyStoreTest {
         String keyStorePath = "/keystore.jks";
         InputStream resourceAsStream = this.getClass().getResourceAsStream(keyStorePath);
         assertNotNull(resourceAsStream);
-
         SSLServerSocketFactory sslServerSocketFactory = NanoHTTPD.makeSSLSocketFactory(keyStorePath, "password".toCharArray());
         assertNotNull(sslServerSocketFactory);
     }
@@ -66,7 +61,6 @@ public class LoadKeyStoreTest {
         String keyStorePath = "/keystore.jks";
         InputStream resourceAsStream = this.getClass().getResourceAsStream(keyStorePath);
         assertNotNull(resourceAsStream);
-
         thrown.expect(IOException.class);
         NanoHTTPD.makeSSLSocketFactory(keyStorePath, "wrongpassword".toCharArray());
     }
@@ -76,9 +70,7 @@ public class LoadKeyStoreTest {
         String nonExistentPath = "/nokeystorehere.jks";
         InputStream resourceAsStream = this.getClass().getResourceAsStream(nonExistentPath);
         assertNull(resourceAsStream);
-
         thrown.expect(IOException.class);
         NanoHTTPD.makeSSLSocketFactory(nonExistentPath, "".toCharArray());
     }
-
 }
