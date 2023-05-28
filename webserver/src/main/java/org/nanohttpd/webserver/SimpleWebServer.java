@@ -464,17 +464,15 @@ public class SimpleWebServer extends NanoHTTPD {
             long startFrom = 0;
             long endAt = -1;
             String range = header.get("range");
-            if (range != null) {
-                if (range.startsWith("bytes=")) {
-                    range = range.substring("bytes=".length());
-                    int minus = range.indexOf('-');
-                    try {
-                        if (minus > 0) {
-                            startFrom = Long.parseLong(range.substring(0, minus));
-                            endAt = Long.parseLong(range.substring(minus + 1));
-                        }
-                    } catch (NumberFormatException ignored) {
+            if (range != null && range.startsWith("bytes=")) {
+                range = range.substring("bytes=".length());
+                int minus = range.indexOf('-');
+                try {
+                    if (minus > 0) {
+                        startFrom = Long.parseLong(range.substring(0, minus));
+                        endAt = Long.parseLong(range.substring(minus + 1));
                     }
+                } catch (NumberFormatException ignored) {
                 }
             }
             // get if-range header. If present, it must match etag or else we
