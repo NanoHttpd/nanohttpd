@@ -157,6 +157,7 @@ public class HTTPSession implements IHTTPSession {
                 decodeParms(uri.substring(qmi + 1), parms);
                 uri = NanoHTTPD.decodePercent(uri.substring(0, qmi));
             } else {
+                queryParameterString = "";
                 uri = NanoHTTPD.decodePercent(uri);
             }
 
