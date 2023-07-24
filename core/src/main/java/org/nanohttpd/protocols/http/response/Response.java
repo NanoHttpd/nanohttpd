@@ -349,7 +349,8 @@ public class Response implements Closeable {
             long bytesToRead = sendEverything ? BUFFER_SIZE : Math.min(pending, BUFFER_SIZE);
             int read = this.data.read(buff, 0, (int) bytesToRead);
             if (read <= 0) {
-                break;
+                if(this.requestMethod == Method.POST) break;
+                Thread.sleep(1000);
             }
             try {
                 outputStream.write(buff, 0, read);
