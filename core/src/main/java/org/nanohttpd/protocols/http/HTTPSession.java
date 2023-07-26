@@ -154,9 +154,12 @@ public class HTTPSession implements IHTTPSession {
             // Decode parameters from the URI
             int qmi = uri.indexOf('?');
             if (qmi >= 0) {
-                decodeParms(uri.substring(qmi + 1), parms);
+//                decodeParms(uri.substring(qmi + 1), parms);
+                queryParameterString = uri.substring(qmi + 1);
+                decodeParms(queryParameterString, parms);
                 uri = NanoHTTPD.decodePercent(uri.substring(0, qmi));
             } else {
+                queryParameterString = "";
                 uri = NanoHTTPD.decodePercent(uri);
             }
 
@@ -305,11 +308,11 @@ public class HTTPSession implements IHTTPSession {
      */
     private void decodeParms(String parms, Map<String, List<String>> p) {
         if (parms == null) {
-            this.queryParameterString = "";
+//            this.queryParameterString = "";
             return;
         }
 
-        this.queryParameterString = parms;
+//        this.queryParameterString = parms;
         StringTokenizer st = new StringTokenizer(parms, "&");
         while (st.hasMoreTokens()) {
             String e = st.nextToken();
@@ -456,6 +459,9 @@ public class HTTPSession implements IHTTPSession {
             NanoHTTPD.safeClose(this.outputStream);
         } finally {
             NanoHTTPD.safeClose(r);
+            if(r.getRequestMethod() == Method.POST) {
+                NanoHTTPD.safeClose(this.inputStream);
+            }
             this.tempFileManager.clear();
         }
     }
